@@ -1,0 +1,39 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# Models - Large files
+models/
+*.gguf
+*.onnx
+*.bin
+*.tflite
+*.mdl
+*.fst
+*.dubm
+*.ie
+*.mat
+*.stats
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Kiro
+.kiro/
+
+# Trash
+trash/

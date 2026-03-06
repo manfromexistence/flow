@@ -1,0 +1,46 @@
+[package]
+name = "edith"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# ONNX Runtime for all models
+ort = { version = "2.0.0-rc.12", features = ["load-dynamic"] }
+
+# LLM inference - llama-cpp-2 (latest, actively maintained)
+llama-cpp-2 = "0.1"
+
+# Audio processing
+hound = "3.5"
+cpal = "0.15"
+
+# Async runtime
+tokio = { version = "1.40", features = ["full"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Utilities
+ndarray = "0.16"
+
+# Performance monitoring
+sysinfo = "0.32"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.release.package."*"]
+opt-level = 3
