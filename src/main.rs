@@ -115,32 +115,26 @@ async fn main() -> Result<()> {
         let mut n_cur = tokens.len() as i32;
         
         for _ in 0..max_tokens {
-            // Get candidates from last position
-            let candidates = ctx.candidates_ith(batch.n_tokens() - 1);
+            // Get logits from last position
+            let logits = ctx.candidates_ith(batch.n_tokens() - 1);
             
-            // Convert to vec and apply softmax sampling
-            let mut candidates_vec: Vec<_> = candidates.collect();
+            // Simple greedy sampling - just take the highest probability token
+            let mut max_prob = f32::NEG_INFINITY;
+            let mut best_token = None;
             
-            // Apply temperature and sample
-            let temperature = 0.7;
-            for candidate in &mut candidates_vec {
-                candidate.set_p(candidate.p() / temperature);
+            for candidate in logits {
+                if candidate.logit() > max_prob {
+                    max_prob = candidate.logit();
+                    best_token = Some(candidate.id());
+                }
             }
             
-            // Normalize probabilities
-            let sum: f32 = candidates_vec.iter().map(|c| c.p()).sum();
-            for candidate in &mut candidates_vec {
-                candidate.set_p(candidate.p() / sum);
-            }
-            
-            // Sort by probability
-            candidates_vec.sort_by(|a, b| b.p().partial_cmp(&a.p()).unwrap_or(std::cmp::Ordering::Equal));
-            
-            let new_token_id = if !candidates_vec.is_empty() {
-                candidates_vec[0].id()
-            } else {
-                error!("No candidates available");
-                break;
+            let new_token_id = match best_token {
+                Some(token) => token,
+                None => {
+                    error!("No candidates available");
+                    break;
+                }
             };
             
             // Check for EOS or Qwen special tokens (im_end, im_start)
