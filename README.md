@@ -1,5 +1,7 @@
 # 🤖 Edith - Pure Rust Voice AI Assistant
 
+cargo build --release && ./target/release/edith.exe
+
 **Edith** is a fully local, privacy-focused voice AI assistant built in pure Rust, optimized for low-end devices (8GB RAM). All models run on-device with zero Python dependencies.
 
 ## ✅ Build Status
