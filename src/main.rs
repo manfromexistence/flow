@@ -118,8 +118,22 @@ async fn main() -> Result<()> {
             // Get candidates from last position
             let candidates = ctx.candidates_ith(batch.n_tokens() - 1);
             
-            // Sort candidates by probability (descending) and take top token
+            // Convert to vec and apply softmax sampling
             let mut candidates_vec: Vec<_> = candidates.collect();
+            
+            // Apply temperature and sample
+            let temperature = 0.7;
+            for candidate in &mut candidates_vec {
+                candidate.set_p(candidate.p() / temperature);
+            }
+            
+            // Normalize probabilities
+            let sum: f32 = candidates_vec.iter().map(|c| c.p()).sum();
+            for candidate in &mut candidates_vec {
+                candidate.set_p(candidate.p() / sum);
+            }
+            
+            // Sort by probability
             candidates_vec.sort_by(|a, b| b.p().partial_cmp(&a.p()).unwrap_or(std::cmp::Ordering::Equal));
             
             let new_token_id = if !candidates_vec.is_empty() {
@@ -129,8 +143,10 @@ async fn main() -> Result<()> {
                 break;
             };
             
-            // Check for EOS or special tokens
-            if model.is_eog_token(new_token_id) || new_token_id == 151643 || new_token_id == 151645 {
+            // Check for EOS or Qwen special tokens (im_end, im_start)
+            let token_id_i32 = new_token_id.0; // Extract i32 from LlamaToken
+            let eos_tokens = [151643_i32, 151645_i32]; // Qwen chat template tokens
+            if model.is_eog_token(new_token_id) || eos_tokens.contains(&token_id_i32) {
                 break;
             }
             
