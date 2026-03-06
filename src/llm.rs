@@ -1,5 +1,5 @@
-/// Large Language Model module using Qwen 3.5 0.8B
-/// Model: Qwen 3.5 0.8B Q4_K_M quantized (~350MB)
+/// Large Language Model module using Qwen 3.5 2B
+/// Model: Qwen 3.5 2B Q4_K_M quantized (~1.2GB)
 /// Runtime: llama.cpp via `llama-cpp-2` crate (actively maintained as of 2026)
 use anyhow::Result;
 
@@ -10,11 +10,11 @@ pub struct QwenLLM {
 
 #[allow(dead_code)]
 impl QwenLLM {
-    /// Initialize Qwen 3.5 0.8B model
-    /// Download GGUF from: https://huggingface.co/Qwen/Qwen3.5-0.8B-GGUF
+    /// Initialize Qwen 3.5 2B model
+    /// Download GGUF from: https://huggingface.co/unsloth/Qwen3.5-2B-GGUF
     /// Use Q4_K_M quantization for best size/quality balance
     /// 
-    /// Released: March 2, 2026 (latest sub-1B model)
+    /// Released: March 2, 2026 (small model series)
     /// Context: 256K tokens (extendable to 1M)
     /// Languages: 201 languages
     pub fn new(_model_path: &str) -> Result<Self> {
