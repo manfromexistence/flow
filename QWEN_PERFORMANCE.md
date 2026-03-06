@@ -1,3 +1,7 @@
+Our last LLM chat code is configured around running Quin 3 LLM model, which has thinking and non-thinking modes, but currently we are focused on using Quin 3.5, which does not have any thinking and non-thinking modes. So I say that we should update our code to better support the Quin 3.5 models and make sure its performance is good because currently the Quin 3.5 models are performing very bad in our operating system but Quin 3 is performing very good. So please figure out the bottleneck and fix it correctly. 
+
+As here is the current benchmarks of qwen models in our os:
+
 Shohan@dx MINGW64 /f/edith (main)
 $ cargo build --release && ./target/release/edith.exe
    Compiling edith v0.1.0 (F:\edith)
