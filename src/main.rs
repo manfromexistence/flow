@@ -11,8 +11,8 @@ use std::io::{self, Write};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
-const MODEL_PATH: &str = "models/llm/Qwen3-0.6B-Q4_K_M.gguf";
-const MODEL_NAME: &str = "Qwen 3 0.6B Q4_K_M";
+const MODEL_PATH: &str = "models/llm/Qwen3.5-2B-Q4_K_M.gguf";
+const MODEL_NAME: &str = "Qwen 3.5 2B Q4_K_M";
 const THINK_OPEN_TAG: &str = "<think>";
 const THINK_CLOSE_TAG: &str = "</think>";
 const INFERENCE_CONTEXT_TOKENS: u32 = 32768;
