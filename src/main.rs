@@ -4,12 +4,10 @@ use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::llama_batch::LlamaBatch;
 use llama_cpp_2::model::params::LlamaModelParams;
 use llama_cpp_2::model::{AddBos, LlamaModel};
-use llama_cpp_2::token::data_array::LlamaTokenDataArray;
 use std::io::{self, Write};
 use std::time::Instant;
 use sysinfo::System;
 use tracing::{info, error, Level};
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,14 +24,12 @@ async fn main() -> Result<()> {
     sys.refresh_all();
 
     // Initialize llama backend
-    info!("� Initializing llama.cpp backend...");
-    let backend = LlamaBackend::init()?;
-
+    info!("🔧 Initializing llama.cpp backend...");
+    let mut backend = LlamaBackend::init()?;
+    backend.void_logs();
+    
     // Load model
     let model_path = "models/llm/Qwen3.5-0.8B-Q4_K_M.gguf";
-    info!("📦 Loading Qwen 3.5 0.8B (Q4_K_M quantized)");
-    info!("   Path: {}", model_path);
-    
     let model_params = LlamaModelParams::default();
     let model = LlamaModel::load_from_file(&backend, model_path, &model_params)?;
     
@@ -41,14 +37,13 @@ async fn main() -> Result<()> {
     let n_vocab = model.n_vocab();
     
     info!("✅ Model loaded successfully");
+    info!("   Model: Qwen 3.5 0.8B Q4_K_M");
     info!("   Training context: {} tokens", n_ctx_train);
     info!("   Vocabulary size: {} tokens", n_vocab);
-
-    // Create context with default params
+    
+    // Create context
     let ctx_params = LlamaContextParams::default();
-    
     let mut ctx = model.new_context(&backend, ctx_params)?;
-    
     info!("✅ Context created\n");
 
     // Chat loop
@@ -74,6 +69,10 @@ async fn main() -> Result<()> {
         let start_time = Instant::now();
         sys.refresh_all();
         let start_memory = sys.used_memory();
+
+        // This CLI currently handles each prompt independently, so reset KV cache
+        // to avoid position/cache conflicts across turns.
+        ctx.clear_kv_cache();
         
         // Tokenize input with BOS token
         let prompt = format!("<|im_start|>user\n{}<|im_end|>\n<|im_start|>assistant\n", input);
@@ -88,22 +87,18 @@ async fn main() -> Result<()> {
         info!("🔢 Input tokens: {}", tokens.len());
         print!("🤖 Qwen: ");
         io::stdout().flush()?;
-
-        // Create batch
-        let mut batch = LlamaBatch::new(512, 1);
-        
-        // Add tokens to batch
-        let last_index = tokens.len() - 1;
-        for (i, token) in tokens.iter().enumerate() {
-            let is_last = i == last_index;
-            if let Err(e) = batch.add(*token, i as i32, &[0], is_last) {
-                error!("Failed to add token to batch: {}", e);
-                continue;
-            }
+        if tokens.is_empty() {
+            error!("Tokenization produced zero tokens");
+            continue;
         }
 
-        // Decode input
-        if let Err(e) = ctx.decode(&mut batch) {
+        // Decode prompt as sequence 0, with logits on the last token.
+        let mut prompt_batch = LlamaBatch::new(tokens.len(), 1);
+        if let Err(e) = prompt_batch.add_sequence(&tokens, 0, false) {
+            error!("Failed to add prompt tokens to batch: {}", e);
+            continue;
+        }
+        if let Err(e) = ctx.decode(&mut prompt_batch) {
             error!("Failed to decode: {}", e);
             continue;
         }
@@ -113,10 +108,11 @@ async fn main() -> Result<()> {
         let max_tokens = 256;
         let mut response = String::new();
         let mut n_cur = tokens.len() as i32;
+        let mut generation_batch = LlamaBatch::new(1, 1);
         
         for _ in 0..max_tokens {
             // Get logits from last position
-            let logits = ctx.candidates_ith(batch.n_tokens() - 1);
+            let logits = ctx.candidates();
             
             // Simple greedy sampling - just take the highest probability token
             let mut max_prob = f32::NEG_INFINITY;
@@ -145,6 +141,7 @@ async fn main() -> Result<()> {
             }
             
             // Convert token to bytes then string
+            #[allow(deprecated)]
             let piece_buf = model.token_to_bytes(new_token_id, llama_cpp_2::model::Special::Tokenize)?;
             let piece = String::from_utf8_lossy(&piece_buf).to_string();
             
@@ -155,15 +152,15 @@ async fn main() -> Result<()> {
             generated_tokens += 1;
             
             // Prepare next batch
-            batch.clear();
-            if let Err(e) = batch.add(new_token_id, n_cur, &[0], true) {
+            generation_batch.clear();
+            if let Err(e) = generation_batch.add(new_token_id, n_cur, &[0], true) {
                 error!("Failed to add token: {}", e);
                 break;
             }
             n_cur += 1;
             
             // Decode
-            if let Err(e) = ctx.decode(&mut batch) {
+            if let Err(e) = ctx.decode(&mut generation_batch) {
                 error!("Failed to decode: {}", e);
                 break;
             }
