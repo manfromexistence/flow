@@ -5,15 +5,39 @@ use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::llama_batch::LlamaBatch;
 use llama_cpp_2::model::params::LlamaModelParams;
 use llama_cpp_2::model::{AddBos, LlamaModel};
+use llama_cpp_2::sampling::LlamaSampler;
+use std::collections::HashSet;
 use std::io::{self, Write};
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
 const MODEL_PATH: &str = "models/llm/Qwen3.5-0.8B-Q4_K_M.gguf";
 const MODEL_NAME: &str = "Qwen 3.5 0.8B Q4_K_M";
 const THINK_OPEN_TAG: &str = "<think>";
 const THINK_CLOSE_TAG: &str = "</think>";
-const DEFAULT_MAX_TOKENS: usize = 2048;
+const INFERENCE_CONTEXT_TOKENS: u32 = 32768;
+const DEFAULT_MAX_TOKENS: usize = INFERENCE_CONTEXT_TOKENS as usize;
+const HARD_MAX_TOKENS: usize = INFERENCE_CONTEXT_TOKENS as usize;
+const REPETITION_SUFFIX_NGRAM: usize = 24;
+const REPETITION_SUFFIX_REPEATS: usize = 6;
+const REPETITION_TEXT_SUFFIX_BYTES: usize = 192;
+const REPETITION_TEXT_SUFFIX_REPEATS: usize = 3;
+const DIVERSITY_WINDOW_TOKENS: usize = 256;
+const DIVERSITY_MIN_RATIO: f32 = 0.22;
+const DEFAULT_MAX_GENERATION_SECONDS: u64 = 60;
+const HARD_MAX_GENERATION_SECONDS: u64 = 900;
+const SAMPLER_REPEAT_LAST_N: i32 = 256;
+const SAMPLER_REPEAT_PENALTY: f32 = 1.12;
+const SAMPLER_FREQUENCY_PENALTY: f32 = 0.0;
+const SAMPLER_PRESENCE_PENALTY: f32 = 0.0;
+const SAMPLER_DRY_MULTIPLIER: f32 = 0.8;
+const SAMPLER_DRY_BASE: f32 = 1.75;
+const SAMPLER_DRY_ALLOWED_LENGTH: i32 = 2;
+const SAMPLER_DRY_PENALTY_LAST_N: i32 = 256;
+const SAMPLER_TOP_K: i32 = 40;
+const SAMPLER_TOP_P: f32 = 0.9;
+const SAMPLER_MIN_P: f32 = 0.05;
+const SAMPLER_TEMPERATURE: f32 = 0.75;
 
 // Parcel-inspired palette
 const COLOR_PRIMARY: (u8, u8, u8) = (122, 92, 255);
@@ -29,6 +53,35 @@ enum RenderSection {
     None,
     Answer,
     Thinking,
+}
+
+fn has_repeated_text_suffix(text: &str, chunk_size_bytes: usize, repeats: usize) -> bool {
+    if chunk_size_bytes == 0 || repeats < 2 {
+        return false;
+    }
+
+    let bytes = text.as_bytes();
+    let needed_len = chunk_size_bytes.saturating_mul(repeats);
+    if bytes.len() < needed_len {
+        return false;
+    }
+
+    let start = bytes.len() - needed_len;
+    let reference = &bytes[start..start + chunk_size_bytes];
+
+    (1..repeats).all(|i| {
+        let chunk_start = start + i * chunk_size_bytes;
+        let chunk_end = chunk_start + chunk_size_bytes;
+        &bytes[chunk_start..chunk_end] == reference
+    })
+}
+
+fn sampler_seed() -> u32 {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos() as u64)
+        .unwrap_or(0xA5A5_5A5A_u64);
+    nanos as u32
 }
 
 struct StreamRenderer {
@@ -227,11 +280,54 @@ fn truthy_env(var_name: &str, default: bool) -> bool {
 }
 
 fn max_tokens_from_env(default: usize) -> usize {
-    std::env::var("EDITH_MAX_TOKENS")
+    let configured = std::env::var("EDITH_MAX_TOKENS")
         .ok()
-        .and_then(|v| v.parse::<usize>().ok())
+        .and_then(|v| v.trim().parse::<usize>().ok())
         .filter(|v| *v > 0)
-        .unwrap_or(default)
+        .unwrap_or(default);
+
+    configured.min(HARD_MAX_TOKENS)
+}
+
+fn max_generation_seconds_from_env(default: u64) -> u64 {
+    let configured = std::env::var("EDITH_MAX_GENERATION_SECONDS")
+        .ok()
+        .and_then(|v| v.trim().parse::<u64>().ok())
+        .filter(|v| *v > 0)
+        .unwrap_or(default);
+
+    configured.min(HARD_MAX_GENERATION_SECONDS)
+}
+
+fn has_repeated_suffix(token_ids: &[i32], ngram_size: usize, repeats: usize) -> bool {
+    if ngram_size == 0 || repeats < 2 {
+        return false;
+    }
+
+    let needed_len = ngram_size.saturating_mul(repeats);
+    if token_ids.len() < needed_len {
+        return false;
+    }
+
+    let start = token_ids.len() - needed_len;
+    let reference = &token_ids[start..start + ngram_size];
+
+    (1..repeats).all(|i| {
+        let chunk_start = start + i * ngram_size;
+        let chunk_end = chunk_start + ngram_size;
+        &token_ids[chunk_start..chunk_end] == reference
+    })
+}
+
+fn has_low_token_diversity(token_ids: &[i32], window_size: usize, min_ratio: f32) -> bool {
+    if window_size == 0 || token_ids.len() < window_size {
+        return false;
+    }
+
+    let recent = &token_ids[token_ids.len() - window_size..];
+    let unique_count = recent.iter().copied().collect::<HashSet<_>>().len();
+    let ratio = unique_count as f32 / window_size as f32;
+    ratio < min_ratio
 }
 
 fn print_metric_row(label: &str, value: impl Into<String>) {
@@ -289,7 +385,8 @@ fn print_error(message: impl AsRef<str>) {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let max_tokens = max_tokens_from_env(DEFAULT_MAX_TOKENS);
+    let requested_max_tokens = max_tokens_from_env(DEFAULT_MAX_TOKENS);
+    let max_generation_seconds = max_generation_seconds_from_env(DEFAULT_MAX_GENERATION_SECONDS);
     let show_thinking = truthy_env("EDITH_SHOW_THINKING", true);
 
     println!();
@@ -319,7 +416,9 @@ async fn main() -> Result<()> {
     let n_ctx_train = model.n_ctx_train();
     let n_vocab = model.n_vocab();
 
-    let ctx_params = LlamaContextParams::default();
+    // Qwen 3.5 supports long context windows; use a practical runtime window for memory usage.
+    let ctx_params = LlamaContextParams::default()
+        .with_n_ctx(std::num::NonZeroU32::new(INFERENCE_CONTEXT_TOKENS));
     let mut ctx = model.new_context(&backend, ctx_params)?;
 
     println!(
@@ -329,7 +428,12 @@ async fn main() -> Result<()> {
     );
     println!(
         "{}",
-        format!("Context window: {n_ctx_train} tokens")
+        format!("Model max context: {n_ctx_train} tokens")
+            .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
+    );
+    println!(
+        "{}",
+        format!("Runtime context: {INFERENCE_CONTEXT_TOKENS} tokens")
             .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
     );
     println!(
@@ -339,7 +443,16 @@ async fn main() -> Result<()> {
     );
     println!(
         "{}",
-        format!("Max output tokens: {max_tokens} (set EDITH_MAX_TOKENS)")
+        format!(
+            "Requested max output tokens: {requested_max_tokens} (set EDITH_MAX_TOKENS=1..{HARD_MAX_TOKENS})"
+        )
+            .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
+    );
+    println!(
+        "{}",
+        format!(
+            "Max generation time: {max_generation_seconds}s (set EDITH_MAX_GENERATION_SECONDS=1..{HARD_MAX_GENERATION_SECONDS})"
+        )
             .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
     );
     println!(
@@ -349,6 +462,13 @@ async fn main() -> Result<()> {
         } else {
             "Thinking view: OFF (set EDITH_SHOW_THINKING=1 to show)"
         }
+        .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
+    );
+    println!(
+        "{}",
+        format!(
+            "Decoding: temp={SAMPLER_TEMPERATURE}, top_p={SAMPLER_TOP_P}, top_k={SAMPLER_TOP_K}, min_p={SAMPLER_MIN_P}, repeat_penalty={SAMPLER_REPEAT_PENALTY}"
+        )
         .truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
     );
     println!(
@@ -420,6 +540,13 @@ async fn main() -> Result<()> {
             continue;
         }
 
+        let available_output_tokens = (INFERENCE_CONTEXT_TOKENS as usize).saturating_sub(tokens.len());
+        if available_output_tokens == 0 {
+            print_error("Prompt exhausted runtime context; reduce prompt size");
+            continue;
+        }
+        let max_tokens = requested_max_tokens.min(available_output_tokens);
+
         println!(
             "{}",
             format!("Input tokens: {}", tokens.len())
@@ -440,30 +567,59 @@ async fn main() -> Result<()> {
         let mut n_cur = tokens.len() as i32;
         let mut generation_batch = LlamaBatch::new(1, 1);
         let mut renderer = StreamRenderer::new(show_thinking);
+        let mut generated_token_ids: Vec<i32> = Vec::with_capacity(max_tokens.min(2048));
+        let mut generated_text = String::new();
+        let mut sampler = LlamaSampler::chain_simple([
+            LlamaSampler::penalties(
+                SAMPLER_REPEAT_LAST_N,
+                SAMPLER_REPEAT_PENALTY,
+                SAMPLER_FREQUENCY_PENALTY,
+                SAMPLER_PRESENCE_PENALTY,
+            ),
+            LlamaSampler::dry(
+                &model,
+                SAMPLER_DRY_MULTIPLIER,
+                SAMPLER_DRY_BASE,
+                SAMPLER_DRY_ALLOWED_LENGTH,
+                SAMPLER_DRY_PENALTY_LAST_N,
+                ["\n", "\n\n", ".", "!", "?", ":", ";", "\"", "'"],
+            ),
+            LlamaSampler::top_k(SAMPLER_TOP_K),
+            LlamaSampler::top_p(SAMPLER_TOP_P, 1),
+            LlamaSampler::min_p(SAMPLER_MIN_P, 1),
+            LlamaSampler::temp(SAMPLER_TEMPERATURE),
+            LlamaSampler::dist(sampler_seed()),
+        ]);
+        sampler.accept_many(tokens.iter().copied());
 
         for _ in 0..max_tokens {
-            let logits = ctx.candidates();
-            let mut max_logit = f32::NEG_INFINITY;
-            let mut best_token = None;
-
-            for candidate in logits {
-                if candidate.logit() > max_logit {
-                    max_logit = candidate.logit();
-                    best_token = Some(candidate.id());
-                }
+            if start_time.elapsed().as_secs() >= max_generation_seconds {
+                println!(
+                    "{}",
+                    format!(
+                        "⚠ Stopped generation at time limit ({max_generation_seconds}s)."
+                    )
+                    .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
+                    .bold()
+                );
+                break;
             }
-
-            let new_token_id = match best_token {
-                Some(token) => token,
-                None => {
-                    print_error("No candidates available from model");
-                    break;
-                }
-            };
+            if n_cur >= INFERENCE_CONTEXT_TOKENS as i32 {
+                println!(
+                    "{}",
+                    format!(
+                        "⚠ Stopped generation at runtime context limit ({INFERENCE_CONTEXT_TOKENS} tokens)."
+                    )
+                    .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
+                    .bold()
+                );
+                break;
+            }
+            let new_token_id = sampler.sample(&ctx, -1);
 
             // Stop on EOS or Qwen chat boundary tokens.
             let token_id_i32 = new_token_id.0;
-            let qwen_stop_tokens = [151643_i32, 151645_i32];
+            let qwen_stop_tokens = [151643_i32, 151644_i32, 151645_i32];
             if model.is_eog_token(new_token_id) || qwen_stop_tokens.contains(&token_id_i32) {
                 break;
             }
@@ -481,12 +637,53 @@ async fn main() -> Result<()> {
             };
 
             let piece = String::from_utf8_lossy(&piece_buf);
+            generated_text.push_str(piece.as_ref());
             if let Err(e) = renderer.ingest_piece(piece.as_ref()) {
                 print_error(format!("Failed to stream output: {e}"));
                 break;
             }
 
             generated_tokens += 1;
+            generated_token_ids.push(token_id_i32);
+            if has_repeated_suffix(
+                &generated_token_ids,
+                REPETITION_SUFFIX_NGRAM,
+                REPETITION_SUFFIX_REPEATS,
+            ) {
+                println!(
+                    "{}",
+                    "⚠ Stopped generation due to repetition loop detection."
+                        .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
+                        .bold()
+                );
+                break;
+            }
+            if has_low_token_diversity(
+                &generated_token_ids,
+                DIVERSITY_WINDOW_TOKENS,
+                DIVERSITY_MIN_RATIO,
+            ) {
+                println!(
+                    "{}",
+                    "⚠ Stopped generation due to low token diversity (loop prevention)."
+                        .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
+                        .bold()
+                );
+                break;
+            }
+            if has_repeated_text_suffix(
+                &generated_text,
+                REPETITION_TEXT_SUFFIX_BYTES,
+                REPETITION_TEXT_SUFFIX_REPEATS,
+            ) {
+                println!(
+                    "{}",
+                    "⚠ Stopped generation due to repeated text loop detection."
+                        .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
+                        .bold()
+                );
+                break;
+            }
 
             generation_batch.clear();
             if let Err(e) = generation_batch.add(new_token_id, n_cur, &[0], true) {
@@ -508,9 +705,18 @@ async fn main() -> Result<()> {
 
         let hit_token_cap = generated_tokens >= max_tokens;
         if hit_token_cap {
+            let cap_message = if max_tokens < requested_max_tokens {
+                format!(
+                    "⚠ Output reached prompt context cap ({max_tokens}). Reduce prompt size for longer replies."
+                )
+            } else {
+                format!(
+                    "⚠ Output reached token cap ({max_tokens}). Increase EDITH_MAX_TOKENS for longer responses."
+                )
+            };
             println!(
                 "{}",
-                format!("⚠ Output reached token cap ({max_tokens}). Increase EDITH_MAX_TOKENS for longer responses.")
+                cap_message
                     .truecolor(COLOR_WARNING.0, COLOR_WARNING.1, COLOR_WARNING.2)
                     .bold()
             );
