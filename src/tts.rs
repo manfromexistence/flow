@@ -9,10 +9,12 @@ use anyhow::Result;
 /// Pocket TTS - Pure Rust implementation using Candle
 /// Released January 2026 by Kyutai
 /// 100M params, runs real-time on CPU, supports voice cloning
+#[allow(dead_code)]
 pub struct PocketTTS {
     // TODO: Add pocket-tts model handle
 }
 
+#[allow(dead_code)]
 impl PocketTTS {
     /// Initialize Pocket TTS model
     /// Download from: https://huggingface.co/kyutai/pocket-tts
@@ -42,10 +44,12 @@ impl PocketTTS {
 
 /// Kokoro TTS via Tract (Pure Rust ONNX runtime)
 /// 82M params, lightweight, deterministic
+#[allow(dead_code)]
 pub struct KokoroTractTTS {
     // TODO: Add tract model handle
 }
 
+#[allow(dead_code)]
 impl KokoroTractTTS {
     /// Initialize Kokoro-82M via Tract
     /// Tract is pure Rust, lighter than ort, ideal for embedded/edge
@@ -71,10 +75,12 @@ impl KokoroTractTTS {
 }
 
 /// Kokoro TTS via ort (ONNX Runtime - fastest but has C++ deps)
+#[allow(dead_code)]
 pub struct KokoroOrtTTS {
     // TODO: Add ort session
 }
 
+#[allow(dead_code)]
 impl KokoroOrtTTS {
     /// Initialize Kokoro-82M via ort
     /// Fastest option but requires ONNX Runtime C++ library

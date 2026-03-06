@@ -3,6 +3,7 @@
 use anyhow::Result;
 use ort::session::Session;
 
+#[allow(dead_code)]
 pub struct WakeWordDetector {
     session: Session,
     threshold: f32,

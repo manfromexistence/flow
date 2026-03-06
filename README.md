@@ -177,4 +177,3 @@ Rust app → ort crate → Moonshine Tiny Streaming → no Python
 
 Your original stack was spot-on — the models are confirmed latest as of March 5, 2026. The **one critical change**: switch from Kokoro PyTorch to **Kokoro ONNX** (and ideally run it natively in Rust via the `ort` crate). That alone should solve your slowness problem on 8GB RAM.
 ```
-                            

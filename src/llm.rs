@@ -3,10 +3,12 @@
 /// Runtime: llama.cpp via `llama-cpp-2` crate (actively maintained as of 2026)
 use anyhow::Result;
 
+#[allow(dead_code)]
 pub struct QwenLLM {
     // TODO: Add llama-cpp-2 model handle
 }
 
+#[allow(dead_code)]
 impl QwenLLM {
     /// Initialize Qwen 3.5 0.8B model
     /// Download GGUF from: https://huggingface.co/Qwen/Qwen3.5-0.8B-GGUF

@@ -8,10 +8,12 @@
 use anyhow::Result;
 
 /// Moonshine STT via Tract (Pure Rust)
+#[allow(dead_code)]
 pub struct MoonshineTractSTT {
     // TODO: Add tract model handle
 }
 
+#[allow(dead_code)]
 impl MoonshineTractSTT {
     /// Initialize Moonshine Tiny Streaming via Tract
     /// Pure Rust ONNX runtime - ideal for embedded/edge devices
@@ -47,10 +49,12 @@ impl MoonshineTractSTT {
 }
 
 /// Moonshine STT via ort (ONNX Runtime - fastest)
+#[allow(dead_code)]
 pub struct MoonshineOrtSTT {
     // TODO: Add ort session
 }
 
+#[allow(dead_code)]
 impl MoonshineOrtSTT {
     /// Initialize Moonshine Tiny Streaming via ort
     /// Fastest option but requires ONNX Runtime C++ library

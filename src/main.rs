@@ -7,12 +7,12 @@ use std::time::Instant;
 mod stt;
 mod llm;
 mod tts;
+#[allow(dead_code)]
 mod wake_word;
 mod vad;
 mod audio;
 mod metrics;
 
-use wake_word::WakeWordDetector;
 use vad::VAD;
 use audio::{AudioCapture, AudioPlayback};
 use metrics::{Metrics, PipelineMetrics};
@@ -31,17 +31,18 @@ async fn main() -> Result<()> {
     // Initialize metrics
     let mut metrics = Metrics::new();
 
-    // Initialize wake word detector
-    info!("🎯 Loading wake word detector...");
-    let wake_word = WakeWordDetector::new(
-        "models/wake_words/arise.onnx",
-        0.5,
-        "arise"
-    )?;
-    info!("✅ Wake word '{}' loaded", wake_word.wake_word_name());
+    // Wake word detector commented out for now - auto-detect all speech
+    // info!("🎯 Loading wake word detector...");
+    // let wake_word = WakeWordDetector::new(
+    //     "models/wake_words/arise.onnx",
+    //     0.5,
+    //     "arise"
+    // )?;
+    // info!("✅ Wake word '{}' loaded", wake_word.wake_word_name());
 
-    // Initialize VAD
-    let vad = VAD::new(0.01, 1500); // 1.5 second silence threshold
+    // Initialize VAD with lower threshold for better detection
+    let vad = VAD::new(0.001, 1500); // Lower threshold = more sensitive
+    info!("🎧 VAD initialized (threshold: 0.001, silence: 1500ms)");
 
     // Initialize audio capture
     info!("🎤 Initializing audio capture...");
@@ -64,36 +65,37 @@ async fn main() -> Result<()> {
 
     info!("\n╔════════════════════════════════════════════════════════╗");
     info!("║  EDITH IS NOW LISTENING 24/7                           ║");
-    info!("║  Say '{}' to activate                              ║", wake_word.wake_word_name());
+    info!("║  Auto-detecting all speech (wake word disabled)        ║");
     info!("╚════════════════════════════════════════════════════════╝\n");
 
     // Start audio capture
     let (audio_tx, mut audio_rx) = mpsc::unbounded_channel();
     let _stream = audio_capture.start_capture(audio_tx)?;
 
-    // Main loop - 24/7 listening
-    let mut wake_word_buffer = Vec::new();
+    // Main loop - 24/7 listening (auto-detect speech without wake word)
     let mut recording_buffer = Vec::new();
     let mut is_recording = false;
     let mut silence_start: Option<Instant> = None;
-    let mut wake_detected_time: Option<Instant> = None;
+    let mut speech_start_time: Option<Instant> = None;
 
     while let Some(audio_chunk) = audio_rx.recv().await {
-        // Always check for wake word when not recording
-        if !is_recording {
-            wake_word_buffer.extend_from_slice(&audio_chunk);
-            
-            // Keep buffer at reasonable size (1 second = ~16000 samples at 16kHz)
-            if wake_word_buffer.len() > 16000 {
-                wake_word_buffer.drain(..wake_word_buffer.len() - 16000);
+        // Debug: Log audio energy periodically
+        if recording_buffer.is_empty() && !is_recording {
+            let energy: f32 = audio_chunk.iter().map(|x| x * x).sum::<f32>() / audio_chunk.len() as f32;
+            if energy > 0.0001 {
+                info!("🔊 Audio detected - Energy: {:.6}", energy);
             }
+        }
 
-            // Check for wake word
-            if wake_word.detect(&wake_word_buffer)? {
-                info!("🎯 Wake word '{}' detected!", wake_word.wake_word_name());
+        // Auto-detect speech start (no wake word needed)
+        if !is_recording {
+            // Check if speech detected
+            if vad.is_speech(&audio_chunk) {
+                info!("🎤 Speech detected, recording...");
                 is_recording = true;
                 recording_buffer.clear();
-                wake_detected_time = Some(Instant::now());
+                recording_buffer.extend_from_slice(&audio_chunk);
+                speech_start_time = Some(Instant::now());
                 silence_start = None;
                 continue;
             }
@@ -118,14 +120,14 @@ async fn main() -> Result<()> {
                         info!("🔇 Silence detected, processing speech...");
                         
                         // Process the recorded audio
-                        let wake_time_ms = wake_detected_time
+                        let speech_time_ms = speech_start_time
                             .map(|t| t.elapsed().as_millis() as u64)
                             .unwrap_or(0);
 
                         match process_speech(
                             &recording_buffer,
                             &audio_playback,
-                            wake_time_ms,
+                            speech_time_ms,
                             &mut metrics,
                         ).await {
                             Ok(pipeline_metrics) => {
@@ -137,14 +139,13 @@ async fn main() -> Result<()> {
                             }
                         }
 
-                        // Reset for next wake word
+                        // Reset for next speech
                         is_recording = false;
                         recording_buffer.clear();
-                        wake_word_buffer.clear();
                         silence_start = None;
-                        wake_detected_time = None;
+                        speech_start_time = None;
                         
-                        info!("\n🎧 Listening for wake word '{}'...", wake_word.wake_word_name());
+                        info!("\n🎧 Listening for speech...");
                     }
                 }
             }
@@ -152,14 +153,14 @@ async fn main() -> Result<()> {
             // Safety: max 30 seconds of recording
             if recording_buffer.len() > 16000 * 30 {
                 warn!("⚠️  Recording timeout (30s), processing anyway...");
-                let wake_time_ms = wake_detected_time
+                let speech_time_ms = speech_start_time
                     .map(|t| t.elapsed().as_millis() as u64)
                     .unwrap_or(0);
 
                 if let Err(e) = process_speech(
                     &recording_buffer,
                     &audio_playback,
-                    wake_time_ms,
+                    speech_time_ms,
                     &mut metrics,
                 ).await {
                     error!("❌ Error processing speech: {}", e);
@@ -167,9 +168,8 @@ async fn main() -> Result<()> {
 
                 is_recording = false;
                 recording_buffer.clear();
-                wake_word_buffer.clear();
                 silence_start = None;
-                wake_detected_time = None;
+                speech_start_time = None;
             }
         }
     }
@@ -180,7 +180,7 @@ async fn main() -> Result<()> {
 async fn process_speech(
     audio: &[f32],
     playback: &AudioPlayback,
-    wake_time_ms: u64,
+    speech_time_ms: u64,
     metrics: &mut Metrics,
 ) -> Result<PipelineMetrics> {
     let total_start = metrics.start_timer();
@@ -226,7 +226,7 @@ async fn process_speech(
     let total_duration = metrics.elapsed(total_start);
 
     Ok(PipelineMetrics {
-        wake_word_detected_ms: wake_time_ms,
+        wake_word_detected_ms: speech_time_ms,
         stt_duration_ms: stt_duration.as_millis() as u64,
         llm_duration_ms: llm_duration.as_millis() as u64,
         tts_duration_ms: tts_duration.as_millis() as u64,
