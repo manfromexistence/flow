@@ -1,12 +1,3 @@
-//! Dx AI — Production local inference CLI for DX
-//!
-//! Cargo.toml dependencies:
-//!   anyhow = "1"
-//!   colored = "2"
-//!   ctrlc = { version = "3", features = ["termination"] }
-//!   llama-cpp-2 = "0.1.138"
-//!   sysinfo = "0.32"
-
 use anyhow::{Context, Result};
 use colored::Colorize;
 use llama_cpp_2::context::params::LlamaContextParams;
@@ -24,8 +15,8 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
 // ─── Model configuration ───────────────────────────────────────────────────────
-const MODEL_PATH: &str = "models/llm/Qwen3.5-2B-Q4_K_M.gguf";
-const MODEL_NAME: &str = "Qwen 3.5 2B Q4_K_M";
+const MODEL_PATH: &str = "models/llm/Qwen3.5-0.8B-Q4_K_M.gguf";
+const MODEL_NAME: &str = "Qwen 3.5 0.8B Q4_K_M";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // ─── System prompt ─────────────────────────────────────────────────────────────
@@ -540,7 +531,7 @@ fn print_metrics(
     print_metric(
         "Speed",
         format!(
-            "{tok_s:.2} tok/s{}",
+            "{tok_s:.2} token/s{}",
             if tok_s < 3.0 {
                 " (low-end detected)"
             } else {
@@ -792,7 +783,7 @@ fn main() -> Result<()> {
         println!(
             "  {}",
             c_muted(&format!(
-                "prompt {} tok · budget {} tok",
+                "prompt {} token · budget {} token",
                 tokens.len(),
                 max_tokens
             ))
@@ -810,9 +801,9 @@ fn main() -> Result<()> {
                 let is_last_chunk = end == total;
 
                 let mut batch = LlamaBatch::new(chunk.len(), 1);
-                for (i, &tok) in chunk.iter().enumerate() {
+                for (i, &token) in chunk.iter().enumerate() {
                     let logits = is_last_chunk && i == chunk.len() - 1;
-                    if let Err(e) = batch.add(tok, pos, &[0], logits) {
+                    if let Err(e) = batch.add(token, pos, &[0], logits) {
                         print_error(format!("Batch add failed: {e}"));
                         break;
                     }
@@ -876,10 +867,10 @@ fn main() -> Result<()> {
                 break;
             }
 
-            let tok = sampler.sample(&ctx, -1);
-            let tok_i32 = tok.0;
+            let token = sampler.sample(&ctx, -1);
+            let tok_i32 = token.0;
 
-            if model.is_eog_token(tok)
+            if model.is_eog_token(token)
                 || tok_i32 == QWEN_EOS_TOKEN
                 || tok_i32 == QWEN_IM_START_TOKEN
                 || tok_i32 == QWEN_IM_END_TOKEN
@@ -889,7 +880,7 @@ fn main() -> Result<()> {
 
             #[allow(deprecated)]
             let piece_bytes = match model
-                .token_to_bytes(tok, llama_cpp_2::model::Special::Tokenize)
+                .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)
             {
                 Ok(b) => b,
                 Err(e) => {
@@ -928,7 +919,7 @@ fn main() -> Result<()> {
             }
 
             gen_batch.clear();
-            if let Err(e) = gen_batch.add(tok, n_cur, &[0], true) {
+            if let Err(e) = gen_batch.add(token, n_cur, &[0], true) {
                 print_error(format!("Batch add failed: {e}"));
                 stop_reason = Some("batch error");
                 break;
@@ -954,7 +945,7 @@ fn main() -> Result<()> {
         if generated >= max_tokens {
             if max_tokens < max_tokens_cfg {
                 print_warning(format!(
-                    "Hit prompt-adjusted cap ({max_tokens} tok). \
+                    "Hit prompt-adjusted cap ({max_tokens} token). \
                      Reduce prompt or /clear for longer replies."
                 ));
             } else {
