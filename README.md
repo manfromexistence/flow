@@ -2,8 +2,12 @@
 
 Our last LLM chat code is configured around running Quin 3 LLM model, which has thinking and non-thinking modes, but currently we are focused on using Quin 3.5, which does not have any thinking and non-thinking modes. So I say that we should update our code to better support the Quin 3.5 models and make sure its performance is good because currently the Quin 3.5 models are performing very bad in our operating system but Quin 3 is performing very good. So please figure out the bottleneck and fix it correctly. 
 
+
+```bash
+curl -L "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf" -o "models/llm/Qwen3.5-4B-Q4_K_M.gguf"
 cargo build --release && ./target/release/edith.exe
 Hello, what is 2+2??  
+```
 
 **Edith** is a fully local, privacy-focused voice AI assistant built in pure Rust, optimized for low-end devices (8GB RAM). All models run on-device with zero Python dependencies.
 
