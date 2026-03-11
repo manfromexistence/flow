@@ -167,7 +167,7 @@ crossbeam = "0.8"
 rayon = "1.10"
 
 # Local Path Dependencies
-dx-font = { path = "F:/Desktop/integrations/tool-tui/crates/font" }
+dx-font = { path = "./font" }
 
 # ──────────────────────────────────────────────
 #  Platform-specific Dependencies
@@ -201,7 +201,7 @@ default = []
 httpmock = "0.7"
 
 [build-dependencies]
-serializer = { package = "dx-serializer", path = "F:/Desktop/integrations/tool-tui/crates/serializer" }
+serializer = { package = "dx-serializer", path = "./serializer" }
 
 # ──────────────────────────────────────────────
 #  Profiles (merged from llm)
