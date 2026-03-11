@@ -30,6 +30,8 @@ In our chat-input bottom right there is animated rainbow spinner so please show 
 
 Please look at the src/tui.rs and you are ChatUI. Please use local models with the code of llm.rs. Please don't brainstorm anything and just use the local models as listed in llm.rs at src/llm.rs path.
 
+Sweep in for continuous modals and sliding for different modals. 
+
 # Chat ui:
 1. modal animation
 2. todo and tasks

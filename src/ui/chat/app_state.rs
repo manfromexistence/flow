@@ -17,6 +17,23 @@ use super::{
     theme::{ChatTheme, ThemeVariant},
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ModalType {
+    Focus,
+    Add,
+    Plan,
+    Model,
+    Local,
+    Changes,
+    Tasks,
+    Agents,
+    Memory,
+    Tools,
+    More,
+    GoogleApi,
+    ElevenlabsApi,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnimationType {
     Splash,
@@ -215,8 +232,10 @@ pub struct ChatApp {
     pub llm_tx: Sender<String>,
     pub llm_rx: Receiver<String>,
 
-    // Modal animation state
-    pub modal_animation_start: Option<std::time::Instant>,
+    // Modal animation state - using EffectManager for proper animation handling
+    pub modal_effect_manager: tachyonfx::EffectManager<()>,
+    pub modal_opening: Option<(ModalType, Instant)>,
+    pub modal_closing: Option<(ModalType, Instant)>,
 
     // Rainbow animation for splash and spinner
     pub rainbow_animation: crate::ui::theme::animation::RainbowAnimation,
@@ -331,7 +350,9 @@ impl ChatApp {
             llm_initialized: false,
             llm_tx,
             llm_rx,
-            modal_animation_start: None,
+            modal_effect_manager: tachyonfx::EffectManager::default(),
+            modal_opening: None,
+            modal_closing: None,
             rainbow_animation: crate::ui::theme::animation::RainbowAnimation::new()
                 .with_speed(0.5)
                 .with_saturation(0.9)
@@ -692,6 +713,115 @@ impl ChatApp {
         self.start_workspace_switch(name);
         self.workspace_create_mode = false;
         self.workspace_create_input.clear();
+    }
+
+    /// Open a modal with sweep-in animation
+    pub fn open_modal(&mut self, modal_type: ModalType) {
+        use tachyonfx::{fx, Interpolation};
+        
+        // Set the modal flag to true immediately
+        match modal_type {
+            ModalType::Focus => self.show_focus_menu = true,
+            ModalType::Add => self.show_add_modal = true,
+            ModalType::Plan => self.show_plan_modal = true,
+            ModalType::Model => self.show_model_modal = true,
+            ModalType::Local => self.show_local_modal = true,
+            ModalType::Changes => self.show_changes_modal = true,
+            ModalType::Tasks => self.show_tasks_modal = true,
+            ModalType::Agents => self.show_agents_modal = true,
+            ModalType::Memory => self.show_memory_modal = true,
+            ModalType::Tools => self.show_tools_modal = true,
+            ModalType::More => self.show_more_modal = true,
+            ModalType::GoogleApi => self.show_google_api_modal = true,
+            ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal = true,
+        }
+        
+        // Create sweep_in effect: top to bottom, 300ms, QuadOut interpolation
+        let sweep_effect = fx::sweep_in(
+            tachyonfx::fx::Direction::UpToDown,
+            20, // cell_glider_length
+            0,  // cell_glider_gap
+            ratatui::style::Color::Black,
+            (300, Interpolation::QuadOut),
+        );
+        
+        // Add effect
+        self.modal_effect_manager.add_effect(sweep_effect);
+        self.modal_opening = Some((modal_type, Instant::now()));
+    }
+
+    /// Close a modal with sweep-out animation
+    pub fn close_modal(&mut self, modal_type: ModalType) {
+        use tachyonfx::{fx, Interpolation};
+        
+        // Don't close if not open
+        let is_open = match modal_type {
+            ModalType::Focus => self.show_focus_menu,
+            ModalType::Add => self.show_add_modal,
+            ModalType::Plan => self.show_plan_modal,
+            ModalType::Model => self.show_model_modal,
+            ModalType::Local => self.show_local_modal,
+            ModalType::Changes => self.show_changes_modal,
+            ModalType::Tasks => self.show_tasks_modal,
+            ModalType::Agents => self.show_agents_modal,
+            ModalType::Memory => self.show_memory_modal,
+            ModalType::Tools => self.show_tools_modal,
+            ModalType::More => self.show_more_modal,
+            ModalType::GoogleApi => self.show_google_api_modal,
+            ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal,
+        };
+        
+        if !is_open {
+            return;
+        }
+        
+        // Create sweep_out effect: bottom to top, 300ms, QuadIn interpolation
+        let sweep_effect = fx::sweep_out(
+            tachyonfx::fx::Direction::DownToUp,
+            20, // cell_glider_length
+            0,  // cell_glider_gap
+            ratatui::style::Color::Black,
+            (300, Interpolation::QuadIn),
+        );
+        
+        // Add effect
+        self.modal_effect_manager.add_effect(sweep_effect);
+        self.modal_closing = Some((modal_type, Instant::now()));
+    }
+
+    /// Check if modal animation is complete and update state accordingly
+    pub fn update_modal_animations(&mut self) {
+        const ANIMATION_DURATION_MS: u128 = 300;
+        
+        // Check if closing animation is complete
+        if let Some((closing_modal, start_time)) = self.modal_closing {
+            if start_time.elapsed().as_millis() >= ANIMATION_DURATION_MS {
+                // Animation complete, actually close the modal
+                match closing_modal {
+                    ModalType::Focus => self.show_focus_menu = false,
+                    ModalType::Add => self.show_add_modal = false,
+                    ModalType::Plan => self.show_plan_modal = false,
+                    ModalType::Model => self.show_model_modal = false,
+                    ModalType::Local => self.show_local_modal = false,
+                    ModalType::Changes => self.show_changes_modal = false,
+                    ModalType::Tasks => self.show_tasks_modal = false,
+                    ModalType::Agents => self.show_agents_modal = false,
+                    ModalType::Memory => self.show_memory_modal = false,
+                    ModalType::Tools => self.show_tools_modal = false,
+                    ModalType::More => self.show_more_modal = false,
+                    ModalType::GoogleApi => self.show_google_api_modal = false,
+                    ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal = false,
+                }
+                self.modal_closing = None;
+            }
+        }
+        
+        // Check if opening animation is complete
+        if let Some((_opening_modal, start_time)) = self.modal_opening {
+            if start_time.elapsed().as_millis() >= ANIMATION_DURATION_MS {
+                self.modal_opening = None;
+            }
+        }
     }
 }
 

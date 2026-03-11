@@ -9,9 +9,11 @@ use ratatui::{
 };
 use std::time::Duration;
 
+use super::app_state::ModalType;
+
 use super::app_state::ChatApp;
 use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-use tachyonfx::{Shader, fx};
+use tachyonfx::{Shader, fx, Effect, Interpolation, CellFilter};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
@@ -156,6 +158,9 @@ impl ChatApp {
         self.plan_button_area = plan_area;
         self.model_button_area = model_area;
         self.local_button_area = local_area;
+        
+        // Update modal animations before rendering
+        self.update_modal_animations();
         self.render_modals(frame);
 
         // Render audio recording indicator in top right
@@ -171,103 +176,34 @@ impl ChatApp {
     }
 
     fn render_modals(&mut self, frame: &mut ratatui::Frame) {
-        use tachyonfx::{fx, Interpolation};
-        use std::time::Duration;
+        let area = frame.area();
         
-        // Track modal animation timing
-        let any_modal_open = self.show_focus_menu
-            || self.show_add_modal
-            || self.show_plan_modal
-            || self.show_model_modal
-            || self.show_local_modal
-            || self.show_changes_modal
-            || self.show_tasks_modal
-            || self.show_agents_modal
-            || self.show_memory_modal
-            || self.show_tools_modal
-            || self.show_more_modal
-            || self.show_google_api_modal
-            || self.show_elevenlabs_api_modal;
-
-        if any_modal_open && self.modal_animation_start.is_none() {
-            self.modal_animation_start = Some(std::time::Instant::now());
-        } else if !any_modal_open {
-            self.modal_animation_start = None;
-        }
-
-        // Calculate animation progress
-        let animation_duration_ms = 300;
-        let elapsed = self.modal_animation_start
-            .map(|start| start.elapsed())
-            .unwrap_or(Duration::from_millis(animation_duration_ms as u64));
-
+        // Render the modal content first
         if self.show_focus_menu {
             modals::focus::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.focus_menu_list,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_add_modal {
+        } else if self.show_add_modal {
             modals::add::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.add_modal_search,
                 &self.add_modal_list,
                 self.add_modal_focus,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_plan_modal {
+        } else if self.show_plan_modal {
             modals::plan::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.plan_modal_list,
                 self.mode,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_model_modal {
+        } else if self.show_model_modal {
             let config = modals::model::ModelConfig {
                 auto_mode: self.auto_mode,
                 max_mode: self.max_mode,
@@ -277,98 +213,42 @@ impl ChatApp {
                 google_models: &self.google_models,
             };
             modals::model::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.model_modal_search,
                 &self.model_modal_list,
                 &config,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_local_modal {
+        } else if self.show_local_modal {
             modals::local::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.local_modal_list,
                 &self.selected_local_mode,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_changes_modal {
+        } else if self.show_changes_modal {
             modals::changes::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.changes_modal_list,
                 &self.git_changes,
                 self.changes_count,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_tasks_modal {
+        } else if self.show_tasks_modal {
             modals::drivens::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.tasks_modal_list,
                 &self.tasks,
                 self.tasks_count,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_agents_modal {
+        } else if self.show_agents_modal {
             modals::workspaces::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.agents,
                 &self.agents_modal_list,
@@ -376,153 +256,52 @@ impl ChatApp {
                 self.workspace_create_mode,
                 &self.workspace_create_input,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_memory_modal {
+        } else if self.show_memory_modal {
             modals::checkpoints::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.memory_modal_list,
                 &self.selected_memory_mode,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_tools_modal {
+        } else if self.show_tools_modal {
             modals::tools::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.tools_modal_list,
                 &self.tools,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_more_modal {
+        } else if self.show_more_modal {
             modals::more::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.more_modal_list,
                 &self.more_options,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_google_api_modal {
+        } else if self.show_google_api_modal {
             modals::google_api::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.google_api_input,
                 self.cursor_visible,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
-        }
-
-        if self.show_elevenlabs_api_modal {
+        } else if self.show_elevenlabs_api_modal {
             modals::elevenlabs_api::render(
-                frame.area(),
+                area,
                 frame.buffer_mut(),
                 &self.theme,
                 &self.elevenlabs_api_input,
                 self.cursor_visible,
             );
-            
-            // Apply slide-in animation
-            if elapsed.as_millis() < animation_duration_ms as u128 {
-                let mut effect = fx::slide_in(
-                    fx::Direction::UpToDown,
-                    15,
-                    0,
-                    self.theme.bg,
-                    (animation_duration_ms, Interpolation::QuadOut)
-                );
-                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
-            }
         }
+        
+        // Apply sweep animation effects after rendering modal content
+        let elapsed = self.last_render.elapsed();
+        self.modal_effect_manager.process_effects(elapsed.into(), frame.buffer_mut(), area);
     }
-
-    fn apply_modal_animation(&self, frame: &mut ratatui::Frame, _alpha: f32) {
-        if let Some(start_time) = self.modal_animation_start {
-            let elapsed = start_time.elapsed();
-            let duration_ms = 250;
-
-            if elapsed.as_millis() < duration_ms as u128 {
-                let area = frame.area();
-                let modal_width = area.width.saturating_sub(20).min(60);
-                let modal_height = area.height.saturating_sub(10).min(20);
-                let modal_area = Rect {
-                    x: (area.width.saturating_sub(modal_width)) / 2,
-                    y: (area.height.saturating_sub(modal_height)) / 2,
-                    width: modal_width,
-                    height: modal_height,
-                };
-
-                let mut effect = fx::dissolve((duration_ms, tachyonfx::Interpolation::QuadOut));
-                effect.process(elapsed.into(), frame.buffer_mut(), modal_area);
-            }
-        }
-    }
-
     fn render_shortcut_debug(&self, area: Rect, buf: &mut Buffer, shortcut: &str) {
         let max_len = area.width.saturating_sub(10).max(20) as usize;
         let display_text = if shortcut.len() > max_len {
