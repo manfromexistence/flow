@@ -552,14 +552,35 @@ impl ChatApp {
         let mode_width = mode_text.len() as u16;
         let model_width = self.selected_model.len() as u16;
 
-        // Show input details instead of dummy data
-        let input_length = self.input.content.len();
-        let cursor_pos = self.input.cursor_position;
-        let input_info = format!("{}:{}", input_length, cursor_pos);
-        let input_width = input_info.len() as u16;
+        // Calculate token usage
+        let total_tokens: usize = self.messages.iter()
+            .map(|msg| msg.content.len() / 4) // Rough estimate: 1 token ≈ 4 chars
+            .sum();
+        let context_limit = 128_000; // 128K context window
+        let token_ratio = if context_limit > 0 {
+            (total_tokens as f32 / context_limit as f32 * 100.0) as u32
+        } else {
+            0
+        };
+        let token_info = format!("{:.1}K/{}K({}%)", 
+            total_tokens as f32 / 1000.0, 
+            context_limit / 1000,
+            token_ratio
+        );
+        let token_width = token_info.len() as u16;
         
-        let message_count = format!("{}msg", self.messages.len());
-        let message_width = message_count.len() as u16;
+        // Get current working directory and truncate
+        let cwd = std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
+            .unwrap_or_else(|| "~".to_string());
+        let path_info = format!("/{}", cwd);
+        let path_width = path_info.len().min(20) as u16; // Truncate to max 20 chars
+        let truncated_path = if path_info.len() > 20 {
+            format!("..{}", &path_info[path_info.len() - 17..])
+        } else {
+            path_info.clone()
+        };
         
         let spinner_width = if self.is_loading { 2 } else { 0 };
 
@@ -572,18 +593,18 @@ impl ChatApp {
 
         let mut constraints = vec![
             Constraint::Length(local_width),
-            Constraint::Length(2),
+            Constraint::Length(1),
             Constraint::Length(mode_width),
-            Constraint::Length(2),
+            Constraint::Length(1),
             Constraint::Length(model_width),
             Constraint::Min(10),
-            Constraint::Length(input_width),
-            Constraint::Length(2),
-            Constraint::Length(message_width),
+            Constraint::Length(token_width),
+            Constraint::Length(1),
+            Constraint::Length(path_width),
         ];
         
         if self.is_loading {
-            constraints.push(Constraint::Length(2));
+            constraints.push(Constraint::Length(1));
             constraints.push(Constraint::Length(spinner_width));
         }
 
@@ -617,11 +638,20 @@ impl ChatApp {
         .alignment(ratatui::layout::Alignment::Center)
         .render(bottom_chunks[5], buf);
 
-        Paragraph::new(Span::styled(&input_info, Style::default().fg(self.theme.fg)))
+        // Token usage with color based on ratio
+        let token_color = if token_ratio > 80 {
+            ratatui::style::Color::Red
+        } else if token_ratio > 60 {
+            ratatui::style::Color::Yellow
+        } else {
+            self.theme.fg
+        };
+        
+        Paragraph::new(Span::styled(&token_info, Style::default().fg(token_color)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[6], buf);
 
-        Paragraph::new(Span::styled(&message_count, Style::default().fg(self.theme.fg)))
+        Paragraph::new(Span::styled(&truncated_path, Style::default().fg(self.theme.fg)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[8], buf);
 
