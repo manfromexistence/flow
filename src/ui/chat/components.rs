@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Widget, Wrap},
+    widgets::{Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget, Wrap},
 };
 
 use super::{
@@ -261,6 +261,24 @@ impl Widget for MessageList<'_> {
                     y += msg_height as u16 + 1; // Add 1 line gap
                 }
             }
+        }
+
+        // Render scrollbar
+        let total_height = self.calculate_total_height();
+        let viewport_height = area.height as usize;
+        
+        if total_height > viewport_height {
+            // ScrollbarState needs: content_length and viewport_content_length
+            let mut scrollbar_state = ScrollbarState::new(total_height)
+                .position(self.scroll_offset)
+                .viewport_content_length(viewport_height);
+            
+            let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                .style(Style::default().fg(self.theme.border))
+                .begin_symbol(Some("↑"))
+                .end_symbol(Some("↓"));
+            
+            scrollbar.render(area, buf, &mut scrollbar_state);
         }
     }
 }

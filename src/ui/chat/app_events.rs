@@ -24,15 +24,32 @@ impl ChatApp {
                 }
             }
             MouseEventKind::ScrollDown => {
-                // Calculate max scroll based on total content height
+                // Don't scroll if no messages
+                if self.messages.is_empty() {
+                    return;
+                }
+                
+                // Calculate total content height using the same method as MessageList
                 let total_height = self
                     .messages
                     .iter()
-                    .map(|msg| msg.content.lines().count() + 4)
+                    .map(|msg| {
+                        let content_lines = msg.content.lines().count();
+                        content_lines + 3 + 1 // content + header + borders + gap
+                    })
                     .sum::<usize>();
 
-                // Only scroll if there's more content below
-                let max_scroll = total_height.saturating_sub(20); // Assume ~20 lines visible
+                // Get viewport height from input_area (chat area is everything above input)
+                let viewport_height = self.input_area.y.saturating_sub(1) as usize;
+                
+                // Only allow scrolling if content exceeds viewport
+                if total_height <= viewport_height {
+                    return;
+                }
+                
+                // Calculate max scroll: total content minus what fits in viewport
+                let max_scroll = total_height.saturating_sub(viewport_height);
+                
                 if self.chat_scroll_offset < max_scroll {
                     self.chat_scroll_offset =
                         self.chat_scroll_offset.saturating_add(3).min(max_scroll);

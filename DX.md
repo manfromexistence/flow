@@ -24,7 +24,9 @@ RainbowAnimation - Animated rainbow colors (now on splash & spinner)
 
 In our models, currently we are using animations for all of our models, but the current animation is not that good. So, please use more, better-looking animations in our models that more visiable as animation in our modals - Do a web search and use the most visible and beautiful animation possible by Rust, as today is 9th March 2026.
 
-In our chat-input bottom right there is animated rainbow spinner so please show the spinner when we the ai giving answer!
+In our message list at our chat UI, is it possible to show the native terminal scroll words? It will be very helpful. 
+
+In our chat-input bottom right there is animated rainbow spinner so please show the spinner when we the ai giving answer! And all details of the chat input funcation instead of dummy about token calculation+path+ai-target+ai-profile
 
 # Chat ui:
 1. modal animation
