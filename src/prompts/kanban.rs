@@ -236,7 +236,9 @@ impl PromptInteraction for KanbanBoard {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Tab: column, ↑↓: task, ← →: move task, Enter: done")
+                    theme
+                        .dim
+                        .apply_to("Tab: column, ↑↓: task, ← →: move task, Enter: done")
                 ))?;
                 lines += 1;
             }

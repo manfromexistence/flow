@@ -71,8 +71,10 @@ pub fn snowflake_cortex_provider(
     model: impl Into<String>,
 ) -> OpenAiCompatibleProvider {
     let account = account.into();
-    let base_url =
-        format!("https://{}.snowflakecomputing.com/api/v2/cortex/inference/openai/v1", account);
+    let base_url = format!(
+        "https://{}.snowflakecomputing.com/api/v2/cortex/inference/openai/v1",
+        account
+    );
 
     let metadata = ProviderMetadata {
         id: "snowflake-cortex".to_string(),

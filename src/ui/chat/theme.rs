@@ -293,7 +293,9 @@ impl ChatTheme {
     }
 
     pub fn accent_style(&self) -> Style {
-        Style::default().fg(self.primary).add_modifier(Modifier::BOLD)
+        Style::default()
+            .fg(self.primary)
+            .add_modifier(Modifier::BOLD)
     }
 
     pub fn mode_style(&self, mode: &crate::ui::chat::modes::ChatMode) -> Style {

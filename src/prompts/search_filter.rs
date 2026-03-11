@@ -61,7 +61,8 @@ impl<T: Clone> SearchFilter<T> {
             return true;
         }
 
-        tags.iter().any(|tag| tag.to_lowercase().contains(&query_lower))
+        tags.iter()
+            .any(|tag| tag.to_lowercase().contains(&query_lower))
     }
 
     fn matches_filters(&self, tags: &[String]) -> bool {
@@ -216,7 +217,9 @@ impl<T: Clone> PromptInteraction for SearchFilter<T> {
                         term.write_line(&format!(
                             "{}  {}",
                             bar,
-                            theme.dim.apply_to(format!("... {} more", filtered.len() - 5))
+                            theme
+                                .dim
+                                .apply_to(format!("... {} more", filtered.len() - 5))
                         ))?;
                         lines += 1;
                     }
@@ -252,8 +255,10 @@ impl<T: Clone> PromptInteraction for SearchFilter<T> {
             State::Submit => {
                 let checkmark = theme.success.apply_to("✓");
                 let filtered = self.get_filtered_items();
-                let selected =
-                    filtered.get(self.cursor).map(|(_, label)| label.as_str()).unwrap_or("");
+                let selected = filtered
+                    .get(self.cursor)
+                    .map(|(_, label)| label.as_str())
+                    .unwrap_or("");
                 term.write_line(&format!(
                     "{} {}  {}",
                     checkmark,

@@ -146,7 +146,10 @@ fn sampler_seed() -> u32 {
 
 fn truthy_env(var: &str, default: bool) -> bool {
     match std::env::var(var) {
-        Ok(v) => matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"),
+        Ok(v) => matches!(
+            v.trim().to_ascii_lowercase().as_str(),
+            "1" | "true" | "yes" | "on"
+        ),
         Err(_) => default,
     }
 }
@@ -388,7 +391,10 @@ impl StreamRenderer {
         self.answer_chars += chunk.chars().count();
         self.answer_text.push_str(chunk);
         self.begin_section(Section::Answer)?;
-        print!("{}", chunk.truecolor(COLOR_TEXT.0, COLOR_TEXT.1, COLOR_TEXT.2));
+        print!(
+            "{}",
+            chunk.truecolor(COLOR_TEXT.0, COLOR_TEXT.1, COLOR_TEXT.2)
+        );
         io::stdout().flush()
     }
 
@@ -403,7 +409,10 @@ impl StreamRenderer {
             return Ok(());
         }
         self.begin_section(Section::Thinking)?;
-        print!("{}", text.truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2));
+        print!(
+            "{}",
+            text.truecolor(COLOR_MUTED.0, COLOR_MUTED.1, COLOR_MUTED.2)
+        );
         io::stdout().flush()
     }
 
@@ -419,14 +428,21 @@ impl StreamRenderer {
             Section::Answer => {
                 print!(
                     "{} ",
-                    "Dx ›".truecolor(COLOR_PRIMARY.0, COLOR_PRIMARY.1, COLOR_PRIMARY.2).bold()
+                    "Dx ›"
+                        .truecolor(COLOR_PRIMARY.0, COLOR_PRIMARY.1, COLOR_PRIMARY.2)
+                        .bold()
                 );
             }
             Section::Thinking => {
                 if !self.show_thinking {
                     return Ok(());
                 }
-                print!("{} ", "Thinking ›".truecolor(COLOR_DIM.0, COLOR_DIM.1, COLOR_DIM.2).bold());
+                print!(
+                    "{} ",
+                    "Thinking ›"
+                        .truecolor(COLOR_DIM.0, COLOR_DIM.1, COLOR_DIM.2)
+                        .bold()
+                );
             }
         }
         self.active = section;
@@ -483,7 +499,9 @@ fn print_metric(label: &str, value: impl Into<String>) {
     println!(
         "  {} {}",
         c_muted(&format!("{:<20}", format!("{label}:"))),
-        value.into().truecolor(COLOR_TEXT.0, COLOR_TEXT.1, COLOR_TEXT.2)
+        value
+            .into()
+            .truecolor(COLOR_TEXT.0, COLOR_TEXT.1, COLOR_TEXT.2)
     );
 }
 
@@ -566,8 +584,15 @@ fn main() -> Result<()> {
 
     // ── Banner ──────────────────────────────────────────────────────────────
     println!();
-    println!("{}  {}", c_primary("◆ Dx AI").bold(), c_muted(&format!("v{VERSION}")));
-    println!("  {}", c_muted("Production local inference · type /help for commands"));
+    println!(
+        "{}  {}",
+        c_primary("◆ Dx AI").bold(),
+        c_muted(&format!("v{VERSION}"))
+    );
+    println!(
+        "  {}",
+        c_muted("Production local inference · type /help for commands")
+    );
     println!();
 
     // ── Load model ──────────────────────────────────────────────────────────
@@ -621,7 +646,10 @@ fn main() -> Result<()> {
         ))
     );
     println!();
-    println!("  {}", c_accent("Type a message to begin, or /help for commands."));
+    println!(
+        "  {}",
+        c_accent("Type a message to begin, or /help for commands.")
+    );
 
     // ── Conversation state ──────────────────────────────────────────────────
     let mut history: Vec<Message> = Vec::new();
@@ -633,7 +661,9 @@ fn main() -> Result<()> {
 
         print!(
             "\n{} ",
-            "You ›".truecolor(COLOR_ACCENT.0, COLOR_ACCENT.1, COLOR_ACCENT.2).bold()
+            "You ›"
+                .truecolor(COLOR_ACCENT.0, COLOR_ACCENT.1, COLOR_ACCENT.2)
+                .bold()
         );
         io::stdout().flush()?;
 
@@ -707,7 +737,10 @@ fn main() -> Result<()> {
 
         let budget = INFERENCE_CONTEXT_TOKENS as usize;
         if trim_history(&mut history, &model, budget) {
-            println!("{}", c_muted("  (older turns trimmed to fit context window)"));
+            println!(
+                "{}",
+                c_muted("  (older turns trimmed to fit context window)")
+            );
         }
 
         let prompt = build_prompt(&history);
@@ -742,7 +775,11 @@ fn main() -> Result<()> {
 
         println!(
             "  {}",
-            c_muted(&format!("prompt {} token · budget {} token", tokens.len(), max_tokens))
+            c_muted(&format!(
+                "prompt {} token · budget {} token",
+                tokens.len(),
+                max_tokens
+            ))
         );
 
         // ── Batched prompt evaluation ───────────────────────────────────────

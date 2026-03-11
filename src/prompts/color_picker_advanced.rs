@@ -182,19 +182,31 @@ impl PromptInteraction for ColorPickerAdvanced {
                 let b_marker = if self.active_channel == 2 { "▸" } else { " " };
 
                 let r_display = if self.active_channel == 0 {
-                    theme.primary.apply_to(format!("{:3}", self.r)).bold().to_string()
+                    theme
+                        .primary
+                        .apply_to(format!("{:3}", self.r))
+                        .bold()
+                        .to_string()
                 } else {
                     format!("{:3}", self.r)
                 };
 
                 let g_display = if self.active_channel == 1 {
-                    theme.primary.apply_to(format!("{:3}", self.g)).bold().to_string()
+                    theme
+                        .primary
+                        .apply_to(format!("{:3}", self.g))
+                        .bold()
+                        .to_string()
                 } else {
                     format!("{:3}", self.g)
                 };
 
                 let b_display = if self.active_channel == 2 {
-                    theme.primary.apply_to(format!("{:3}", self.b)).bold().to_string()
+                    theme
+                        .primary
+                        .apply_to(format!("{:3}", self.b))
+                        .bold()
+                        .to_string()
                 } else {
                     format!("{:3}", self.b)
                 };
@@ -223,7 +235,11 @@ impl PromptInteraction for ColorPickerAdvanced {
                 lines += 1;
 
                 // HEX value
-                term.write_line(&format!("{}  HEX: {}", bar, theme.dim.apply_to(self.to_hex())))?;
+                term.write_line(&format!(
+                    "{}  HEX: {}",
+                    bar,
+                    theme.dim.apply_to(self.to_hex())
+                ))?;
                 lines += 1;
 
                 term.write_line(&format!(

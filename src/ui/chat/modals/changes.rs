@@ -42,7 +42,9 @@ pub fn render(
         .border_type(ratatui::widgets::BorderType::Rounded)
         .title(Span::styled(
             title,
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ))
         .style(Style::default().bg(theme.bg));
 
@@ -52,18 +54,22 @@ pub fn render(
     if git_changes.is_empty() {
         let msg = Line::from(Span::styled(
             "No changes detected in the repository",
-            Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(theme.border)
+                .add_modifier(Modifier::ITALIC),
         ));
 
-        Paragraph::new(msg).alignment(ratatui::layout::Alignment::Center).render(
-            Rect {
-                x: inner.x,
-                y: inner.y + inner.height / 2,
-                width: inner.width,
-                height: 1,
-            },
-            buf,
-        );
+        Paragraph::new(msg)
+            .alignment(ratatui::layout::Alignment::Center)
+            .render(
+                Rect {
+                    x: inner.x,
+                    y: inner.y + inner.height / 2,
+                    width: inner.width,
+                    height: 1,
+                },
+                buf,
+            );
     } else {
         let visible_items = (inner.height.saturating_sub(2)) as usize;
         let (start_idx, end_idx) = list.get_visible_range(visible_items);
@@ -204,13 +210,15 @@ pub fn render(
         Span::styled(" Close", Style::default().fg(theme.border)),
     ]);
 
-    Paragraph::new(help_text).alignment(ratatui::layout::Alignment::Center).render(
-        Rect {
-            x: inner.x,
-            y: inner.y + inner.height.saturating_sub(1),
-            width: inner.width,
-            height: 1,
-        },
-        buf,
-    );
+    Paragraph::new(help_text)
+        .alignment(ratatui::layout::Alignment::Center)
+        .render(
+            Rect {
+                x: inner.x,
+                y: inner.y + inner.height.saturating_sub(1),
+                width: inner.width,
+                height: 1,
+            },
+            buf,
+        );
 }

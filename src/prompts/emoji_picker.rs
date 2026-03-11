@@ -266,7 +266,10 @@ impl PromptInteraction for EmojiPicker {
 
     fn value(&self) -> String {
         let emojis = self.get_filtered_emojis();
-        emojis.get(self.cursor).map(|(emoji, _)| emoji.clone()).unwrap_or_default()
+        emojis
+            .get(self.cursor)
+            .map(|(emoji, _)| emoji.clone())
+            .unwrap_or_default()
     }
 }
 

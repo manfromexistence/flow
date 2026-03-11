@@ -104,7 +104,11 @@ pub fn play_audio_file_with_visualizer(
     use std::thread;
     use std::time::{Duration, Instant};
 
-    eprintln!("   {} {}", "▶".bright_cyan(), path.display().to_string().white());
+    eprintln!(
+        "   {} {}",
+        "▶".bright_cyan(),
+        path.display().to_string().white()
+    );
 
     // Create output stream
     let (_stream, stream_handle) =
@@ -219,10 +223,15 @@ pub fn play_audio_from_url_with_visualizer(url: &str, show_visualizer: bool) -> 
     eprintln!("📥 Downloading from {}...", url);
 
     // Download using ureq (no tokio conflicts)
-    let response = ureq::get(url).call().map_err(|e| io::Error::other(e.to_string()))?;
+    let response = ureq::get(url)
+        .call()
+        .map_err(|e| io::Error::other(e.to_string()))?;
 
     if response.status() != 200 {
-        return Err(io::Error::other(format!("Failed to download: HTTP {}", response.status())));
+        return Err(io::Error::other(format!(
+            "Failed to download: HTTP {}",
+            response.status()
+        )));
     }
 
     // Read response body

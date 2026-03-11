@@ -75,7 +75,9 @@ impl OllamaBackend {
     /// Get the model to use (remote or local)
     fn get_active_model(&self) -> String {
         if self.enable_remote {
-            self.remote_model.clone().unwrap_or_else(|| self.model.clone())
+            self.remote_model
+                .clone()
+                .unwrap_or_else(|| self.model.clone())
         } else {
             self.model.clone()
         }
@@ -91,7 +93,10 @@ impl OllamaBackend {
 impl Backend for OllamaBackend {
     async fn initialize(&mut self) -> Result<()> {
         // Check if Ollama is running
-        self.client.list_local_models().await.context("Failed to connect to Ollama")?;
+        self.client
+            .list_local_models()
+            .await
+            .context("Failed to connect to Ollama")?;
         Ok(())
     }
 
@@ -99,8 +104,11 @@ impl Backend for OllamaBackend {
         let model = self.get_active_model();
         let request = GenerationRequest::new(model, prompt.to_string());
 
-        let response: GenerationResponse =
-            self.client.generate(request).await.context("Ollama generation failed")?;
+        let response: GenerationResponse = self
+            .client
+            .generate(request)
+            .await
+            .context("Ollama generation failed")?;
 
         Ok(response.response)
     }

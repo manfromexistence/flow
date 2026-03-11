@@ -52,11 +52,15 @@ fn now_ms() -> u64 {
 }
 
 fn dx_config_dir() -> PathBuf {
-    dirs::config_dir().unwrap_or_else(|| PathBuf::from(".")).join("dx")
+    dirs::config_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("dx")
 }
 
 fn default_accounts_path() -> PathBuf {
-    dx_config_dir().join("credentials").join("github-copilot.accounts.json")
+    dx_config_dir()
+        .join("credentials")
+        .join("github-copilot.accounts.json")
 }
 
 fn default_profile_id(label: &str) -> String {
@@ -90,7 +94,11 @@ async fn command_works(
     if let Some(env) = env_overrides {
         command.envs(env);
     }
-    command.status().await.map(|status| status.success()).unwrap_or(false)
+    command
+        .status()
+        .await
+        .map(|status| status.success())
+        .unwrap_or(false)
 }
 
 /// Stores and manages multiple GitHub Copilot accounts for DX.
@@ -121,7 +129,10 @@ impl CopilotAccountManager {
     }
 
     pub fn default_profile_config_dir(id: &CopilotAccountId) -> PathBuf {
-        dx_config_dir().join("credentials").join("copilot").join(&id.0)
+        dx_config_dir()
+            .join("credentials")
+            .join("copilot")
+            .join(&id.0)
     }
 
     pub fn load(&self) -> Result<Vec<CopilotAccountProfile>> {
@@ -209,7 +220,9 @@ impl CopilotAccountManager {
         }
         let entry = keyring::Entry::new(KEYRING_SERVICE, &id.0)
             .context("failed to open OS keyring entry")?;
-        entry.set_password(trimmed).context("failed to store token in OS keyring")?;
+        entry
+            .set_password(trimmed)
+            .context("failed to store token in OS keyring")?;
         Ok(())
     }
 
@@ -265,7 +278,10 @@ impl CopilotAccountManager {
     pub async fn start_client(&self, profile: &CopilotAccountProfile) -> Result<CopilotClient> {
         let github_token = self.get_github_token(&profile.id).unwrap_or(None);
         let client = CopilotClient::new(Self::options_for_profile(profile, github_token));
-        client.start().await.map_err(|err| anyhow!("copilot sdk start failed: {err}"))?;
+        client
+            .start()
+            .await
+            .map_err(|err| anyhow!("copilot sdk start failed: {err}"))?;
         Ok(client)
     }
 
@@ -313,7 +329,11 @@ mod tests {
 
     fn temp_accounts_path() -> PathBuf {
         let mut path = std::env::temp_dir();
-        path.push(format!("dx-onboard-copilot-accounts-{}-{}.json", std::process::id(), now_ms()));
+        path.push(format!(
+            "dx-onboard-copilot-accounts-{}-{}.json",
+            std::process::id(),
+            now_ms()
+        ));
         path
     }
 

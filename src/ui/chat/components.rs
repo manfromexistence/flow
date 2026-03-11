@@ -100,19 +100,29 @@ impl Widget for MessageList<'_> {
                     let header = Line::from(vec![
                         Span::styled(
                             "You",
-                            Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+                            Style::default()
+                                .fg(self.theme.accent)
+                                .add_modifier(Modifier::BOLD),
                         ),
                         Span::raw("  "),
                         Span::styled(time, Style::default().fg(self.theme.border)),
                     ]);
 
-                    let content_lines: Vec<Line> =
-                        msg.content.lines().map(|line| Line::from(Span::raw(line))).collect();
+                    let content_lines: Vec<Line> = msg
+                        .content
+                        .lines()
+                        .map(|line| Line::from(Span::raw(line)))
+                        .collect();
 
                     // Calculate dynamic width based on content
                     let max_content_width = content_lines
                         .iter()
-                        .map(|line| line.spans.iter().map(|span| span.content.len()).sum::<usize>())
+                        .map(|line| {
+                            line.spans
+                                .iter()
+                                .map(|span| span.content.len())
+                                .sum::<usize>()
+                        })
                         .max()
                         .unwrap_or(0);
 
@@ -201,23 +211,12 @@ impl Widget for MessageList<'_> {
                     // Parse markdown and convert to styled lines
                     let content_lines = parse_markdown_to_lines(&msg.content, self.theme);
 
-                    // Calculate available space
-                    let available_height = (area.bottom().saturating_sub(y)) as usize;
+                    // Calculate message height based on content
+                    let msg_height = (content_lines.len() + 2).min((area.bottom() - y) as usize);
 
-                    // Skip if no space
-                    if available_height == 0 || y >= area.bottom() {
-                        break;
-                    }
-
-                    // Use all available height for the message
-                    let msg_height = available_height;
-
-                    // Handle scrolling - skip entire message if scrolled past
+                    // Handle scrolling
                     if skipped_lines < self.scroll_offset {
-                        // Estimate message height for scrolling (rough estimate)
-                        let estimated_height = content_lines.len() + 2;
-                        let skip_amount =
-                            (estimated_height + 1).min(self.scroll_offset - skipped_lines);
+                        let skip_amount = (msg_height + 1).min(self.scroll_offset - skipped_lines);
                         skipped_lines += skip_amount;
                         continue;
                     }
@@ -230,17 +229,19 @@ impl Widget for MessageList<'_> {
                     };
 
                     // Render header
-                    Paragraph::new(header).style(Style::default().bg(self.theme.bg)).render(
-                        Rect {
-                            x: msg_area.x,
-                            y: msg_area.y,
-                            width: msg_area.width,
-                            height: 1,
-                        },
-                        buf,
-                    );
+                    Paragraph::new(header)
+                        .style(Style::default().bg(self.theme.bg))
+                        .render(
+                            Rect {
+                                x: msg_area.x,
+                                y: msg_area.y,
+                                width: msg_area.width,
+                                height: 1,
+                            },
+                            buf,
+                        );
 
-                    // Render content - use all remaining space
+                    // Render content
                     if msg_height > 1 {
                         let content_area = Rect {
                             x: msg_area.x,
@@ -257,8 +258,7 @@ impl Widget for MessageList<'_> {
                             .render(content_area, buf);
                     }
 
-                    // Move y to bottom (message consumed all space)
-                    y = area.bottom();
+                    y += msg_height as u16 + 1; // Add 1 line gap
                 }
             }
         }
@@ -319,7 +319,9 @@ impl Widget for ModeSelector<'_> {
                 Line::from(Span::styled(mode.to_string(), style)),
             ];
 
-            let paragraph = Paragraph::new(text).block(block).alignment(Alignment::Center);
+            let paragraph = Paragraph::new(text)
+                .block(block)
+                .alignment(Alignment::Center);
 
             paragraph.render(chunks[i], buf);
         }
@@ -365,7 +367,9 @@ impl Widget for InputBox<'_> {
             Text::from(self.content)
         };
 
-        Paragraph::new(text).wrap(Wrap { trim: false }).render(inner, buf);
+        Paragraph::new(text)
+            .wrap(Wrap { trim: false })
+            .render(inner, buf);
 
         // Render cursor when focused
         if self.focused {
@@ -413,7 +417,9 @@ impl Widget for LoadingIndicator<'_> {
         // AI loading: just show the animated dots without "Assistant" text
         let text = Line::from(vec![Span::styled(
             self.indicator.text(self.indicator.is_visible()),
-            Style::default().fg(shimmer_color).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(shimmer_color)
+                .add_modifier(Modifier::ITALIC),
         )]);
 
         Paragraph::new(text)
@@ -585,18 +591,28 @@ impl Widget for CombinedInputBar<'_> {
             .render(bottom_chunks[1], buf);
 
         // Model selector
-        Paragraph::new(Span::styled("Gemini 3 Pro", Style::default().fg(self.theme.fg)))
-            .alignment(Alignment::Left)
-            .render(bottom_chunks[2], buf);
+        Paragraph::new(Span::styled(
+            "Gemini 3 Pro",
+            Style::default().fg(self.theme.fg),
+        ))
+        .alignment(Alignment::Left)
+        .render(bottom_chunks[2], buf);
 
         // Audio button
         let (audio_text_str, audio_style) = if self.audio_processing {
             (
                 "Processing...",
-                Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(self.theme.accent)
+                    .add_modifier(Modifier::BOLD),
             )
         } else if self.audio_mode {
-            ("Audio", Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD))
+            (
+                "Audio",
+                Style::default()
+                    .fg(self.theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             ("Audio", Style::default().fg(self.theme.fg))
         };
@@ -612,7 +628,9 @@ impl Widget for CombinedInputBar<'_> {
         // Send button
         Paragraph::new(Span::styled(
             "Send",
-            Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(self.theme.accent)
+                .add_modifier(Modifier::BOLD),
         ))
         .alignment(Alignment::Right)
         .render(bottom_chunks[6], buf);
@@ -688,8 +706,10 @@ impl Widget for BottomBar<'_> {
             .split(area);
 
         // Model selector (left)
-        let model_text =
-            Line::from(Span::styled("Gemini 3 Pro", Style::default().fg(self.theme.fg)));
+        let model_text = Line::from(Span::styled(
+            "Gemini 3 Pro",
+            Style::default().fg(self.theme.fg),
+        ));
         Paragraph::new(model_text)
             .alignment(Alignment::Left)
             .style(Style::default().bg(self.theme.bg))
@@ -718,10 +738,17 @@ impl Widget for BottomBar<'_> {
         let (audio_text_str, audio_style) = if self.audio_processing {
             (
                 "Processing...",
-                Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(self.theme.accent)
+                    .add_modifier(Modifier::BOLD),
             )
         } else if self.audio_mode {
-            ("Audio", Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD))
+            (
+                "Audio",
+                Style::default()
+                    .fg(self.theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             ("Audio", Style::default().fg(self.theme.fg))
         };
@@ -741,7 +768,9 @@ impl Widget for BottomBar<'_> {
         // Send button
         let send_text = Line::from(Span::styled(
             "Send",
-            Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(self.theme.accent)
+                .add_modifier(Modifier::BOLD),
         ));
         Paragraph::new(send_text)
             .alignment(Alignment::Right)
@@ -868,31 +897,49 @@ impl Widget for SecondaryBar<'_> {
             .split(padded);
 
         // Left items - muted colors
-        Paragraph::new(Span::styled(&changes_text, Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Left)
-            .render(chunks[0], buf);
+        Paragraph::new(Span::styled(
+            &changes_text,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Left)
+        .render(chunks[0], buf);
 
-        Paragraph::new(Span::styled(&tasks_text, Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Left)
-            .render(chunks[2], buf);
+        Paragraph::new(Span::styled(
+            &tasks_text,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Left)
+        .render(chunks[2], buf);
 
-        Paragraph::new(Span::styled(&agents_text, Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Left)
-            .render(chunks[4], buf);
+        Paragraph::new(Span::styled(
+            &agents_text,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Left)
+        .render(chunks[4], buf);
 
         // Center - rotating shortcuts
-        Paragraph::new(Span::styled(current_shortcut, Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Center)
-            .render(chunks[5], buf);
+        Paragraph::new(Span::styled(
+            current_shortcut,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Center)
+        .render(chunks[5], buf);
 
         // Right items - muted colors
-        Paragraph::new(Span::styled(&memory_text, Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Left)
-            .render(chunks[6], buf);
+        Paragraph::new(Span::styled(
+            &memory_text,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Left)
+        .render(chunks[6], buf);
 
-        Paragraph::new(Span::styled("Tools", Style::default().fg(self.theme.border)))
-            .alignment(Alignment::Left)
-            .render(chunks[8], buf);
+        Paragraph::new(Span::styled(
+            "Tools",
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(Alignment::Left)
+        .render(chunks[8], buf);
 
         Paragraph::new(Span::styled("More", Style::default().fg(self.theme.border)))
             .alignment(Alignment::Left)
@@ -904,7 +951,10 @@ impl Widget for SecondaryBar<'_> {
 fn parse_markdown_to_lines(content: &str, theme: &ChatTheme) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
 
-    for line in content.lines() {
+    // Filter out <think> tags and their content
+    let filtered_content = filter_think_tags(content);
+
+    for line in filtered_content.lines() {
         let trimmed = line.trim();
 
         // Headers
@@ -916,12 +966,16 @@ fn parse_markdown_to_lines(content: &str, theme: &ChatTheme) -> Vec<Line<'static
         } else if let Some(rest) = trimmed.strip_prefix("## ") {
             lines.push(Line::from(Span::styled(
                 rest.to_string(),
-                Style::default().fg(theme.accent_secondary).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent_secondary)
+                    .add_modifier(Modifier::BOLD),
             )));
         } else if let Some(rest) = trimmed.strip_prefix("# ") {
             lines.push(Line::from(Span::styled(
                 rest.to_string(),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             )));
         }
         // Code blocks
@@ -953,6 +1007,43 @@ fn parse_markdown_to_lines(content: &str, theme: &ChatTheme) -> Vec<Line<'static
     }
 
     lines
+}
+
+/// Filter out <think> tags and their content
+fn filter_think_tags(content: &str) -> String {
+    let mut result = String::with_capacity(content.len());
+    let mut chars = content.chars().peekable();
+    let mut in_think_tag = false;
+
+    while let Some(ch) = chars.next() {
+        if ch == '<' {
+            // Check if this is a <think> or </think> tag
+            let remaining: String = chars.clone().collect();
+            if remaining.starts_with("think>") {
+                // Opening tag
+                in_think_tag = true;
+                // Skip "think>"
+                for _ in 0..6 {
+                    chars.next();
+                }
+                continue;
+            } else if remaining.starts_with("/think>") {
+                // Closing tag
+                in_think_tag = false;
+                // Skip "/think>"
+                for _ in 0..7 {
+                    chars.next();
+                }
+                continue;
+            }
+        }
+
+        if !in_think_tag {
+            result.push(ch);
+        }
+    }
+
+    result.trim().to_string()
 }
 
 /// Parse inline markdown (bold, italic, code) within a line

@@ -175,7 +175,9 @@ impl PromptInteraction for RangeSlider {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Tab: switch handle, ← →: adjust, Enter: confirm")
+                    theme
+                        .dim
+                        .apply_to("Tab: switch handle, ← →: adjust, Enter: confirm")
                 ))?;
                 lines += 1;
             }
@@ -185,7 +187,9 @@ impl PromptInteraction for RangeSlider {
                     "{} {}  {}",
                     checkmark,
                     self.message,
-                    theme.dim.apply_to(format!("{} - {}", self.min_value, self.max_value))
+                    theme
+                        .dim
+                        .apply_to(format!("{} - {}", self.min_value, self.max_value))
                 ))?;
                 lines += 1;
                 term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;

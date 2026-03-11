@@ -280,7 +280,10 @@ impl PromptInteraction for CreditCardInput {
                 ))?;
                 lines += 1;
 
-                term.write_line(&format!("{}  {} CVV:         {}", bar, cvv_marker, cvv_text))?;
+                term.write_line(&format!(
+                    "{}  {} CVV:         {}",
+                    bar, cvv_marker, cvv_text
+                ))?;
                 lines += 1;
 
                 if let Some(error) = &self.error_message {
@@ -327,7 +330,11 @@ impl PromptInteraction for CreditCardInput {
     }
 
     fn value(&self) -> (String, String, String) {
-        (self.format_card_number(), self.format_expiry(), self.cvv.clone())
+        (
+            self.format_card_number(),
+            self.format_expiry(),
+            self.cvv.clone(),
+        )
     }
 }
 

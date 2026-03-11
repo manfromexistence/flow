@@ -237,7 +237,11 @@ pub fn play_video(path: &Path, _duration: Duration) -> io::Result<()> {
     let fps = extract_fps(&stderr).unwrap_or(30.0);
     let video_duration = extract_duration(&stderr).unwrap_or(Duration::from_secs(10));
 
-    eprintln!("✓ Video: {:.1} fps, {:.1}s duration", fps, video_duration.as_secs_f64());
+    eprintln!(
+        "✓ Video: {:.1} fps, {:.1}s duration",
+        fps,
+        video_duration.as_secs_f64()
+    );
     eprintln!();
 
     // Extract frames with hardware acceleration
@@ -248,13 +252,21 @@ pub fn play_video(path: &Path, _duration: Duration) -> io::Result<()> {
     let target_fps = fps.min(30.0);
 
     let mut child = std::process::Command::new(&ffmpeg)
-        .arg("-hwaccel").arg("auto")  // Hardware acceleration
-        .arg("-i").arg(path)
-        .arg("-vf").arg(format!("fps={},scale=400:-1:flags=fast_bilinear", target_fps))
-        .arg("-pix_fmt").arg("rgb24")
+        .arg("-hwaccel")
+        .arg("auto") // Hardware acceleration
+        .arg("-i")
+        .arg(path)
+        .arg("-vf")
+        .arg(format!(
+            "fps={},scale=400:-1:flags=fast_bilinear",
+            target_fps
+        ))
+        .arg("-pix_fmt")
+        .arg("rgb24")
         .arg(temp_dir.join("frame_%06d.png").to_str().unwrap())
         .arg("-y")
-        .arg("-progress").arg("pipe:1")
+        .arg("-progress")
+        .arg("pipe:1")
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::null())
         .spawn()?;
@@ -341,7 +353,11 @@ fn play_extracted_frames_gpu(
 
     let mmapped_frames: Vec<_> = frame_paths
         .par_iter()
-        .filter_map(|path| File::open(path).ok().and_then(|file| unsafe { Mmap::map(&file).ok() }))
+        .filter_map(|path| {
+            File::open(path)
+                .ok()
+                .and_then(|file| unsafe { Mmap::map(&file).ok() })
+        })
         .collect();
 
     eprintln!("✓ Mapped {} frames", mmapped_frames.len());
@@ -526,7 +542,10 @@ fn find_ffmpeg() -> Option<String> {
         "ffmpeg".to_string(),
         "ffmpeg.exe".to_string(),
         "C:\\ffmpeg\\bin\\ffmpeg.exe".to_string(),
-        format!("{}\\scoop\\apps\\ffmpeg\\current\\bin\\ffmpeg.exe", userprofile),
+        format!(
+            "{}\\scoop\\apps\\ffmpeg\\current\\bin\\ffmpeg.exe",
+            userprofile
+        ),
         format!(
             "{}\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe",
             localappdata
@@ -615,7 +634,10 @@ pub fn play_gif_with_audio(
             ..Default::default()
         };
 
-        let _ = viuer::print(&image::DynamicImage::ImageRgba8(frame.buffer().clone()), &conf);
+        let _ = viuer::print(
+            &image::DynamicImage::ImageRgba8(frame.buffer().clone()),
+            &conf,
+        );
 
         flush()?;
         frame_idx += 1;
@@ -636,7 +658,9 @@ pub fn play_video_from_url(url: &str, duration: Duration) -> io::Result<()> {
 
     eprintln!("📥 Downloading from {}...", url);
 
-    let response = ureq::get(url).call().map_err(|e| io::Error::other(e.to_string()))?;
+    let response = ureq::get(url)
+        .call()
+        .map_err(|e| io::Error::other(e.to_string()))?;
 
     if response.status() != 200 {
         return Err(io::Error::other(format!("HTTP {}", response.status())));

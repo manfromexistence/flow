@@ -129,11 +129,16 @@ pub fn render(
     // Header with search and count
     let enabled_count = tools.iter().filter(|t| t.enabled).count();
     let header = Line::from(vec![
-        Span::styled("Select tools that are available to chat.", Style::default().fg(theme.fg)),
+        Span::styled(
+            "Select tools that are available to chat.",
+            Style::default().fg(theme.fg),
+        ),
         Span::raw("  "),
         Span::styled(
             format!("{} Selected", enabled_count),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
     ]);
 
@@ -149,17 +154,22 @@ pub fn render(
     if !tools.is_empty() {
         let category_line = Line::from(vec![
             Span::styled("[+] ", Style::default().fg(theme.border)),
-            Span::styled("Built-In", Style::default().fg(theme.fg).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Built-In",
+                Style::default().fg(theme.fg).add_modifier(Modifier::BOLD),
+            ),
         ]);
-        Paragraph::new(category_line).style(Style::default().bg(theme.bg)).render(
-            Rect {
-                x: tools_area.x,
-                y,
-                width: tools_area.width,
-                height: 1,
-            },
-            buf,
-        );
+        Paragraph::new(category_line)
+            .style(Style::default().bg(theme.bg))
+            .render(
+                Rect {
+                    x: tools_area.x,
+                    y,
+                    width: tools_area.width,
+                    height: 1,
+                },
+                buf,
+            );
         y += 1;
     }
 
@@ -181,7 +191,10 @@ pub fn render(
             Span::styled(
                 &tool.name,
                 if is_selected {
-                    Style::default().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+                    Style::default()
+                        .fg(theme.bg)
+                        .bg(theme.accent)
+                        .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(theme.fg)
                 },

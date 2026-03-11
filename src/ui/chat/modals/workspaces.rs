@@ -42,7 +42,9 @@ pub fn render(
         .border_type(ratatui::widgets::BorderType::Rounded)
         .title(Span::styled(
             " Active Workspaces ",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ))
         .style(Style::default().bg(theme.bg));
 
@@ -53,7 +55,9 @@ pub fn render(
         let empty_y = inner.y + inner.height / 2;
         Paragraph::new(Line::from(Span::styled(
             "No active workspaces",
-            Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(theme.border)
+                .add_modifier(Modifier::ITALIC),
         )))
         .alignment(Alignment::Center)
         .render(
@@ -73,35 +77,52 @@ pub fn render(
     // Render header row
     if y < inner.bottom() {
         let header_spans = vec![
-            Span::styled("Sta ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "Sta ",
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled(
                 format!("{:<15}", "Name"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(" "),
             Span::styled(
                 format!("{:<15}", "Model"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(" "),
             Span::styled(
                 format!("{:<35}", "Task"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(" "),
             Span::styled(
                 format!("{:>4}", "Prog"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw("  "),
             Span::styled(
                 format!("{:>6}", "Tokens"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw("  "),
             Span::styled(
                 format!("{:>5}", "Time"),
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
         ];
 
@@ -122,7 +143,10 @@ pub fn render(
     let (start_idx, end_idx) = list.get_visible_range(visible_items as usize);
 
     // Render agent rows
-    for (idx, agent) in agents[start_idx..end_idx.min(agents.len())].iter().enumerate() {
+    for (idx, agent) in agents[start_idx..end_idx.min(agents.len())]
+        .iter()
+        .enumerate()
+    {
         if y >= inner.bottom().saturating_sub(1) {
             break;
         }
@@ -213,15 +237,17 @@ pub fn render(
             ])
         };
 
-        Paragraph::new(help_text).alignment(Alignment::Center).render(
-            Rect {
-                x: inner.x,
-                y: inner.y + inner.height.saturating_sub(1),
-                width: inner.width,
-                height: 1,
-            },
-            buf,
-        );
+        Paragraph::new(help_text)
+            .alignment(Alignment::Center)
+            .render(
+                Rect {
+                    x: inner.x,
+                    y: inner.y + inner.height.saturating_sub(1),
+                    width: inner.width,
+                    height: 1,
+                },
+                buf,
+            );
     }
 
     // Render create input if in create mode
@@ -231,7 +257,9 @@ pub fn render(
         // Label
         Paragraph::new(Line::from(Span::styled(
             "New Workspace Name:",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         )))
         .render(
             Rect {

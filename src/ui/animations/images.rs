@@ -49,10 +49,15 @@ pub fn show_image_from_url(url: &str, ascii: bool) -> io::Result<()> {
     eprintln!("Downloading image from {}...", url);
 
     // Download using ureq (no tokio conflicts)
-    let response = ureq::get(url).call().map_err(|e| io::Error::other(e.to_string()))?;
+    let response = ureq::get(url)
+        .call()
+        .map_err(|e| io::Error::other(e.to_string()))?;
 
     if response.status() != 200 {
-        return Err(io::Error::other(format!("Failed to download: HTTP {}", response.status())));
+        return Err(io::Error::other(format!(
+            "Failed to download: HTTP {}",
+            response.status()
+        )));
     }
 
     // Read response body

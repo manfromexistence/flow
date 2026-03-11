@@ -354,7 +354,14 @@ impl GitHubCopilotProvider {
                 .await
             }
             CopilotApiSurface::ChatCompletions => {
-                chat_impl(&self.id, &self.client, endpoint, self.auth_headers()?, request).await
+                chat_impl(
+                    &self.id,
+                    &self.client,
+                    endpoint,
+                    self.auth_headers()?,
+                    request,
+                )
+                .await
             }
         }
     }
@@ -403,17 +410,29 @@ async fn chat_impl(
     mut request: ChatRequest,
 ) -> Result<ChatResponse, ProviderError> {
     request.stream = false;
-    let response = client.post(endpoint).headers(headers).json(&request).send().await?;
+    let response = client
+        .post(endpoint)
+        .headers(headers)
+        .json(&request)
+        .send()
+        .await?;
     let response = validate_status(provider_id, response).await?;
     let raw: Value = response.json().await?;
     let parsed: OpenAiChatResponse = serde_json::from_value(raw.clone())?;
 
-    let first = parsed.choices.first().ok_or_else(|| ProviderError::InvalidResponse {
-        provider: provider_id.to_string(),
-        detail: "missing choices[0] in chat response".to_string(),
-    })?;
+    let first = parsed
+        .choices
+        .first()
+        .ok_or_else(|| ProviderError::InvalidResponse {
+            provider: provider_id.to_string(),
+            detail: "missing choices[0] in chat response".to_string(),
+        })?;
 
-    let content = first.message.as_ref().and_then(|msg| msg.content.clone()).unwrap_or_default();
+    let content = first
+        .message
+        .as_ref()
+        .and_then(|msg| msg.content.clone())
+        .unwrap_or_default();
 
     Ok(ChatResponse {
         id: parsed.id,
@@ -438,7 +457,12 @@ async fn stream_impl(
 ) -> Result<ProviderStream, ProviderError> {
     request.stream = true;
 
-    let response = client.post(endpoint).headers(headers).json(&request).send().await?;
+    let response = client
+        .post(endpoint)
+        .headers(headers)
+        .json(&request)
+        .send()
+        .await?;
     let response = validate_status(&provider_id, response).await?;
 
     let byte_stream = response.bytes_stream();
@@ -537,7 +561,12 @@ async fn copilot_responses_chat_impl(
         "top_p": request.top_p,
     });
 
-    let response = client.post(endpoint).headers(headers).json(&body).send().await?;
+    let response = client
+        .post(endpoint)
+        .headers(headers)
+        .json(&body)
+        .send()
+        .await?;
     let response = validate_status(provider_id, response).await?;
     let raw: Value = response.json().await?;
 
@@ -546,15 +575,19 @@ async fn copilot_responses_chat_impl(
         .and_then(Value::as_str)
         .map(str::to_string)
         .or_else(|| {
-            raw.get("output").and_then(Value::as_array).and_then(|output| {
-                output.iter().find_map(|item| {
-                    item.get("content").and_then(Value::as_array).and_then(|parts| {
-                        parts.iter().find_map(|part| {
-                            part.get("text").and_then(Value::as_str).map(str::to_string)
-                        })
+            raw.get("output")
+                .and_then(Value::as_array)
+                .and_then(|output| {
+                    output.iter().find_map(|item| {
+                        item.get("content")
+                            .and_then(Value::as_array)
+                            .and_then(|parts| {
+                                parts.iter().find_map(|part| {
+                                    part.get("text").and_then(Value::as_str).map(str::to_string)
+                                })
+                            })
                     })
                 })
-            })
         })
         .unwrap_or_default();
 
@@ -563,7 +596,10 @@ async fn copilot_responses_chat_impl(
         id: raw.get("id").and_then(Value::as_str).map(str::to_string),
         model: raw.get("model").and_then(Value::as_str).map(str::to_string),
         content,
-        finish_reason: raw.get("status").and_then(Value::as_str).map(str::to_string),
+        finish_reason: raw
+            .get("status")
+            .and_then(Value::as_str)
+            .map(str::to_string),
         usage: Some(UsageInfo {
             prompt_tokens: usage
                 .and_then(|value| value.get("input_tokens"))
@@ -601,7 +637,14 @@ impl LlmProvider for AzureOpenAiProvider {
     }
 
     async fn chat(&self, request: ChatRequest) -> Result<ChatResponse, ProviderError> {
-        chat_impl(&self.id, &self.client, &self.chat_url(), self.auth_headers()?, request).await
+        chat_impl(
+            &self.id,
+            &self.client,
+            &self.chat_url(),
+            self.auth_headers()?,
+            request,
+        )
+        .await
     }
 
     async fn stream(&self, request: ChatRequest) -> Result<ProviderStream, ProviderError> {
@@ -704,7 +747,10 @@ impl LlmProvider for GitHubCopilotProvider {
         let base = self.base_url.trim_end_matches('/');
 
         let mut attempts: Vec<(CopilotApiSurface, String)> = Vec::new();
-        attempts.push((preferred_surface, endpoint_for_model(&self.base_url, &request.model)));
+        attempts.push((
+            preferred_surface,
+            endpoint_for_model(&self.base_url, &request.model),
+        ));
 
         match preferred_surface {
             CopilotApiSurface::Responses => {
@@ -723,14 +769,20 @@ impl LlmProvider for GitHubCopilotProvider {
                     CopilotApiSurface::ChatCompletions,
                     format!("{}/chat/completions", base),
                 ));
-                attempts.push((CopilotApiSurface::Responses, format!("{}/v1/responses", base)));
+                attempts.push((
+                    CopilotApiSurface::Responses,
+                    format!("{}/v1/responses", base),
+                ));
                 attempts.push((CopilotApiSurface::Responses, format!("{}/responses", base)));
             }
         }
 
         let mut last_error: Option<ProviderError> = None;
         for (surface, endpoint) in attempts {
-            match self.chat_with_surface(request.clone(), surface, &endpoint).await {
+            match self
+                .chat_with_surface(request.clone(), surface, &endpoint)
+                .await
+            {
                 Ok(response) => return Ok(response),
                 Err(ProviderError::HttpStatus { status: 404, .. }) => {
                     last_error = Some(ProviderError::HttpStatus {
@@ -743,16 +795,24 @@ impl LlmProvider for GitHubCopilotProvider {
             }
         }
 
-        Err(last_error.unwrap_or_else(|| ProviderError::InvalidResponse {
-            provider: self.id.clone(),
-            detail: "all Copilot endpoint attempts failed".to_string(),
-        }))
+        Err(
+            last_error.unwrap_or_else(|| ProviderError::InvalidResponse {
+                provider: self.id.clone(),
+                detail: "all Copilot endpoint attempts failed".to_string(),
+            }),
+        )
     }
 
     async fn stream(&self, request: ChatRequest) -> Result<ProviderStream, ProviderError> {
         let endpoint = format!("{}/v1/chat/completions", self.base_url);
-        stream_impl(self.id.clone(), self.client.clone(), endpoint, self.auth_headers()?, request)
-            .await
+        stream_impl(
+            self.id.clone(),
+            self.client.clone(),
+            endpoint,
+            self.auth_headers()?,
+            request,
+        )
+        .await
     }
 
     async fn get_models(&self) -> Result<Vec<ModelInfo>, ProviderError> {
@@ -784,8 +844,9 @@ impl LlmProvider for GitHubCopilotProvider {
                                     .and_then(Value::as_str)
                                     .or_else(|| model.get("display_name").and_then(Value::as_str));
 
-                                let supports =
-                                    model.get("capabilities").and_then(|caps| caps.get("supports"));
+                                let supports = model
+                                    .get("capabilities")
+                                    .and_then(|caps| caps.get("supports"));
 
                                 let supports_tools = supports
                                     .and_then(|value| value.get("tool_calls"))
@@ -866,7 +927,9 @@ pub fn register_enterprise_custom_from_env() -> Vec<Box<dyn LlmProvider>> {
     ) {
         let model =
             std::env::var("VERTEX_AI_MODEL").unwrap_or_else(|_| "gemini-2.5-flash".to_string());
-        providers.push(Box::new(VertexAiProvider::new(project, location, token, model)));
+        providers.push(Box::new(VertexAiProvider::new(
+            project, location, token, model,
+        )));
     }
 
     if let Ok(provider) = GitHubCopilotProvider::from_env() {
@@ -921,7 +984,10 @@ mod tests {
 
         let provider = AzureOpenAiProvider::new("resource", "gpt", "azure-token", "gpt")
             .with_base_url(server.base_url());
-        let response = provider.chat(sample_request()).await.expect("chat response");
+        let response = provider
+            .chat(sample_request())
+            .await
+            .expect("chat response");
 
         mock.assert();
         assert_eq!(response.content, "ok");
@@ -943,7 +1009,10 @@ mod tests {
 
         let provider = VertexAiProvider::new("p", "us-central1", "vertex-token", "gemini")
             .with_base_url(server.base_url());
-        let response = provider.chat(sample_request()).await.expect("chat response");
+        let response = provider
+            .chat(sample_request())
+            .await
+            .expect("chat response");
 
         mock.assert();
         assert_eq!(response.content, "ok-v");
@@ -965,7 +1034,10 @@ mod tests {
 
         let provider =
             GitHubCopilotProvider::new("gh-token", "gpt-4o-mini").with_base_url(server.base_url());
-        let response = provider.chat(sample_request()).await.expect("chat response");
+        let response = provider
+            .chat(sample_request())
+            .await
+            .expect("chat response");
 
         mock.assert();
         assert_eq!(response.content, "ok-c");
@@ -997,7 +1069,9 @@ mod tests {
     async fn copilot_get_models_fetches_catalog() {
         let server = MockServer::start();
         let mock = server.mock(|when, then| {
-            when.method(GET).path("/models").header("authorization", "Bearer gh-token");
+            when.method(GET)
+                .path("/models")
+                .header("authorization", "Bearer gh-token");
             then.status(200)
                 .header("content-type", "application/json")
                 .body(r#"{"data":[{"id":"gpt-4o"},{"id":"gpt-5"},{"id":"claude-sonnet-4.5"}]}"#);
@@ -1017,7 +1091,9 @@ mod tests {
     async fn copilot_get_models_accepts_id_only_entries() {
         let server = MockServer::start();
         let mock = server.mock(|when, then| {
-            when.method(GET).path("/models").header("authorization", "Bearer gh-token");
+            when.method(GET)
+                .path("/models")
+                .header("authorization", "Bearer gh-token");
             then.status(200).header("content-type", "application/json").body(
                 r#"{"data":[{"id":"raptor-mini"},{"id":"gpt-5.3-codex","name":"GPT-5.3-Codex"}]}"#,
             );

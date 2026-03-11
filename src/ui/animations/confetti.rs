@@ -63,7 +63,12 @@ impl Particle {
 
     fn draw(&self, width: u16, height: u16) -> io::Result<()> {
         if self.x >= 0.0 && self.x < width as f32 && self.y >= 0.0 && self.y < height as f32 {
-            print_at(self.x as u16, self.y as u16, &self.char.to_string(), self.color)?;
+            print_at(
+                self.x as u16,
+                self.y as u16,
+                &self.char.to_string(),
+                self.color,
+            )?;
         }
         Ok(())
     }

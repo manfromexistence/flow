@@ -95,7 +95,11 @@ impl CalendarView {
 
         for day in 1..=days_in_month {
             let day_str = if day == self.selected_day {
-                theme.primary.apply_to(format!("{:2}", day)).bold().to_string()
+                theme
+                    .primary
+                    .apply_to(format!("{:2}", day))
+                    .bold()
+                    .to_string()
             } else {
                 format!("{:2}", day)
             };
@@ -227,7 +231,9 @@ impl PromptInteraction for CalendarView {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Arrow keys: navigate, n/p: next/prev month, Enter: select")
+                    theme
+                        .dim
+                        .apply_to("Arrow keys: navigate, n/p: next/prev month, Enter: select")
                 ))?;
                 lines += 1;
             }

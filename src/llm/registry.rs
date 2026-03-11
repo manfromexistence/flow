@@ -25,7 +25,8 @@ impl ProviderRegistry {
     where
         P: LlmProvider + 'static,
     {
-        self.providers.insert(provider.id().to_string(), Arc::new(provider));
+        self.providers
+            .insert(provider.id().to_string(), Arc::new(provider));
     }
 
     pub fn insert(&mut self, provider: Arc<dyn LlmProvider>) {
@@ -58,7 +59,11 @@ impl ProviderRegistry {
             ("openrouter", "openrouter::openai/gpt-oss-20b", "aggregator"),
             ("ollama", "ollama::llama3", "local-runner"),
             ("together", "together::openai/gpt-oss-20b", "fast-inference"),
-            ("mistral", "mistral::mistral-small-latest", "open-source-host"),
+            (
+                "mistral",
+                "mistral::mistral-small-latest",
+                "open-source-host",
+            ),
             ("cohere", "cohere::command-r7b-12-2024", "open-source-host"),
             ("deepseek", "deepseek::deepseek-chat", "open-source-host"),
             ("xai", "xai::grok-3-mini", "open-source-host"),
@@ -151,8 +156,9 @@ impl ProviderRegistry {
                 continue;
             };
 
-            let env_name =
-                provider.default_api_key_env().unwrap_or_else(|| "OPENAI_API_KEY".to_string());
+            let env_name = provider
+                .default_api_key_env()
+                .unwrap_or_else(|| "OPENAI_API_KEY".to_string());
             let Some(api_key) = api_key_resolver(&env_name) else {
                 continue;
             };
@@ -334,7 +340,10 @@ mod tests {
 
         let ollama = ollama_rs::Ollama::default();
         let result = ollama.list_local_models().await;
-        assert!(result.is_ok(), "ollama should be reachable when DX_TEST_OLLAMA=1");
+        assert!(
+            result.is_ok(),
+            "ollama should be reachable when DX_TEST_OLLAMA=1"
+        );
     }
 
     #[test]

@@ -64,7 +64,10 @@ impl LocalLlm {
     }
 
     pub async fn initialize(&self) -> Result<()> {
-        let mut inner = self.inner.lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+        let mut inner = self
+            .inner
+            .lock()
+            .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
 
         if inner.is_some() {
             return Ok(());
@@ -87,9 +90,13 @@ impl LocalLlm {
     }
 
     pub async fn generate(&self, prompt: &str) -> Result<String> {
-        let mut inner_guard =
-            self.inner.lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
-        let inner = inner_guard.as_mut().ok_or_else(|| anyhow::anyhow!("LLM not initialized"))?;
+        let mut inner_guard = self
+            .inner
+            .lock()
+            .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+        let inner = inner_guard
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("LLM not initialized"))?;
 
         inner.history.push(Message {
             role: "user".to_string(),
@@ -169,8 +176,9 @@ impl LocalLlm {
             }
 
             #[allow(deprecated)]
-            let piece_bytes =
-                inner.model.token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)?;
+            let piece_bytes = inner
+                .model
+                .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)?;
             let piece = String::from_utf8_lossy(&piece_bytes);
             generated_text.push_str(&piece);
 
@@ -196,13 +204,124 @@ impl LocalLlm {
     where
         F: Fn(String) + Send + 'static,
     {
-        let response = self.generate(prompt).await?;
-        callback(response);
+        let mut inner_guard = self
+            .inner
+            .lock()
+            .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+        let inner = inner_guard
+            .as_mut()
+            .ok_or_else(|| anyhow::anyhow!("LLM not initialized"))?;
+
+        inner.history.push(Message {
+            role: "user".to_string(),
+            content: prompt.to_string(),
+        });
+
+        let full_prompt = Self::build_prompt(&inner.history);
+
+        let n_threads = Self::optimal_thread_count();
+        let ctx_params = LlamaContextParams::default()
+            .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
+            .with_n_batch(PROMPT_BATCH_SIZE as u32)
+            .with_n_threads(n_threads)
+            .with_n_threads_batch(n_threads)
+            .with_flash_attention_policy(1);
+
+        let mut ctx = inner
+            .model
+            .new_context(&inner.backend, ctx_params)
+            .context("Failed to create inference context")?;
+
+        ctx.clear_kv_cache();
+
+        let tokens = inner
+            .model
+            .str_to_token(&full_prompt, AddBos::Always)
+            .context("Tokenization failed")?;
+
+        let available = (INFERENCE_CONTEXT_TOKENS as usize).saturating_sub(tokens.len());
+        let max_tokens = available.min(4096);
+
+        // Batched prompt evaluation
+        let mut pos: i32 = 0;
+        let total = tokens.len();
+        let mut offset = 0;
+
+        while offset < total {
+            let end = (offset + PROMPT_BATCH_SIZE).min(total);
+            let chunk = &tokens[offset..end];
+            let is_last_chunk = end == total;
+
+            let mut batch = LlamaBatch::new(chunk.len(), 1);
+            for (i, &token) in chunk.iter().enumerate() {
+                let logits = is_last_chunk && i == chunk.len() - 1;
+                batch.add(token, pos, &[0], logits)?;
+                pos += 1;
+            }
+            ctx.decode(&mut batch)?;
+            offset = end;
+        }
+
+        // Sampler chain
+        let mut sampler = LlamaSampler::chain_simple([
+            LlamaSampler::penalties(SAMPLER_REPEAT_LAST_N, SAMPLER_REPEAT_PENALTY, 0.0, 0.0),
+            LlamaSampler::top_k(SAMPLER_TOP_K),
+            LlamaSampler::top_p(SAMPLER_TOP_P, 1),
+            LlamaSampler::min_p(SAMPLER_MIN_P, 1),
+            LlamaSampler::temp(SAMPLER_TEMPERATURE),
+            LlamaSampler::dist(Self::sampler_seed()),
+        ]);
+        sampler.accept_many(tokens.iter().copied());
+
+        // Generation loop with streaming
+        let mut n_cur = tokens.len() as i32;
+        let mut generated_text = String::with_capacity(max_tokens * 4);
+        let mut gen_batch = LlamaBatch::new(1, 1);
+
+        for _ in 0..max_tokens {
+            if n_cur >= INFERENCE_CONTEXT_TOKENS as i32 {
+                break;
+            }
+
+            let token = sampler.sample(&ctx, -1);
+
+            if inner.model.is_eog_token(token) {
+                break;
+            }
+
+            #[allow(deprecated)]
+            let piece_bytes = inner
+                .model
+                .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)?;
+            let piece = String::from_utf8_lossy(&piece_bytes);
+
+            // Stream each token as it's generated
+            callback(piece.to_string());
+            generated_text.push_str(&piece);
+
+            gen_batch.clear();
+            gen_batch.add(token, n_cur, &[0], true)?;
+            n_cur += 1;
+
+            ctx.decode(&mut gen_batch)?;
+        }
+
+        let answer = generated_text.trim().to_string();
+        if !answer.is_empty() {
+            inner.history.push(Message {
+                role: "assistant".to_string(),
+                content: answer,
+            });
+        }
+
         Ok(())
     }
 
     pub fn is_initialized(&self) -> bool {
-        self.inner.lock().map(|guard| guard.is_some()).unwrap_or(false)
+        self.inner
+            .lock()
+            .map(|guard| guard.is_some())
+            .unwrap_or(false)
     }
 
     pub fn get_model_name(&self) -> String {

@@ -167,7 +167,11 @@ impl RainbowEffect {
             (c, 0.0, x)
         };
 
-        Color::Rgb(((r + m) * 255.0) as u8, ((g + m) * 255.0) as u8, ((b + m) * 255.0) as u8)
+        Color::Rgb(
+            ((r + m) * 255.0) as u8,
+            ((g + m) * 255.0) as u8,
+            ((b + m) * 255.0) as u8,
+        )
     }
 }
 

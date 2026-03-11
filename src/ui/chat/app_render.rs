@@ -385,7 +385,9 @@ impl ChatApp {
 
         let text = Line::from(Span::styled(
             display_text,
-            Style::default().fg(self.theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(self.theme.accent)
+                .add_modifier(Modifier::BOLD),
         ));
 
         Paragraph::new(text)
@@ -415,7 +417,9 @@ impl ChatApp {
             Span::styled("[REC] ", Style::default().fg(shimmer_color)),
             Span::styled(
                 "Recording...",
-                Style::default().fg(shimmer_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(shimmer_color)
+                    .add_modifier(Modifier::BOLD),
             ),
         ]);
 
@@ -578,21 +582,30 @@ impl ChatApp {
             ])
             .split(padded);
 
-        Paragraph::new(Span::styled(&self.selected_local_mode, Style::default().fg(self.theme.fg)))
-            .alignment(ratatui::layout::Alignment::Left)
-            .render(bottom_chunks[0], buf);
+        Paragraph::new(Span::styled(
+            &self.selected_local_mode,
+            Style::default().fg(self.theme.fg),
+        ))
+        .alignment(ratatui::layout::Alignment::Left)
+        .render(bottom_chunks[0], buf);
 
         Paragraph::new(Span::styled(mode_text, Style::default().fg(self.theme.fg)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[2], buf);
 
-        Paragraph::new(Span::styled(&self.selected_model, Style::default().fg(self.theme.fg)))
-            .alignment(ratatui::layout::Alignment::Left)
-            .render(bottom_chunks[4], buf);
+        Paragraph::new(Span::styled(
+            &self.selected_model,
+            Style::default().fg(self.theme.fg),
+        ))
+        .alignment(ratatui::layout::Alignment::Left)
+        .render(bottom_chunks[4], buf);
 
-        Paragraph::new(Span::styled(current_shortcut, Style::default().fg(self.theme.border)))
-            .alignment(ratatui::layout::Alignment::Center)
-            .render(bottom_chunks[5], buf);
+        Paragraph::new(Span::styled(
+            current_shortcut,
+            Style::default().fg(self.theme.border),
+        ))
+        .alignment(ratatui::layout::Alignment::Center)
+        .render(bottom_chunks[5], buf);
 
         Paragraph::new(Span::styled(token_info, Style::default().fg(self.theme.fg)))
             .alignment(ratatui::layout::Alignment::Left)
@@ -612,12 +625,19 @@ impl ChatApp {
 
         Paragraph::new(Span::styled(
             spinner_char.to_string(),
-            Style::default().fg(ratatui_color).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(ratatui_color)
+                .add_modifier(Modifier::BOLD),
         ))
         .alignment(ratatui::layout::Alignment::Left)
         .render(bottom_chunks[10], buf);
 
-        (bottom_chunks[2], bottom_chunks[4], bottom_chunks[6], bottom_chunks[0])
+        (
+            bottom_chunks[2],
+            bottom_chunks[4],
+            bottom_chunks[6],
+            bottom_chunks[0],
+        )
     }
 
     /// Helper: get a rainbow color as ratatui Color
@@ -661,8 +681,10 @@ impl ChatApp {
             '¦', '|', 'Z',
         ];
 
-        let elapsed_ms =
-            self.animation_start_time.map(|t| t.elapsed().as_millis() as usize).unwrap_or(0);
+        let elapsed_ms = self
+            .animation_start_time
+            .map(|t| t.elapsed().as_millis() as usize)
+            .unwrap_or(0);
 
         // Pure Matrix green colors
         let green_g = 255;
@@ -729,8 +751,10 @@ impl ChatApp {
         use ratatui::widgets::Paragraph;
 
         let bg_color = self.theme_bg_color();
-        let elapsed_ms =
-            self.animation_start_time.map(|t| t.elapsed().as_millis() as i32).unwrap_or(0);
+        let elapsed_ms = self
+            .animation_start_time
+            .map(|t| t.elapsed().as_millis() as i32)
+            .unwrap_or(0);
 
         let train_width = 60;
 
@@ -761,7 +785,10 @@ impl ChatApp {
         let smoke_frame_idx = ((elapsed_ms / 200) as usize) % smoke_frames.len();
         let smoke = smoke_frames[smoke_frame_idx];
 
-        let y_start = (area.height.saturating_sub((train.len() + smoke.len()) as u16)) / 2;
+        let y_start = (area
+            .height
+            .saturating_sub((train.len() + smoke.len()) as u16))
+            / 2;
         let mut lines = vec![];
 
         for _ in 0..y_start {
@@ -807,8 +834,10 @@ impl ChatApp {
                         let color_idx =
                             (char_idx + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
                         let ratatui_color = self.rainbow_color(color_idx);
-                        spans
-                            .push(Span::styled(ch.to_string(), Style::default().fg(ratatui_color)));
+                        spans.push(Span::styled(
+                            ch.to_string(),
+                            Style::default().fg(ratatui_color),
+                        ));
                     }
                     lines.push(Line::from(spans));
                 } else {
@@ -869,7 +898,9 @@ impl ChatApp {
             let ratatui_color = self.rainbow_color(i);
             title_spans.push(Span::styled(
                 ch.to_string(),
-                Style::default().fg(ratatui_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(ratatui_color)
+                    .add_modifier(Modifier::BOLD),
             ));
         }
         lines.push(Line::from(title_spans));
@@ -1186,7 +1217,10 @@ impl ChatApp {
                         (c.b as f32 * dim) as u8,
                     );
                     let glow_ch = if glow_pulse > 0.6 { '·' } else { '.' };
-                    spans.push(Span::styled(glow_ch.to_string(), Style::default().fg(glow_color)));
+                    spans.push(Span::styled(
+                        glow_ch.to_string(),
+                        Style::default().fg(glow_color),
+                    ));
                 } else {
                     spans.push(Span::raw(" "));
                 }
@@ -1428,8 +1462,10 @@ impl ChatApp {
                     let trail_color_idx =
                         (rainbow_row_offset as usize * 8 + (elapsed_ms / 100) as usize) % 50;
                     let trail_color = self.rainbow_color(trail_color_idx);
-                    spans
-                        .push(Span::styled(trail_ch.to_string(), Style::default().fg(trail_color)));
+                    spans.push(Span::styled(
+                        trail_ch.to_string(),
+                        Style::default().fg(trail_color),
+                    ));
                 } else {
                     // Transparent background with subtle twinkling stars
                     let star_seed = (x as u64 * 31 + y as u64 * 17) % 200;

@@ -23,8 +23,12 @@ impl AudioRecorder {
     /// Start recording audio from the default microphone
     pub fn start_recording(&mut self) -> Result<()> {
         let host = cpal::default_host();
-        let device = host.default_input_device().context("No input device available")?;
-        let config = device.default_input_config().context("Failed to get default input config")?;
+        let device = host
+            .default_input_device()
+            .context("No input device available")?;
+        let config = device
+            .default_input_config()
+            .context("Failed to get default input config")?;
         let stream_config: cpal::StreamConfig = config.clone().into();
         self.sample_rate = stream_config.sample_rate.0;
         let samples = Arc::clone(&self.samples);

@@ -425,23 +425,34 @@ pub mod presets {
     use super::*;
 
     /// Primary button style
-    pub const BUTTON_PRIMARY: AtomicStyle =
-        AtomicStyle::new().fg(Fg::PrimaryButton).bg(Bg::Primary).bold().px(2);
+    pub const BUTTON_PRIMARY: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::PrimaryButton)
+        .bg(Bg::Primary)
+        .bold()
+        .px(2);
 
     /// Secondary button style
-    pub const BUTTON_SECONDARY: AtomicStyle =
-        AtomicStyle::new().fg(Fg::SecondaryButton).bg(Bg::Secondary).px(2);
+    pub const BUTTON_SECONDARY: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::SecondaryButton)
+        .bg(Bg::Secondary)
+        .px(2);
 
     /// Destructive button style
-    pub const BUTTON_DESTRUCTIVE: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Destructive).bg(Bg::Destructive).bold().px(2);
+    pub const BUTTON_DESTRUCTIVE: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Destructive)
+        .bg(Bg::Destructive)
+        .bold()
+        .px(2);
 
     /// Ghost button style (no background)
     pub const BUTTON_GHOST: AtomicStyle = AtomicStyle::new().fg(Fg::Primary).bg(Bg::Transparent);
 
     /// Card container style
-    pub const CARD: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Card).bg(Bg::Card).border(Border::Default).padding(1);
+    pub const CARD: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Card)
+        .bg(Bg::Card)
+        .border(Border::Default)
+        .padding(1);
 
     /// Panel container style (subtle background)
     pub const PANEL: AtomicStyle = AtomicStyle::new()
@@ -466,12 +477,17 @@ pub mod presets {
     pub const TEXT_INFO: AtomicStyle = AtomicStyle::new().fg(Fg::Info);
 
     /// Input field style
-    pub const INPUT: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Primary).bg(Bg::Default).border(Border::Input).px(1);
+    pub const INPUT: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Primary)
+        .bg(Bg::Default)
+        .border(Border::Input)
+        .px(1);
 
     /// Input field focused style
-    pub const INPUT_FOCUSED: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Primary).bg(Bg::Default).border(Border::Ring);
+    pub const INPUT_FOCUSED: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Primary)
+        .bg(Bg::Default)
+        .border(Border::Ring);
 
     /// Menu item style
     pub const MENU_ITEM: AtomicStyle = AtomicStyle::new().fg(Fg::Primary).bg(Bg::Transparent).px(2);
@@ -481,20 +497,29 @@ pub mod presets {
         AtomicStyle::new().fg(Fg::Accent).bg(Bg::Accent).px(2);
 
     /// Sidebar item style
-    pub const SIDEBAR_ITEM: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Secondary).bg(Bg::Transparent).px(1);
+    pub const SIDEBAR_ITEM: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Secondary)
+        .bg(Bg::Transparent)
+        .px(1);
 
     /// Sidebar item selected style
-    pub const SIDEBAR_ITEM_SELECTED: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Primary).bg(Bg::Muted).bold().px(1);
+    pub const SIDEBAR_ITEM_SELECTED: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Primary)
+        .bg(Bg::Muted)
+        .bold()
+        .px(1);
 
     /// Badge style
-    pub const BADGE: AtomicStyle =
-        AtomicStyle::new().fg(Fg::SecondaryButton).bg(Bg::Secondary).px(1);
+    pub const BADGE: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::SecondaryButton)
+        .bg(Bg::Secondary)
+        .px(1);
 
     /// Badge success style
-    pub const BADGE_SUCCESS: AtomicStyle =
-        AtomicStyle::new().fg(Fg::PrimaryButton).bg(Bg::Primary).px(1);
+    pub const BADGE_SUCCESS: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::PrimaryButton)
+        .bg(Bg::Primary)
+        .px(1);
 
     /// Badge warning style
     pub const BADGE_WARNING: AtomicStyle = AtomicStyle::new().fg(Fg::Warning).bg(Bg::Muted).px(1);
@@ -524,8 +549,11 @@ pub mod presets {
     pub const LIST_ITEM: AtomicStyle = AtomicStyle::new().fg(Fg::Primary).bg(Bg::Transparent).px(1);
 
     /// List item selected style
-    pub const LIST_ITEM_SELECTED: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Primary).bg(Bg::Muted).bold().px(1);
+    pub const LIST_ITEM_SELECTED: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Primary)
+        .bg(Bg::Muted)
+        .bold()
+        .px(1);
 
     /// Progress bar track style
     pub const PROGRESS_TRACK: AtomicStyle = AtomicStyle::new().fg(Fg::Muted).dim();
@@ -537,8 +565,11 @@ pub mod presets {
     pub const SPINNER: AtomicStyle = AtomicStyle::new().fg(Fg::Secondary).dim();
 
     /// Toast/notification style
-    pub const TOAST: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Card).bg(Bg::Card).border(Border::Default).padding(1);
+    pub const TOAST: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Card)
+        .bg(Bg::Card)
+        .border(Border::Default)
+        .padding(1);
 
     /// Success toast style
     pub const TOAST_SUCCESS: AtomicStyle = AtomicStyle::new()
@@ -562,8 +593,11 @@ pub mod presets {
         .padding(1);
 
     /// Tooltip style
-    pub const TOOLTIP: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Popover).bg(Bg::Popover).border(Border::Muted).px(1);
+    pub const TOOLTIP: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Popover)
+        .bg(Bg::Popover)
+        .border(Border::Muted)
+        .px(1);
 
     /// Dialog title style
     pub const DIALOG_TITLE: AtomicStyle = AtomicStyle::new().fg(Fg::Primary).bold();
@@ -603,11 +637,17 @@ pub mod presets {
         AtomicStyle::new().fg(Fg::Primary).bg(Bg::Muted).bold();
 
     /// Tab style
-    pub const TAB: AtomicStyle = AtomicStyle::new().fg(Fg::Secondary).bg(Bg::Transparent).px(1);
+    pub const TAB: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Secondary)
+        .bg(Bg::Transparent)
+        .px(1);
 
     /// Active tab style
-    pub const TAB_ACTIVE: AtomicStyle =
-        AtomicStyle::new().fg(Fg::Primary).bg(Bg::Muted).bold().px(1);
+    pub const TAB_ACTIVE: AtomicStyle = AtomicStyle::new()
+        .fg(Fg::Primary)
+        .bg(Bg::Muted)
+        .bold()
+        .px(1);
 }
 
 #[cfg(test)]
@@ -616,7 +656,11 @@ mod tests {
 
     #[test]
     fn test_atomic_style_builder() {
-        let style = AtomicStyle::new().fg(Fg::Primary).bg(Bg::Card).bold().padding(2);
+        let style = AtomicStyle::new()
+            .fg(Fg::Primary)
+            .bg(Bg::Card)
+            .bold()
+            .padding(2);
 
         assert_eq!(style.fg, Some(Fg::Primary));
         assert_eq!(style.bg, Some(Bg::Card));

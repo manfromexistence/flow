@@ -246,8 +246,10 @@ impl<T: Clone> PromptInteraction for Select<T> {
             }
             State::Submit => {
                 let checkmark = theme.success.apply_to("✓");
-                let selected =
-                    self.selected_index().map(|i| self.items[i].label.clone()).unwrap_or_default();
+                let selected = self
+                    .selected_index()
+                    .map(|i| self.items[i].label.clone())
+                    .unwrap_or_default();
                 let display = theme.dim.apply_to(&selected);
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;

@@ -199,7 +199,9 @@ impl PromptInteraction for FileBrowser {
                     term.write_line(&format!(
                         "{} {}",
                         bar,
-                        theme.dim.apply_to(format!("... and {} more", self.entries.len() - 10))
+                        theme
+                            .dim
+                            .apply_to(format!("... and {} more", self.entries.len() - 10))
                     ))?;
                     lines += 1;
                 }

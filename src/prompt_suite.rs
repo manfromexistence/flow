@@ -37,8 +37,14 @@ pub fn run_test(num: u32) -> Result<(String, Value)> {
         19 => test_calendar_prompt(),
         20 => test_color_picker_prompt(),
         21 => test_color_picker_advanced_prompt(),
-        22 => Ok(("emoji_picker".to_string(), json!({ "status": "disabled_temporarily" }))),
-        23 => Ok(("credit_card".to_string(), json!({ "status": "disabled_temporarily" }))),
+        22 => Ok((
+            "emoji_picker".to_string(),
+            json!({ "status": "disabled_temporarily" }),
+        )),
+        23 => Ok((
+            "credit_card".to_string(),
+            json!({ "status": "disabled_temporarily" }),
+        )),
         24 => test_matrix_select_prompt(),
         25 => test_search_filter_prompt(),
         26 => test_tree_select_prompt(),
@@ -60,25 +66,34 @@ pub fn run_test(num: u32) -> Result<(String, Value)> {
 
 fn test_text_prompt() -> Result<(String, Value)> {
     start_test("Text");
-    let value = prompts::text("What's your name?").placeholder("John Doe").interact()?;
+    let value = prompts::text("What's your name?")
+        .placeholder("John Doe")
+        .interact()?;
     Ok(("text".to_string(), json!({ "value": value })))
 }
 
 fn test_input_prompt() -> Result<(String, Value)> {
     start_test("Input");
-    let value = prompts::input::input("Project name?").placeholder("dx-project").interact()?;
+    let value = prompts::input::input("Project name?")
+        .placeholder("dx-project")
+        .interact()?;
     Ok(("input".to_string(), json!({ "value": value })))
 }
 
 fn test_password_prompt() -> Result<(String, Value)> {
     start_test("Password");
     let value = prompts::password::password("Create password").interact()?;
-    Ok(("password".to_string(), json!({ "length": value.len(), "masked": "***" })))
+    Ok((
+        "password".to_string(),
+        json!({ "length": value.len(), "masked": "***" }),
+    ))
 }
 
 fn test_confirm_prompt() -> Result<(String, Value)> {
     start_test("Confirm");
-    let value = prompts::confirm("Continue setup?").initial_value(true).interact()?;
+    let value = prompts::confirm("Continue setup?")
+        .initial_value(true)
+        .interact()?;
     Ok(("confirm".to_string(), json!({ "value": value })))
 }
 
@@ -115,7 +130,9 @@ fn test_autocomplete_prompt() -> Result<(String, Value)> {
 
 fn test_email_prompt() -> Result<(String, Value)> {
     start_test("Email");
-    let value = prompts::email("Email address").initial_value("john@example.com").interact()?;
+    let value = prompts::email("Email address")
+        .initial_value("john@example.com")
+        .interact()?;
     Ok(("email".to_string(), json!({ "value": value })))
 }
 
@@ -139,13 +156,20 @@ fn test_url_prompt() -> Result<(String, Value)> {
 
 fn test_number_prompt() -> Result<(String, Value)> {
     start_test("Number");
-    let value = prompts::number("Worker count").min(1).max(128).initial_value(8).interact()?;
+    let value = prompts::number("Worker count")
+        .min(1)
+        .max(128)
+        .initial_value(8)
+        .interact()?;
     Ok(("number".to_string(), json!({ "value": value })))
 }
 
 fn test_slider_prompt() -> Result<(String, Value)> {
     start_test("Slider");
-    let value = prompts::slider("CPU allocation", 0, 100).step(5).initial_value(50).interact()?;
+    let value = prompts::slider("CPU allocation", 0, 100)
+        .step(5)
+        .initial_value(50)
+        .interact()?;
     Ok(("slider".to_string(), json!({ "value": value })))
 }
 
@@ -154,12 +178,18 @@ fn test_range_slider_prompt() -> Result<(String, Value)> {
     let (min, max) = prompts::range_slider("Port range", 1024, 65535)
         .initial_range(3000, 9000)
         .interact()?;
-    Ok(("range_slider".to_string(), json!({ "min": min, "max": max })))
+    Ok((
+        "range_slider".to_string(),
+        json!({ "min": min, "max": max }),
+    ))
 }
 
 fn test_rating_prompt() -> Result<(String, Value)> {
     start_test("Rating");
-    let value = prompts::rating("Rate DX CLI").max(5).initial_value(4).interact()?;
+    let value = prompts::rating("Rate DX CLI")
+        .max(5)
+        .initial_value(4)
+        .interact()?;
     Ok(("rating".to_string(), json!({ "value": value })))
 }
 
@@ -183,7 +213,9 @@ fn test_tags_prompt() -> Result<(String, Value)> {
 
 fn test_date_picker_prompt() -> Result<(String, Value)> {
     start_test("Date Picker");
-    let value = prompts::date_picker("Release date").initial_date(2026, 1, 1).interact()?;
+    let value = prompts::date_picker("Release date")
+        .initial_date(2026, 1, 1)
+        .interact()?;
     Ok(("date_picker".to_string(), json!({ "value": value })))
 }
 
@@ -198,7 +230,9 @@ fn test_time_picker_prompt() -> Result<(String, Value)> {
 
 fn test_calendar_prompt() -> Result<(String, Value)> {
     start_test("Calendar");
-    let value = prompts::calendar("Pick calendar day").initial_date(2026, 2, 1).interact()?;
+    let value = prompts::calendar("Pick calendar day")
+        .initial_date(2026, 2, 1)
+        .interact()?;
     Ok(("calendar".to_string(), json!({ "value": value })))
 }
 
@@ -216,7 +250,10 @@ fn test_color_picker_advanced_prompt() -> Result<(String, Value)> {
         .initial_color(34, 197, 94)
         .mode(prompts::ColorMode::RGB)
         .interact()?;
-    Ok(("color_picker_advanced".to_string(), json!({ "value": value })))
+    Ok((
+        "color_picker_advanced".to_string(),
+        json!({ "value": value }),
+    ))
 }
 
 fn test_emoji_picker_prompt() -> Result<(String, Value)> {
@@ -252,13 +289,21 @@ fn test_matrix_select_prompt() -> Result<(String, Value)> {
 fn test_search_filter_prompt() -> Result<(String, Value)> {
     start_test("Search Filter");
     let value = prompts::search_filter("Find integration")
-        .item("telegram".to_string(), "Telegram", vec!["chat".to_string(), "bot".to_string()])
+        .item(
+            "telegram".to_string(),
+            "Telegram",
+            vec!["chat".to_string(), "bot".to_string()],
+        )
         .item(
             "discord".to_string(),
             "Discord",
             vec!["chat".to_string(), "community".to_string()],
         )
-        .item("slack".to_string(), "Slack", vec!["work".to_string(), "team".to_string()])
+        .item(
+            "slack".to_string(),
+            "Slack",
+            vec!["work".to_string(), "team".to_string()],
+        )
         .filter("chat")
         .filter("bot")
         .filter("work")
@@ -286,7 +331,10 @@ fn test_file_browser_prompt() -> Result<(String, Value)> {
     let value = prompts::file_browser("Pick a file or directory")
         .allow_directories(true)
         .interact()?;
-    Ok(("file_browser".to_string(), json!({ "value": value.display().to_string() })))
+    Ok((
+        "file_browser".to_string(),
+        json!({ "value": value.display().to_string() }),
+    ))
 }
 
 fn test_json_editor_prompt() -> Result<(String, Value)> {
@@ -342,7 +390,11 @@ fn test_table_editor_prompt() -> Result<(String, Value)> {
 fn test_list_editor_prompt() -> Result<(String, Value)> {
     start_test("List Editor");
     let value = prompts::list_editor("Edit package list")
-        .initial_items(vec!["tokio".to_string(), "axum".to_string(), "serde".to_string()])
+        .initial_items(vec![
+            "tokio".to_string(),
+            "axum".to_string(),
+            "serde".to_string(),
+        ])
         .interact()?;
     Ok(("list_editor".to_string(), json!({ "items": value })))
 }
@@ -388,7 +440,10 @@ fn test_wizard_prompt() -> Result<(String, Value)> {
         .step("Workspace", "Configure workspace")
         .step("Finish", "Confirm and save")
         .interact()?;
-    Ok(("wizard".to_string(), json!({ "completed_steps": completed })))
+    Ok((
+        "wizard".to_string(),
+        json!({ "completed_steps": completed }),
+    ))
 }
 
 fn test_progress_prompt() -> Result<(String, Value)> {

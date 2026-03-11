@@ -48,14 +48,16 @@ pub fn retrieve_copilot_token() -> Option<String> {
     // Important: we intentionally DO NOT read VS Code / extension cached tokens here,
     // and we DO NOT fall back to `GITHUB_TOKEN`/PAT, because those frequently lead to
     // “works once, then access denied” when reused.
-    std::env::var("GITHUB_COPILOT_TOKEN").ok().and_then(|token| {
-        let trimmed = token.trim();
-        if trimmed.is_empty() {
-            None
-        } else {
-            Some(trimmed.to_string())
-        }
-    })
+    std::env::var("GITHUB_COPILOT_TOKEN")
+        .ok()
+        .and_then(|token| {
+            let trimmed = token.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        })
 }
 
 #[derive(Debug, Clone)]
@@ -201,7 +203,9 @@ mod tests {
         });
 
         let callback = "http://localhost:8787/callback?code=abc123&state=state-1";
-        let code = flow.parse_callback_code(callback, "state-1").expect("valid callback");
+        let code = flow
+            .parse_callback_code(callback, "state-1")
+            .expect("valid callback");
         assert_eq!(code, "abc123");
 
         let mismatch = flow.parse_callback_code(callback, "other-state");
@@ -216,6 +220,9 @@ mod tests {
             "https://api.githubcopilot.com/v1/responses"
         );
 
-        assert_eq!(model_api_surface("gpt-4o-mini"), CopilotApiSurface::ChatCompletions);
+        assert_eq!(
+            model_api_surface("gpt-4o-mini"),
+            CopilotApiSurface::ChatCompletions
+        );
     }
 }

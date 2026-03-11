@@ -141,10 +141,12 @@ impl ProviderConfigFile {
             })?;
         }
 
-        let content = self.to_toml_pretty().map_err(|err| ProviderError::InvalidConfig {
-            provider: "config".to_string(),
-            detail: format!("failed serializing provider config: {err}"),
-        })?;
+        let content = self
+            .to_toml_pretty()
+            .map_err(|err| ProviderError::InvalidConfig {
+                provider: "config".to_string(),
+                detail: format!("failed serializing provider config: {err}"),
+            })?;
 
         fs::write(&path, content).map_err(|err| ProviderError::InvalidConfig {
             provider: "config".to_string(),
@@ -257,18 +259,18 @@ impl ProviderConfigFile {
                 provider_id.replace('_', "-").to_ascii_lowercase()
             );
 
-            let entry =
-                self.providers
-                    .entry(provider_id.clone())
-                    .or_insert_with(|| ProviderConfigEntry {
-                        enabled: true,
-                        base_url: guessed_base_url,
-                        api_key_env: Some(generated_env),
-                        custom_headers: BTreeMap::new(),
-                        metadata: None,
-                        active_profile: Some("default".to_string()),
-                        profiles: BTreeMap::new(),
-                    });
+            let entry = self
+                .providers
+                .entry(provider_id.clone())
+                .or_insert_with(|| ProviderConfigEntry {
+                    enabled: true,
+                    base_url: guessed_base_url,
+                    api_key_env: Some(generated_env),
+                    custom_headers: BTreeMap::new(),
+                    metadata: None,
+                    active_profile: Some("default".to_string()),
+                    profiles: BTreeMap::new(),
+                });
 
             entry.enabled = true;
             if entry.base_url.trim().is_empty() {
@@ -279,14 +281,15 @@ impl ProviderConfigFile {
             }
 
             let default_profile =
-                entry.profiles.entry("default".to_string()).or_insert_with(|| {
-                    ProviderProfileEntry {
+                entry
+                    .profiles
+                    .entry("default".to_string())
+                    .or_insert_with(|| ProviderProfileEntry {
                         enabled: true,
                         base_url: entry.base_url.clone(),
                         api_key_env: entry.api_key_env.clone(),
                         custom_headers: entry.custom_headers.clone(),
-                    }
-                });
+                    });
 
             default_profile.enabled = true;
             if default_profile.base_url.trim().is_empty() {
@@ -376,9 +379,16 @@ mod tests {
         let mut config = ProviderConfigFile::from_presets(Some("openai".to_string()));
         config.apply_provider_selection(&["groq".to_string()], Some("groq".to_string()));
 
-        let openai_enabled =
-            config.providers.get("openai").map(|entry| entry.enabled).unwrap_or(true);
-        let groq_enabled = config.providers.get("groq").map(|entry| entry.enabled).unwrap_or(false);
+        let openai_enabled = config
+            .providers
+            .get("openai")
+            .map(|entry| entry.enabled)
+            .unwrap_or(true);
+        let groq_enabled = config
+            .providers
+            .get("groq")
+            .map(|entry| entry.enabled)
+            .unwrap_or(false);
 
         assert!(!openai_enabled);
         assert!(groq_enabled);

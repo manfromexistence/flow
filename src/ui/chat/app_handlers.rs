@@ -29,9 +29,18 @@ pub fn handle_plan_modal_selection(idx: usize) -> (Option<ChatMode>, String) {
 
 pub fn handle_local_modal_selection(idx: usize) -> (String, String) {
     match idx {
-        0 => ("Local".to_string(), "Switched to Local execution".to_string()),
-        1 => ("Remote".to_string(), "Switched to Remote execution".to_string()),
-        2 => ("Timely".to_string(), "Switched to Timely execution".to_string()),
+        0 => (
+            "Local".to_string(),
+            "Switched to Local execution".to_string(),
+        ),
+        1 => (
+            "Remote".to_string(),
+            "Switched to Remote execution".to_string(),
+        ),
+        2 => (
+            "Timely".to_string(),
+            "Switched to Timely execution".to_string(),
+        ),
         _ => (String::new(), String::new()),
     }
 }
@@ -175,9 +184,18 @@ pub fn handle_model_modal_selection(
 
 pub fn handle_memory_modal_selection(idx: usize) -> (String, String) {
     match idx {
-        0 => ("Permanent".to_string(), "Memory: Permanent - All context retained".to_string()),
-        1 => ("Moderate".to_string(), "Memory: Moderate - Session context".to_string()),
-        2 => ("Checkpoints".to_string(), "Memory: Checkpoints - Minimal context".to_string()),
+        0 => (
+            "Permanent".to_string(),
+            "Memory: Permanent - All context retained".to_string(),
+        ),
+        1 => (
+            "Moderate".to_string(),
+            "Memory: Moderate - Session context".to_string(),
+        ),
+        2 => (
+            "Checkpoints".to_string(),
+            "Memory: Checkpoints - Minimal context".to_string(),
+        ),
         _ => ("Checkpoints".to_string(), "Memory: Checkpoints".to_string()),
     }
 }

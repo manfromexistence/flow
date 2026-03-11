@@ -122,8 +122,10 @@ impl Backend for AntigravityBackend {
             anyhow::bail!("Antigravity API error {}: {}", status, error_text);
         }
 
-        let result: GeminiResponse =
-            response.json().await.context("Failed to parse Antigravity response")?;
+        let result: GeminiResponse = response
+            .json()
+            .await
+            .context("Failed to parse Antigravity response")?;
 
         let text = result
             .candidates

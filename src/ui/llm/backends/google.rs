@@ -87,7 +87,10 @@ impl Backend for GoogleBackend {
     }
 
     async fn generate(&self, prompt: &str, max_tokens: usize) -> Result<String> {
-        let api_key = self.api_key.as_ref().context("Google API key not configured")?;
+        let api_key = self
+            .api_key
+            .as_ref()
+            .context("Google API key not configured")?;
 
         let url = format!(
             "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
@@ -144,8 +147,10 @@ impl Backend for GoogleBackend {
             anyhow::bail!(error_msg);
         }
 
-        let result: GenerateResponse =
-            response.json().await.context("Failed to parse Google AI response")?;
+        let result: GenerateResponse = response
+            .json()
+            .await
+            .context("Failed to parse Google AI response")?;
 
         let text = result
             .candidates
@@ -163,7 +168,10 @@ impl Backend for GoogleBackend {
         max_tokens: usize,
         callback: Box<dyn Fn(String) + Send>,
     ) -> Result<()> {
-        let api_key = self.api_key.as_ref().context("Google API key not configured")?;
+        let api_key = self
+            .api_key
+            .as_ref()
+            .context("Google API key not configured")?;
 
         // Use streamGenerateContent endpoint for real streaming
         let url = format!(

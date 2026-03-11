@@ -22,7 +22,11 @@ impl Modal {
         let mut output = String::new();
 
         output.push_str(&format!("╔{}╗\n", border));
-        output.push_str(&format!("║ {:^width$} ║\n", self.title, width = self.width - 4));
+        output.push_str(&format!(
+            "║ {:^width$} ║\n",
+            self.title,
+            width = self.width - 4
+        ));
         output.push_str(&format!("╠{}╣\n", border));
 
         for line in self.content.lines() {

@@ -58,16 +58,22 @@ pub fn render(
     // Title
     let title = Line::from(vec![Span::styled(
         "ElevenLabs API Key",
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     )]);
-    Paragraph::new(title).alignment(Alignment::Center).render(chunks[0], buf);
+    Paragraph::new(title)
+        .alignment(Alignment::Center)
+        .render(chunks[0], buf);
 
     // Instructions
     let instructions = Line::from(vec![Span::styled(
         "Get your API key from: https://elevenlabs.io/app/settings/api-keys",
         Style::default().fg(theme.fg),
     )]);
-    Paragraph::new(instructions).alignment(Alignment::Center).render(chunks[1], buf);
+    Paragraph::new(instructions)
+        .alignment(Alignment::Center)
+        .render(chunks[1], buf);
 
     // Input field
     let input_block = Block::default()
@@ -92,7 +98,9 @@ pub fn render(
     };
 
     let masked_len = masked_text.len();
-    Paragraph::new(masked_text).style(input_style).render(input_inner, buf);
+    Paragraph::new(masked_text)
+        .style(input_style)
+        .render(input_inner, buf);
 
     // Render cursor
     if cursor_visible && !api_key_input.content.is_empty() {
@@ -106,10 +114,22 @@ pub fn render(
 
     // Help text
     let help = Line::from(vec![
-        Span::styled("Enter", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "Enter",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" to save  ", Style::default().fg(theme.fg)),
-        Span::styled("Esc", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "Esc",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(" to cancel", Style::default().fg(theme.fg)),
     ]);
-    Paragraph::new(help).alignment(Alignment::Center).render(chunks[4], buf);
+    Paragraph::new(help)
+        .alignment(Alignment::Center)
+        .render(chunks[4], buf);
 }

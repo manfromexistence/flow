@@ -327,7 +327,10 @@ async fn discover_provider_models(provider_id: &str) -> ProviderModelListing {
         };
     };
 
-    eprintln!("DEBUG: Using provider with base_url: {}", provider.base_url());
+    eprintln!(
+        "DEBUG: Using provider with base_url: {}",
+        provider.base_url()
+    );
     eprintln!("DEBUG: Provider ID: {}", provider.id());
 
     if provider_id == "google" {
@@ -878,7 +881,9 @@ fn verify_password(password: &str, password_hash: &str) -> bool {
         Ok(value) => value,
         Err(_) => return false,
     };
-    Argon2::default().verify_password(password.as_bytes(), &parsed).is_ok()
+    Argon2::default()
+        .verify_password(password.as_bytes(), &parsed)
+        .is_ok()
 }
 
 async fn load_avatar_image(source: &str) -> Result<image::DynamicImage> {
@@ -899,18 +904,25 @@ fn render_ascii_preview(image: &image::DynamicImage, width: u32) -> String {
         Some(value) => value,
         None => return String::new(),
     };
-    let config = artem::config::ConfigBuilder::new().target_size(target_size).build();
+    let config = artem::config::ConfigBuilder::new()
+        .target_size(target_size)
+        .build();
     artem::convert(image.clone(), &config)
 }
 
 fn render_pixelated_preview(image: &image::DynamicImage, width: u32, height: u32) -> String {
-    let tiny = image.resize_exact(width.max(12), height.max(8), FilterType::Nearest).to_rgb8();
+    let tiny = image
+        .resize_exact(width.max(12), height.max(8), FilterType::Nearest)
+        .to_rgb8();
     let mut out = String::new();
 
     for y in 0..tiny.height() {
         for x in 0..tiny.width() {
             let pixel = tiny.get_pixel(x, y);
-            out.push_str(&format!("\x1b[38;2;{};{};{}m██", pixel[0], pixel[1], pixel[2]));
+            out.push_str(&format!(
+                "\x1b[38;2;{};{};{}m██",
+                pixel[0], pixel[1], pixel[2]
+            ));
         }
         out.push_str("\x1b[0m\n");
     }
@@ -1041,7 +1053,9 @@ async fn oauth_sign_in(
     };
 
     if state != *csrf_state.secret() {
-        return Err(anyhow::anyhow!("OAuth state mismatch; authentication rejected"));
+        return Err(anyhow::anyhow!(
+            "OAuth state mismatch; authentication rejected"
+        ));
     }
 
     let token = oauth_client
@@ -1064,7 +1078,10 @@ async fn oauth_sign_in(
         Some(value) if !value.trim().is_empty() => value,
         _ => format!("{}-user@dx.local", provider),
     };
-    let name = profile.name.or(profile.login).unwrap_or_else(|| format!("{} user", provider));
+    let name = profile
+        .name
+        .or(profile.login)
+        .unwrap_or_else(|| format!("{} user", provider));
     let oauth_subject = profile.id.or(profile.sub);
 
     Ok(AuthResult {
@@ -1116,7 +1133,9 @@ async fn github_device_sign_in(client_id: &str) -> Result<AuthResult> {
 
     loop {
         if std::time::Instant::now() >= deadline {
-            return Err(anyhow::anyhow!("GitHub device code expired before authorization"));
+            return Err(anyhow::anyhow!(
+                "GitHub device code expired before authorization"
+            ));
         }
 
         tokio::time::sleep(Duration::from_secs(interval)).await;
@@ -1163,7 +1182,9 @@ async fn github_device_sign_in(client_id: &str) -> Result<AuthResult> {
                     emails
                         .iter()
                         .find_map(|item| {
-                            item.get("email").and_then(|x| x.as_str()).map(str::to_string)
+                            item.get("email")
+                                .and_then(|x| x.as_str())
+                                .map(str::to_string)
                         })
                         .unwrap_or_else(|| "github-user@dx.local".to_string())
                 }
@@ -1172,7 +1193,10 @@ async fn github_device_sign_in(client_id: &str) -> Result<AuthResult> {
             return Ok(AuthResult {
                 method: "github".to_string(),
                 email,
-                name: profile.name.or(profile.login).unwrap_or_else(|| "GitHub User".to_string()),
+                name: profile
+                    .name
+                    .or(profile.login)
+                    .unwrap_or_else(|| "GitHub User".to_string()),
                 oauth_subject: profile.id,
             });
         }
@@ -1448,7 +1472,9 @@ async fn antigravity_load_code_assist(
     access_token: &str,
     project_id_hint: Option<&str>,
 ) -> Result<Option<String>> {
-    let client = reqwest::Client::builder().timeout(Duration::from_secs(10)).build()?;
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()?;
 
     let metadata_platform = if cfg!(target_os = "windows") {
         "WINDOWS"
@@ -1505,8 +1531,12 @@ async fn antigravity_load_code_assist(
             Ok(response) => {
                 let status = response.status();
                 let body = response.text().await.unwrap_or_default();
-                last_error =
-                    Some(anyhow::anyhow!("loadCodeAssist {} on {}: {}", status, base, body));
+                last_error = Some(anyhow::anyhow!(
+                    "loadCodeAssist {} on {}: {}",
+                    status,
+                    base,
+                    body
+                ));
             }
             Err(err) => {
                 last_error = Some(anyhow::anyhow!("loadCodeAssist error on {}: {}", base, err));
@@ -1574,7 +1604,10 @@ fn resolve_provider_api_key_env(provider_id: &str) -> Option<String> {
         return Some(var_name.to_string());
     }
 
-    Some(format!("{}_API_KEY", provider_id.to_ascii_uppercase().replace('-', "_")))
+    Some(format!(
+        "{}_API_KEY",
+        provider_id.to_ascii_uppercase().replace('-', "_")
+    ))
 }
 
 fn upsert_provider_env(provider_id: &str, api_key_env: &str, api_key: &str) {
@@ -1600,9 +1633,11 @@ fn provider_profile_key(provider_id: &str, profile: &str) -> String {
 }
 
 fn read_keyring_api_key(provider_id: &str, profile: &str) -> Option<String> {
-    let entry =
-        keyring::Entry::new(keyring_service_name(), &provider_profile_key(provider_id, profile))
-            .ok()?;
+    let entry = keyring::Entry::new(
+        keyring_service_name(),
+        &provider_profile_key(provider_id, profile),
+    )
+    .ok()?;
     let value = entry.get_password().ok()?;
     if value.trim().is_empty() {
         None
@@ -1612,9 +1647,11 @@ fn read_keyring_api_key(provider_id: &str, profile: &str) -> Option<String> {
 }
 
 fn store_keyring_api_key(provider_id: &str, profile: &str, api_key: &str) -> Result<()> {
-    let entry =
-        keyring::Entry::new(keyring_service_name(), &provider_profile_key(provider_id, profile))
-            .map_err(|err| anyhow::anyhow!("failed to initialize keyring entry: {}", err))?;
+    let entry = keyring::Entry::new(
+        keyring_service_name(),
+        &provider_profile_key(provider_id, profile),
+    )
+    .map_err(|err| anyhow::anyhow!("failed to initialize keyring entry: {}", err))?;
     entry
         .set_password(api_key)
         .map_err(|err| anyhow::anyhow!("failed to store key in keyring: {}", err))?;
@@ -1674,10 +1711,12 @@ fn prompt_provider_api_key(
     if let Ok(existing) = env::var(api_key_env)
         && !existing.trim().is_empty()
     {
-        let keep_existing =
-            prompts::confirm(format!("Use existing {} from {}?", provider_id, api_key_env))
-                .initial_value(true)
-                .interact()?;
+        let keep_existing = prompts::confirm(format!(
+            "Use existing {} from {}?",
+            provider_id, api_key_env
+        ))
+        .initial_value(true)
+        .interact()?;
         if keep_existing {
             return Ok(Some(existing));
         }
@@ -1730,8 +1769,9 @@ async fn fetch_models_for_provider(
     }
 
     if is_github_copilot
-        && let Some(provider) =
-            registry.get("github_copilot").or_else(|| registry.get("github-copilot"))
+        && let Some(provider) = registry
+            .get("github_copilot")
+            .or_else(|| registry.get("github-copilot"))
     {
         return match provider.get_models().await {
             Ok(models) => {
@@ -1762,11 +1802,13 @@ async fn fetch_models_for_provider(
     }
 
     if let Some(api_key) = api_key
-        && let Some(preset) = openai_compatible_provider_presets().into_iter().find(|preset| {
-            preset.id == provider_id
-                || preset.id == canonical_id
-                || preset.id.replace('-', "_") == provider_id
-        })
+        && let Some(preset) = openai_compatible_provider_presets()
+            .into_iter()
+            .find(|preset| {
+                preset.id == provider_id
+                    || preset.id == canonical_id
+                    || preset.id.replace('-', "_") == provider_id
+            })
         && !preset.base_url.contains('{')
     {
         let provider = GenericProvider::new(provider_id, preset.base_url, api_key);
@@ -1800,7 +1842,10 @@ async fn fetch_models_for_provider(
         }
     }
 
-    if let Some(provider) = registry.get(provider_id).or_else(|| registry.get(&canonical_id)) {
+    if let Some(provider) = registry
+        .get(provider_id)
+        .or_else(|| registry.get(&canonical_id))
+    {
         return match provider.get_models().await {
             Ok(models) => {
                 let unique = models
@@ -1839,11 +1884,14 @@ async fn fetch_models_for_provider(
         };
     };
 
-    let Some(preset) = openai_compatible_provider_presets().into_iter().find(|preset| {
-        preset.id == provider_id
-            || preset.id == canonical_id
-            || preset.id.replace('-', "_") == provider_id
-    }) else {
+    let Some(preset) = openai_compatible_provider_presets()
+        .into_iter()
+        .find(|preset| {
+            preset.id == provider_id
+                || preset.id == canonical_id
+                || preset.id.replace('-', "_") == provider_id
+        })
+    else {
         return ProviderModelListing {
             provider_id: provider_id.to_string(),
             models: Vec::new(),
@@ -1929,7 +1977,10 @@ async fn fetch_google_antigravity_models(api_key: Option<&str>) -> ProviderModel
         models,
         modules,
         status: "ok".to_string(),
-        detail: format!("resolved auth via {}; project={}", auth.source, effective_project),
+        detail: format!(
+            "resolved auth via {}; project={}",
+            auth.source, effective_project
+        ),
     }
 }
 
@@ -2080,7 +2131,10 @@ async fn run_hello_probe(
         };
     }
 
-    if let Some(provider) = registry.get(provider_id).or_else(|| registry.get(&canonical_id)) {
+    if let Some(provider) = registry
+        .get(provider_id)
+        .or_else(|| registry.get(&canonical_id))
+    {
         return match provider.chat(sample_chat_request(selected_model)).await {
             Ok(response) => ProviderModelProbeResult {
                 provider_id: provider_id.to_string(),
@@ -2112,11 +2166,14 @@ async fn run_hello_probe(
         };
     };
 
-    let Some(preset) = openai_compatible_provider_presets().into_iter().find(|preset| {
-        preset.id == provider_id
-            || preset.id == canonical_id
-            || preset.id.replace('-', "_") == provider_id
-    }) else {
+    let Some(preset) = openai_compatible_provider_presets()
+        .into_iter()
+        .find(|preset| {
+            preset.id == provider_id
+                || preset.id == canonical_id
+                || preset.id.replace('-', "_") == provider_id
+        })
+    else {
         return ProviderModelProbeResult {
             provider_id: provider_id.to_string(),
             api_key_env: resolve_provider_api_key_env(provider_id),
@@ -2160,7 +2217,9 @@ async fn run_hello_probe(
 }
 
 async fn check_provider_connection(provider_id: &str) -> ProviderConnectionStatus {
-    let client = reqwest::Client::builder().timeout(Duration::from_secs(10)).build();
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build();
 
     let client = match client {
         Ok(value) => value,
@@ -2185,8 +2244,10 @@ async fn check_provider_connection(provider_id: &str) -> ProviderConnectionStatu
             }
         };
 
-        let url =
-            format!("https://generativelanguage.googleapis.com/v1beta/models?key={}", api_key);
+        let url = format!(
+            "https://generativelanguage.googleapis.com/v1beta/models?key={}",
+            api_key
+        );
         return match client.get(url).send().await {
             Ok(resp) if resp.status().is_success() => ProviderConnectionStatus {
                 provider_id: provider_id.to_string(),
@@ -2278,7 +2339,10 @@ async fn check_provider_connection(provider_id: &str) -> ProviderConnectionStatu
     let mut request = client.get(endpoint).bearer_auth(api_key);
     if provider_id == "anthropic" {
         request = request
-            .header("x-api-key", env::var("ANTHROPIC_API_KEY").unwrap_or_default())
+            .header(
+                "x-api-key",
+                env::var("ANTHROPIC_API_KEY").unwrap_or_default(),
+            )
             .header("anthropic-version", "2023-06-01");
     }
     if provider_id == "github_copilot" || provider_id == "github-copilot" {
@@ -2435,13 +2499,18 @@ async fn run_cliing_flow(_args: OnboardCliArgs) -> Result<()> {
 
     let mut provider_models = Vec::new();
     for provider in &providers {
-        let api_key = provider_api_keys.get(provider).and_then(|value| value.as_deref());
+        let api_key = provider_api_keys
+            .get(provider)
+            .and_then(|value| value.as_deref());
         provider_models.push(fetch_models_for_provider(provider, api_key, &runtime_registry).await);
     }
 
     prompts::section_with_width("Provider Connectivity", 76, |lines| {
         for status in &provider_connection_status {
-            lines.push(format!("{} => {} ({})", status.provider_id, status.status, status.detail));
+            lines.push(format!(
+                "{} => {} ({})",
+                status.provider_id, status.status, status.detail
+            ));
         }
     })?;
 
@@ -2483,8 +2552,10 @@ async fn run_cliing_flow(_args: OnboardCliArgs) -> Result<()> {
             continue;
         }
 
-        let mut model_select =
-            prompts::select(format!("Choose model for provider {}", model_listing.provider_id));
+        let mut model_select = prompts::select(format!(
+            "Choose model for provider {}",
+            model_listing.provider_id
+        ));
         for model in &model_listing.models {
             model_select = model_select.item(model.clone(), model.clone(), "Available model");
         }
@@ -2524,7 +2595,10 @@ async fn run_cliing_flow(_args: OnboardCliArgs) -> Result<()> {
 
     prompts::section_with_width("Provider Hello Probe", 76, |lines| {
         for probe in &provider_model_probes {
-            lines.push(format!("{} => {} ({})", probe.provider_id, probe.status, probe.detail));
+            lines.push(format!(
+                "{} => {} ({})",
+                probe.provider_id, probe.status, probe.detail
+            ));
             if let Some(model) = &probe.selected_model {
                 lines.push(format!("  model: {}", model));
             }
@@ -2689,7 +2763,10 @@ async fn run_cliing_flow(_args: OnboardCliArgs) -> Result<()> {
     prompts::section_with_width("Onboarding Summary", 76, |lines| {
         lines.push(format!("Runtime: {}", detected_env.label()));
         lines.push(format!("Components: {}", installed_components.join(", ")));
-        lines.push(format!("Auth: {} ({})", auth_result.method, auth_result.email));
+        lines.push(format!(
+            "Auth: {} ({})",
+            auth_result.method, auth_result.email
+        ));
         lines.push(format!("Providers selected: {}", providers.len()));
         lines.push(format!("Provider config: {}", provider_config_status));
         if let Some(path) = &provider_config_path {
@@ -2759,7 +2836,10 @@ async fn async_main() -> Result<()> {
             }
 
             write_response(all_results)?;
-            prompts::log::success(format!("All {} tests completed!", prompt_suite::TOTAL_TESTS))?;
+            prompts::log::success(format!(
+                "All {} tests completed!",
+                prompt_suite::TOTAL_TESTS
+            ))?;
             eprintln!("{}", "└─ Check response.json for results".dimmed());
             Ok(())
         }
@@ -2791,7 +2871,9 @@ fn main() -> Result<()> {
         .name("dx-onboard-main".to_string())
         .stack_size(32 * 1024 * 1024)
         .spawn(|| -> Result<()> {
-            let runtime = tokio::runtime::Builder::new_multi_thread().enable_all().build()?;
+            let runtime = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()?;
             runtime.block_on(async_main())
         })
         .map_err(|err| anyhow::anyhow!("failed to spawn onboarding thread: {}", err))?;

@@ -109,7 +109,10 @@ impl RainbowAnimation {
 
         for (i, c) in text.chars().enumerate() {
             if c.is_whitespace() {
-                result.push_str(&format!("\x1b[48;2;{};{};{}m{}\x1b[0m", bg.r, bg.g, bg.b, c));
+                result.push_str(&format!(
+                    "\x1b[48;2;{};{};{}m{}\x1b[0m",
+                    bg.r, bg.g, bg.b, c
+                ));
             } else {
                 let color = self.color_at(i);
                 result.push_str(&format!(
@@ -144,7 +147,10 @@ impl RainbowAnimation {
         let mut result = String::with_capacity(width * 20);
         for (i, c) in chars.iter().enumerate() {
             let color = self.color_at(i);
-            result.push_str(&format!("\x1b[38;2;{};{};{}m{}\x1b[0m", color.r, color.g, color.b, c));
+            result.push_str(&format!(
+                "\x1b[38;2;{};{};{}m{}\x1b[0m",
+                color.r, color.g, color.b, c
+            ));
         }
 
         result
@@ -229,7 +235,10 @@ impl GradientAnimation {
     /// Apply gradient to text
     pub fn apply(&self, text: &str) -> String {
         let color = self.current_color();
-        format!("\x1b[38;2;{};{};{}m{}\x1b[0m", color.r, color.g, color.b, text)
+        format!(
+            "\x1b[38;2;{};{};{}m{}\x1b[0m",
+            color.r, color.g, color.b, text
+        )
     }
 }
 
@@ -293,7 +302,10 @@ impl PulseAnimation {
     /// Apply pulse to text
     pub fn apply(&self, text: &str) -> String {
         let color = self.current_color();
-        format!("\x1b[38;2;{};{};{}m{}\x1b[0m", color.r, color.g, color.b, text)
+        format!(
+            "\x1b[38;2;{};{};{}m{}\x1b[0m",
+            color.r, color.g, color.b, text
+        )
     }
 }
 
@@ -335,7 +347,12 @@ impl TypeAnimation {
             if i >= char_count {
                 break;
             }
-            end = idx + self.text[idx..].chars().next().map(|c| c.len_utf8()).unwrap_or(0);
+            end = idx
+                + self.text[idx..]
+                    .chars()
+                    .next()
+                    .map(|c| c.len_utf8())
+                    .unwrap_or(0);
         }
 
         &self.text[..end]

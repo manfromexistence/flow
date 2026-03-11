@@ -210,13 +210,18 @@ impl<T: Clone> PromptInteraction for TreeSelect<T> {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("↑↓: navigate, →: expand, ←: collapse, Enter: select")
+                    theme
+                        .dim
+                        .apply_to("↑↓: navigate, →: expand, ←: collapse, Enter: select")
                 ))?;
                 lines += 1;
             }
             State::Submit => {
                 let checkmark = theme.success.apply_to("✓");
-                let selected = self.get_current_node().map(|n| n.label.clone()).unwrap_or_default();
+                let selected = self
+                    .get_current_node()
+                    .map(|n| n.label.clone())
+                    .unwrap_or_default();
                 term.write_line(&format!(
                     "{} {}  {}",
                     checkmark,
@@ -235,7 +240,9 @@ impl<T: Clone> PromptInteraction for TreeSelect<T> {
     }
 
     fn value(&self) -> T {
-        self.get_current_node().map(|n| n.value.clone()).expect("No node selected")
+        self.get_current_node()
+            .map(|n| n.value.clone())
+            .expect("No node selected")
     }
 }
 

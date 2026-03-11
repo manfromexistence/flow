@@ -82,7 +82,9 @@ pub fn render(
     if checkpoints.is_empty() {
         let msg = Line::from(Span::styled(
             "No checkpoints found",
-            Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(theme.border)
+                .add_modifier(Modifier::ITALIC),
         ));
 
         Paragraph::new(msg).alignment(Alignment::Center).render(
@@ -158,7 +160,9 @@ pub fn render(
                     if is_selected {
                         bg_style.add_modifier(Modifier::ITALIC)
                     } else {
-                        Style::default().fg(theme.border).add_modifier(Modifier::ITALIC)
+                        Style::default()
+                            .fg(theme.border)
+                            .add_modifier(Modifier::ITALIC)
                     },
                 ));
 
@@ -187,13 +191,15 @@ pub fn render(
         Span::styled(" Close", Style::default().fg(theme.border)),
     ]);
 
-    Paragraph::new(help_text).alignment(Alignment::Center).render(
-        Rect {
-            x: inner.x,
-            y: inner.y + inner.height.saturating_sub(1),
-            width: inner.width,
-            height: 1,
-        },
-        buf,
-    );
+    Paragraph::new(help_text)
+        .alignment(Alignment::Center)
+        .render(
+            Rect {
+                x: inner.x,
+                y: inner.y + inner.height.saturating_sub(1),
+                width: inner.width,
+                height: 1,
+            },
+            buf,
+        );
 }

@@ -39,7 +39,12 @@ impl Table {
         output.push_str(&format!("│ {} │\n", header_line));
 
         // Separator
-        let sep = self.widths.iter().map(|w| "─".repeat(*w)).collect::<Vec<_>>().join("─┼─");
+        let sep = self
+            .widths
+            .iter()
+            .map(|w| "─".repeat(*w))
+            .collect::<Vec<_>>()
+            .join("─┼─");
         output.push_str(&format!("├─{}─┤\n", sep));
 
         // Rows

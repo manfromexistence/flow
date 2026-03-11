@@ -85,7 +85,9 @@ pub fn render(
         .border_type(ratatui::widgets::BorderType::Rounded)
         .title(Span::styled(
             " More Options ",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ))
         .title_alignment(Alignment::Center)
         .style(Style::default().bg(theme.bg));
@@ -107,7 +109,10 @@ pub fn render(
             Span::styled(
                 &option.name,
                 if is_selected {
-                    Style::default().fg(theme.bg).bg(theme.accent).add_modifier(Modifier::BOLD)
+                    Style::default()
+                        .fg(theme.bg)
+                        .bg(theme.accent)
+                        .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default().fg(theme.fg).add_modifier(Modifier::BOLD)
                 },

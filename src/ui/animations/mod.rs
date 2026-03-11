@@ -49,7 +49,12 @@ pub fn clear_screen() -> io::Result<()> {
 
 /// Print colored text at position
 pub fn print_at(x: u16, y: u16, text: &str, color: Color) -> io::Result<()> {
-    execute!(io::stdout(), cursor::MoveTo(x, y), SetForegroundColor(color), Print(text))?;
+    execute!(
+        io::stdout(),
+        cursor::MoveTo(x, y),
+        SetForegroundColor(color),
+        Print(text)
+    )?;
     Ok(())
 }
 

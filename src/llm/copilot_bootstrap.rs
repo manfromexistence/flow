@@ -57,8 +57,9 @@ fn derive_copilot_api_base_url_from_token(token: &str) -> Option<String> {
     let mut proxy_ep: Option<&str> = None;
     for part in trimmed.split(';') {
         let part = part.trim();
-        if let Some(rest) =
-            part.strip_prefix("proxy-ep=").or_else(|| part.strip_prefix("proxy-ep ="))
+        if let Some(rest) = part
+            .strip_prefix("proxy-ep=")
+            .or_else(|| part.strip_prefix("proxy-ep ="))
         {
             proxy_ep = Some(rest.trim());
             break;
@@ -77,7 +78,10 @@ fn derive_copilot_api_base_url_from_token(token: &str) -> Option<String> {
         return None;
     }
 
-    let host = proxy_ep.trim_start_matches("https://").trim_start_matches("http://").trim();
+    let host = proxy_ep
+        .trim_start_matches("https://")
+        .trim_start_matches("http://")
+        .trim();
     if host.is_empty() {
         return None;
     }
@@ -97,11 +101,15 @@ fn dx_config_dir() -> PathBuf {
     // Windows: %APPDATA%\dx
     // macOS: ~/Library/Application Support/dx
     // Linux: ~/.config/dx
-    dirs::config_dir().unwrap_or_else(|| PathBuf::from(".")).join("dx")
+    dirs::config_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("dx")
 }
 
 fn copilot_token_cache_path() -> PathBuf {
-    dx_config_dir().join("credentials").join("github-copilot.token.json")
+    dx_config_dir()
+        .join("credentials")
+        .join("github-copilot.token.json")
 }
 
 fn should_use_token_cache() -> bool {
@@ -150,7 +158,11 @@ async fn run_capture_stdout(cmd: &str, args: &[&str]) -> Result<String> {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(anyhow!("{cmd} failed with status {}: {}", output.status, stderr.trim()));
+        return Err(anyhow!(
+            "{cmd} failed with status {}: {}",
+            output.status,
+            stderr.trim()
+        ));
     }
 
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
@@ -213,9 +225,12 @@ async fn ensure_copilot_cli_installed_interactive() -> Result<()> {
         {
             // Last resort: official install script.
             // Note: uses a shell pipeline because that's how the official script is distributed.
-            run_status_inherit("bash", &["-lc", "curl -fsSL https://gh.io/copilot-install | bash"])
-                .await
-                .context("copilot install script failed")?;
+            run_status_inherit(
+                "bash",
+                &["-lc", "curl -fsSL https://gh.io/copilot-install | bash"],
+            )
+            .await
+            .context("copilot install script failed")?;
         } else {
             return Err(anyhow!(
                 "cannot auto-install Copilot CLI: need brew, npm, or bash+curl (see https://github.com/github/copilot-cli)"
@@ -228,7 +243,9 @@ async fn ensure_copilot_cli_installed_interactive() -> Result<()> {
     {
         Ok(())
     } else {
-        Err(anyhow!("copilot CLI install completed but `copilot` is still not in PATH"))
+        Err(anyhow!(
+            "copilot CLI install completed but `copilot` is still not in PATH"
+        ))
     }
 }
 
@@ -266,7 +283,9 @@ async fn ensure_gh_installed_interactive() -> Result<()> {
     if command_works("gh", &["--version"]).await {
         Ok(())
     } else {
-        Err(anyhow!("gh install completed but `gh` is still not in PATH"))
+        Err(anyhow!(
+            "gh install completed but `gh` is still not in PATH"
+        ))
     }
 }
 
@@ -298,7 +317,10 @@ async fn ensure_github_token_interactive() -> Result<(String, String)> {
             }
         }
 
-        eprintln!("{} Opening GitHub login flow (one-time)…", "DX".cyan().bold());
+        eprintln!(
+            "{} Opening GitHub login flow (one-time)…",
+            "DX".cyan().bold()
+        );
         // Use `--web` so gh opens the browser automatically.
         // Inherit stdio so the user can interact normally.
         run_status_inherit(
@@ -362,7 +384,10 @@ async fn sdk_is_authenticated(github_token: Option<String>) -> Result<bool> {
         ..Default::default()
     });
 
-    client.start().await.map_err(|err| anyhow!("copilot sdk start failed: {err}"))?;
+    client
+        .start()
+        .await
+        .map_err(|err| anyhow!("copilot sdk start failed: {err}"))?;
     let status = client
         .get_auth_status()
         .await
@@ -379,9 +404,9 @@ struct CopilotTokenResponse {
 
 fn parse_expires_at_ms(value: &serde_json::Value) -> Option<u64> {
     match value {
-        serde_json::Value::Number(num) => {
-            num.as_u64().map(|n| if n > 10_000_000_000 { n } else { n * 1000 })
-        }
+        serde_json::Value::Number(num) => num
+            .as_u64()
+            .map(|n| if n > 10_000_000_000 { n } else { n * 1000 }),
         serde_json::Value::String(s) => s
             .trim()
             .parse::<u64>()
@@ -396,7 +421,10 @@ async fn fetch_copilot_service_token(github_token: &str) -> Result<(String, u64)
     let resp = client
         .get(COPILOT_TOKEN_URL)
         .header(reqwest::header::ACCEPT, "application/json")
-        .header(reqwest::header::AUTHORIZATION, format!("Bearer {github_token}"))
+        .header(
+            reqwest::header::AUTHORIZATION,
+            format!("Bearer {github_token}"),
+        )
         .send()
         .await
         .context("failed to call Copilot token endpoint")?;
@@ -407,8 +435,10 @@ async fn fetch_copilot_service_token(github_token: &str) -> Result<(String, u64)
         return Err(anyhow!(CopilotTokenExchangeError { status, body }));
     }
 
-    let payload: CopilotTokenResponse =
-        resp.json().await.context("failed to parse Copilot token response")?;
+    let payload: CopilotTokenResponse = resp
+        .json()
+        .await
+        .context("failed to parse Copilot token response")?;
     let token = payload
         .token
         .filter(|v| !v.trim().is_empty())
@@ -429,7 +459,12 @@ struct CopilotTokenExchangeError {
 
 impl std::fmt::Display for CopilotTokenExchangeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Copilot token exchange failed (HTTP {}): {}", self.status, self.body.trim())
+        write!(
+            f,
+            "Copilot token exchange failed (HTTP {}): {}",
+            self.status,
+            self.body.trim()
+        )
     }
 }
 
@@ -537,10 +572,14 @@ pub async fn ensure_github_copilot_ready_interactive() -> Result<CopilotBootstra
     // Check auth status via SDK; if not logged in, drive `copilot login`.
     // This matches the “DX just enabled Copilot for me” UX.
     if command_works("copilot", &["login", "--help"]).await {
-        let authenticated_before =
-            sdk_is_authenticated(Some(github_token.clone())).await.unwrap_or(false);
+        let authenticated_before = sdk_is_authenticated(Some(github_token.clone()))
+            .await
+            .unwrap_or(false);
         if !authenticated_before {
-            eprintln!("{} Copilot CLI not logged in; starting login flow…", "DX".cyan().bold());
+            eprintln!(
+                "{} Copilot CLI not logged in; starting login flow…",
+                "DX".cyan().bold()
+            );
             let _ = run_status_inherit("copilot", &["login"]).await;
         }
 
@@ -551,7 +590,9 @@ pub async fn ensure_github_copilot_ready_interactive() -> Result<CopilotBootstra
     let (service_token, expires_at_ms) = match fetch_copilot_service_token(&github_token).await {
         Ok(value) => value,
         Err(err) => {
-            let status = err.downcast_ref::<CopilotTokenExchangeError>().map(|value| value.status);
+            let status = err
+                .downcast_ref::<CopilotTokenExchangeError>()
+                .map(|value| value.status);
 
             // Common “Access denied” case: GH token is stale / missing Copilot permissions.
             // If we can, drive an interactive re-login and retry once.
@@ -579,9 +620,13 @@ pub async fn ensure_github_copilot_ready_interactive() -> Result<CopilotBootstra
                     run_capture_stdout("gh", &["auth", "token", "-h", "github.com"]).await
                 {
                     if !new_token.trim().is_empty() {
-                        fetch_copilot_service_token(&new_token).await.with_context(|| {
-                            format!("token exchange via {COPILOT_TOKEN_URL} failed after re-login")
-                        })?
+                        fetch_copilot_service_token(&new_token)
+                            .await
+                            .with_context(|| {
+                                format!(
+                                    "token exchange via {COPILOT_TOKEN_URL} failed after re-login"
+                                )
+                            })?
                     } else {
                         return Err(err).with_context(|| {
                             format!("token exchange via {COPILOT_TOKEN_URL} failed")

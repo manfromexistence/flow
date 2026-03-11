@@ -175,7 +175,10 @@ impl Visualizer {
             let end_idx = ((band + 1) as usize * samples.len()) / bands as usize;
 
             let avg = if end_idx > start_idx {
-                samples[start_idx..end_idx].iter().map(|s| s.abs()).sum::<f32>()
+                samples[start_idx..end_idx]
+                    .iter()
+                    .map(|s| s.abs())
+                    .sum::<f32>()
                     / (end_idx - start_idx) as f32
             } else {
                 0.0
@@ -308,7 +311,11 @@ impl Visualizer {
         let center_y = self.height / 2 + 1;
 
         // Draw center line
-        execute!(io::stdout(), cursor::MoveTo(0, center_y), SetForegroundColor(Color::DarkGrey))?;
+        execute!(
+            io::stdout(),
+            cursor::MoveTo(0, center_y),
+            SetForegroundColor(Color::DarkGrey)
+        )?;
         for _ in 0..self.width {
             execute!(io::stdout(), Print("─"))?;
         }
@@ -320,7 +327,9 @@ impl Visualizer {
             }
 
             let y_offset = (sample * (self.height as f32 / 2.0)) as i16;
-            let y = (center_y as i16 - y_offset).max(1).min(self.height as i16 + 1) as u16;
+            let y = (center_y as i16 - y_offset)
+                .max(1)
+                .min(self.height as i16 + 1) as u16;
 
             let color = if sample.abs() > 0.8 {
                 Color::Red

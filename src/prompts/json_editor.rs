@@ -46,7 +46,11 @@ impl JsonEditor {
     }
 
     fn render_content(&self) -> Vec<String> {
-        self.content.lines().take(8).map(|line| line.to_string()).collect()
+        self.content
+            .lines()
+            .take(8)
+            .map(|line| line.to_string())
+            .collect()
     }
 }
 
@@ -152,7 +156,9 @@ impl PromptInteraction for JsonEditor {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Type to edit, Enter: submit (multi-line), Esc: cancel")
+                    theme
+                        .dim
+                        .apply_to("Type to edit, Enter: submit (multi-line), Esc: cancel")
                 ))?;
                 lines += 1;
             }

@@ -92,7 +92,9 @@ impl GoogleOAuthConfig {
             ClientId::new(self.client_id.clone()),
             Some(ClientSecret::new(self.client_secret.clone())),
             AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())?,
-            Some(TokenUrl::new("https://oauth2.googleapis.com/token".to_string())?),
+            Some(TokenUrl::new(
+                "https://oauth2.googleapis.com/token".to_string(),
+            )?),
         )
         .set_redirect_uri(RedirectUrl::new(self.redirect_uri.clone())?);
 
@@ -101,10 +103,18 @@ impl GoogleOAuthConfig {
         let (auth_url, csrf_token) = client
             .authorize_url(CsrfToken::new_random)
             .add_scope(Scope::new("openid".to_string()))
-            .add_scope(Scope::new("https://www.googleapis.com/auth/userinfo.email".to_string()))
-            .add_scope(Scope::new("https://www.googleapis.com/auth/userinfo.profile".to_string()))
-            .add_scope(Scope::new("https://www.googleapis.com/auth/cloud-platform".to_string()))
-            .add_scope(Scope::new("https://www.googleapis.com/auth/cclog".to_string()))
+            .add_scope(Scope::new(
+                "https://www.googleapis.com/auth/userinfo.email".to_string(),
+            ))
+            .add_scope(Scope::new(
+                "https://www.googleapis.com/auth/userinfo.profile".to_string(),
+            ))
+            .add_scope(Scope::new(
+                "https://www.googleapis.com/auth/cloud-platform".to_string(),
+            ))
+            .add_scope(Scope::new(
+                "https://www.googleapis.com/auth/cclog".to_string(),
+            ))
             .add_scope(Scope::new(
                 "https://www.googleapis.com/auth/experimentsandconfigs".to_string(),
             ))
@@ -200,7 +210,9 @@ impl GoogleOAuthConfig {
             ClientId::new(self.client_id.clone()),
             Some(ClientSecret::new(self.client_secret.clone())),
             AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())?,
-            Some(TokenUrl::new("https://oauth2.googleapis.com/token".to_string())?),
+            Some(TokenUrl::new(
+                "https://oauth2.googleapis.com/token".to_string(),
+            )?),
         );
 
         let token_result = client
@@ -308,7 +320,10 @@ pub async fn fetch_antigravity_models(_access_token: &str) -> Result<Vec<String>
 /// Users need to provide an API key from Google AI Studio instead.
 pub async fn fetch_google_models_with_api_key(api_key: &str) -> Result<Vec<String>> {
     let client = reqwest::Client::new();
-    let url = format!("https://generativelanguage.googleapis.com/v1beta/models?key={}", api_key);
+    let url = format!(
+        "https://generativelanguage.googleapis.com/v1beta/models?key={}",
+        api_key
+    );
 
     let res: serde_json::Value = client.get(&url).send().await?.json().await?;
 

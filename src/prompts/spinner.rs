@@ -54,7 +54,10 @@ impl Spinner {
             let mut frame_idx = 0;
 
             while running.load(Ordering::SeqCst) {
-                let spinner = theme.primary.apply_to(SPINNER_FRAMES[frame_idx]).to_string();
+                let spinner = theme
+                    .primary
+                    .apply_to(SPINNER_FRAMES[frame_idx])
+                    .to_string();
 
                 let _ = term.clear_line();
                 let _ = write!(&term, "\r{} {} {}", spinner, message.bold(), bar);
@@ -88,7 +91,8 @@ impl Spinner {
         let msg = message.into();
 
         self.term.clear_line()?;
-        self.term.write_line(&format!("{} {}", symbol, msg.bold()))?;
+        self.term
+            .write_line(&format!("{} {}", symbol, msg.bold()))?;
         self.term.write_line(&format!("{}", bar))?;
 
         // Show cursor again
@@ -112,7 +116,8 @@ impl Spinner {
         let msg = message.into();
 
         self.term.clear_line()?;
-        self.term.write_line(&format!("{} {}", symbol, theme.error.apply_to(msg)))?;
+        self.term
+            .write_line(&format!("{} {}", symbol, theme.error.apply_to(msg)))?;
         self.term.write_line(&format!("{}", bar))?;
 
         // Show cursor again

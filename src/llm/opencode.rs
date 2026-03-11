@@ -154,17 +154,19 @@ impl OpenCodeProvider {
         let mut models = Vec::new();
 
         let provider_data =
-            response.get("opencode").ok_or_else(|| ProviderError::InvalidResponse {
-                provider: self.id().to_string(),
-                detail: "models.dev payload missing 'opencode' provider".to_string(),
-            })?;
-
-        let provider_models =
-            provider_data.get("models").and_then(|m| m.as_object()).ok_or_else(|| {
-                ProviderError::InvalidResponse {
+            response
+                .get("opencode")
+                .ok_or_else(|| ProviderError::InvalidResponse {
                     provider: self.id().to_string(),
-                    detail: "models.dev payload missing 'opencode.models' map".to_string(),
-                }
+                    detail: "models.dev payload missing 'opencode' provider".to_string(),
+                })?;
+
+        let provider_models = provider_data
+            .get("models")
+            .and_then(|m| m.as_object())
+            .ok_or_else(|| ProviderError::InvalidResponse {
+                provider: self.id().to_string(),
+                detail: "models.dev payload missing 'opencode.models' map".to_string(),
             })?;
 
         for (model_id, model_data) in provider_models {
@@ -194,7 +196,10 @@ impl OpenCodeProvider {
                 continue;
             }
 
-            let name = model_data.get("name").and_then(|v| v.as_str()).unwrap_or(model_id);
+            let name = model_data
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or(model_id);
 
             let context_window = model_data
                 .get("limit")
@@ -208,8 +213,10 @@ impl OpenCodeProvider {
                 .and_then(|v| v.as_u64())
                 .map(|v| v as u32);
 
-            let supports_tools =
-                model_data.get("tool_call").and_then(|v| v.as_bool()).unwrap_or(true);
+            let supports_tools = model_data
+                .get("tool_call")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
 
             let supports_vision = model_data
                 .get("modalities")
@@ -331,10 +338,13 @@ impl LlmProvider for OpenCodeProvider {
         }
 
         let opencode_response: OpenCodeChatResponse =
-            response.json().await.map_err(|e| ProviderError::InvalidResponse {
-                provider: self.id().to_string(),
-                detail: e.to_string(),
-            })?;
+            response
+                .json()
+                .await
+                .map_err(|e| ProviderError::InvalidResponse {
+                    provider: self.id().to_string(),
+                    detail: e.to_string(),
+                })?;
 
         let choice =
             opencode_response
@@ -469,7 +479,11 @@ mod tests {
         );
 
         for model in &models {
-            println!("Free model: {} ({})", model.display_name.as_ref().unwrap(), model.id);
+            println!(
+                "Free model: {} ({})",
+                model.display_name.as_ref().unwrap(),
+                model.id
+            );
         }
     }
 }

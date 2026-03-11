@@ -40,7 +40,10 @@ pub fn render(
             for (i, ch) in line.chars().enumerate() {
                 let color = rainbow.color_at(i);
                 let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
-                spans.push(Span::styled(ch.to_string(), Style::default().fg(ratatui_color)));
+                spans.push(Span::styled(
+                    ch.to_string(),
+                    Style::default().fg(ratatui_color),
+                ));
             }
             splash_lines.push(Line::from(spans));
         }
@@ -51,7 +54,10 @@ pub fn render(
         for (i, ch) in text.chars().enumerate() {
             let color = rainbow.color_at(i);
             let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
-            spans.push(Span::styled(ch.to_string(), Style::default().fg(ratatui_color)));
+            spans.push(Span::styled(
+                ch.to_string(),
+                Style::default().fg(ratatui_color),
+            ));
         }
         splash_lines.push(Line::from(spans));
     }

@@ -270,7 +270,13 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
         let content = format!("  {}", line);
         let content_len = content.chars().count();
         let spaces_needed = max_content_len.saturating_sub(content_len);
-        term_write(format!("{}{}{}{}\n", bar, content, " ".repeat(spaces_needed), bar))?;
+        term_write(format!(
+            "{}{}{}{}\n",
+            bar,
+            content,
+            " ".repeat(spaces_needed),
+            bar
+        ))?;
     }
 
     term_write(format!("{}{}{}\n", bar, " ".repeat(max_content_len), bar))?;
@@ -278,7 +284,9 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
     term_write(format!(
         "{}{}{}\n",
         theme.dim.apply_to(symbols.box_bottom_left),
-        theme.dim.apply_to(symbols.box_horizontal.repeat(max_content_len)),
+        theme
+            .dim
+            .apply_to(symbols.box_horizontal.repeat(max_content_len)),
         theme.dim.apply_to(symbols.box_bottom_right)
     ))?;
 
@@ -342,7 +350,12 @@ pub mod log {
     pub fn step(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        eprintln!("{} {} {}", theme.dim.apply_to(symbols.bar), "◇".green(), text);
+        eprintln!(
+            "{} {} {}",
+            theme.dim.apply_to(symbols.bar),
+            "◇".green(),
+            text
+        );
         Ok(())
     }
 }

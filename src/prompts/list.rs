@@ -185,7 +185,10 @@ impl PromptInteraction for ListEditor {
                 let display = if self.items.is_empty() {
                     theme.dim.apply_to("empty list").to_string()
                 } else {
-                    theme.dim.apply_to(format!("{} items", self.items.len())).to_string()
+                    theme
+                        .dim
+                        .apply_to(format!("{} items", self.items.len()))
+                        .to_string()
                 };
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;

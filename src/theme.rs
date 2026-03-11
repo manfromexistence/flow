@@ -158,7 +158,9 @@ pub trait Theme {
 
     /// Returns the symbol of the remark.
     fn remark_symbol(&self) -> String {
-        self.bar_color(&ThemeState::Submit).apply_to(S_CONNECT_LEFT).to_string()
+        self.bar_color(&ThemeState::Submit)
+            .apply_to(S_CONNECT_LEFT)
+            .to_string()
     }
 
     /// Returns the symbol of the info message.
@@ -243,7 +245,10 @@ pub trait Theme {
     /// Formats the outro message (like `└  {message}`).
     fn format_outro(&self, message: &str) -> String {
         let color = self.bar_color(&ThemeState::Submit);
-        format!("{bar_end}  {message}\n", bar_end = color.apply_to(S_BAR_END))
+        format!(
+            "{bar_end}  {message}\n",
+            bar_end = color.apply_to(S_BAR_END)
+        )
     }
 
     /// Formats the outro message with a failure style
@@ -304,9 +309,9 @@ pub trait Theme {
             input.push('\n');
         }
 
-        input
-            .lines()
-            .fold(String::new(), |acc, line| format!("{}│  {}\n", acc, new_style.apply_to(line)))
+        input.lines().fold(String::new(), |acc, line| {
+            format!("{}│  {}\n", acc, new_style.apply_to(line))
+        })
     }
 
     /// Formats the input cursor with the dimmed style of placeholder.
@@ -323,9 +328,9 @@ pub trait Theme {
             ThemeState::Cancel => "".to_string(),
             _ => cursor.to_string(),
         };
-        placeholder
-            .lines()
-            .fold(String::new(), |acc, line| format!("{}│  {}\n", acc, new_style.apply_to(line)))
+        placeholder.lines().fold(String::new(), |acc, line| {
+            format!("{}│  {}\n", acc, new_style.apply_to(line))
+        })
     }
 
     /// Returns the radio item without frame bars around the item.
@@ -435,7 +440,10 @@ pub trait Theme {
             _ => {}
         }
 
-        format!("│  {}\n", self.checkbox_item(state, selected, active, label, hint),)
+        format!(
+            "│  {}\n",
+            self.checkbox_item(state, selected, active, label, hint),
+        )
     }
 
     /// Returns the full confirmation prompt rendering.

@@ -138,7 +138,9 @@ impl PromptInteraction for Rating {
                 term.write_line(&format!(
                     "{} {}",
                     bar,
-                    theme.dim.apply_to("Use ← → arrows or numbers, Enter to confirm")
+                    theme
+                        .dim
+                        .apply_to("Use ← → arrows or numbers, Enter to confirm")
                 ))?;
                 lines += 1;
                 // Blank line with │ after prompt
@@ -148,8 +150,9 @@ impl PromptInteraction for Rating {
             State::Submit => {
                 let checkmark = theme.success.apply_to("✓");
                 let stars = "★".repeat(self.value);
-                let display =
-                    theme.dim.apply_to(format!("{} ({}/{})", stars, self.value, self.max));
+                let display = theme
+                    .dim
+                    .apply_to(format!("{} ({}/{})", stars, self.value, self.max));
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
                 term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;

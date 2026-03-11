@@ -38,7 +38,9 @@ pub fn render(
         .border_type(ratatui::widgets::BorderType::Rounded)
         .title(Span::styled(
             " Add to Request ",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ))
         .style(Style::default().bg(theme.bg));
 
@@ -199,13 +201,15 @@ pub fn render(
         Span::styled(" Close", Style::default().fg(theme.border)),
     ]);
 
-    Paragraph::new(help_text).alignment(ratatui::layout::Alignment::Center).render(
-        Rect {
-            x: inner.x,
-            y: inner.y + inner.height.saturating_sub(1),
-            width: inner.width,
-            height: 1,
-        },
-        buf,
-    );
+    Paragraph::new(help_text)
+        .alignment(ratatui::layout::Alignment::Center)
+        .render(
+            Rect {
+                x: inner.x,
+                y: inner.y + inner.height.saturating_sub(1),
+                width: inner.width,
+                height: 1,
+            },
+            buf,
+        );
 }

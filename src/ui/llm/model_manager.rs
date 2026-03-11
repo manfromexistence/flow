@@ -46,7 +46,9 @@ impl ModelManager {
         for file in files {
             pb.set_message(format!("Downloading {}", file));
 
-            let path = api.get(file).context(format!("Failed to download {}", file))?;
+            let path = api
+                .get(file)
+                .context(format!("Failed to download {}", file))?;
 
             let dest = model_dir.join(file);
             std::fs::copy(path, dest)?;

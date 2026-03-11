@@ -234,7 +234,9 @@ impl PromptInteraction for TableEditor {
                     "{} {}  {}",
                     checkmark,
                     self.message,
-                    theme.dim.apply_to(format!("{} rows edited", self.rows.len()))
+                    theme
+                        .dim
+                        .apply_to(format!("{} rows edited", self.rows.len()))
                 ))?;
                 lines += 1;
                 term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;

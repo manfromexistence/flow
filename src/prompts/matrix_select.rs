@@ -171,7 +171,9 @@ impl<T: Clone> PromptInteraction for MatrixSelect<T> {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Arrow keys: navigate, Space: toggle, Enter: confirm")
+                    theme
+                        .dim
+                        .apply_to("Arrow keys: navigate, Space: toggle, Enter: confirm")
                 ))?;
                 lines += 1;
             }

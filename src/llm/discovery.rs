@@ -75,7 +75,10 @@ fn ensure_cache_dir() -> Result<PathBuf, ProviderError> {
     let cache_dir = cache_root_dir();
     fs::create_dir_all(&cache_dir).map_err(|err| ProviderError::InvalidConfig {
         provider: "discovery".to_string(),
-        detail: format!("failed to create cache directory {}: {err}", cache_dir.display()),
+        detail: format!(
+            "failed to create cache directory {}: {err}",
+            cache_dir.display()
+        ),
     })?;
     Ok(cache_dir)
 }
@@ -190,10 +193,23 @@ fn parse_models_dev_json(data: Value) -> Vec<DiscoveredProvider> {
 
     root.iter()
         .map(|(provider_id, value)| {
-            let name = value.get("name").and_then(Value::as_str).unwrap_or(provider_id).to_string();
-            let base_url = value.get("api").and_then(Value::as_str).map(ToString::to_string);
-            let docs_url = value.get("doc").and_then(Value::as_str).map(ToString::to_string);
-            let website = value.get("website").and_then(Value::as_str).map(ToString::to_string);
+            let name = value
+                .get("name")
+                .and_then(Value::as_str)
+                .unwrap_or(provider_id)
+                .to_string();
+            let base_url = value
+                .get("api")
+                .and_then(Value::as_str)
+                .map(ToString::to_string);
+            let docs_url = value
+                .get("doc")
+                .and_then(Value::as_str)
+                .map(ToString::to_string);
+            let website = value
+                .get("website")
+                .and_then(Value::as_str)
+                .map(ToString::to_string);
 
             let models = value.get("models").and_then(Value::as_object);
             let model_count = models.map(|all| all.len()).unwrap_or(0);
@@ -212,8 +228,10 @@ fn parse_models_dev_json(data: Value) -> Vec<DiscoveredProvider> {
                         sample_models.push(model_id.to_string());
                     }
 
-                    supports_tools |=
-                        model_meta.get("tool_call").and_then(Value::as_bool).unwrap_or(false);
+                    supports_tools |= model_meta
+                        .get("tool_call")
+                        .and_then(Value::as_bool)
+                        .unwrap_or(false);
 
                     if let Some(inputs) = model_meta
                         .get("modalities")
@@ -265,7 +283,10 @@ fn parse_models_dev_json(data: Value) -> Vec<DiscoveredProvider> {
                 .and_then(Value::as_str)
                 .map(|npm| npm.contains("openai-compatible") || npm.contains("@ai-sdk/openai"))
                 .unwrap_or(false)
-                || base_url.as_ref().map(|url| url.contains("/v1")).unwrap_or(false);
+                || base_url
+                    .as_ref()
+                    .map(|url| url.contains("/v1"))
+                    .unwrap_or(false);
 
             DiscoveredProvider {
                 id: provider_id.to_string(),
@@ -354,8 +375,10 @@ fn parse_litellm_json(data: Value) -> Vec<DiscoveredProvider> {
                 .or_else(|| model_info.get("supports_tool_calling"))
                 .and_then(Value::as_bool)
                 .unwrap_or(false);
-            let supports_vision =
-                model_info.get("supports_vision").and_then(Value::as_bool).unwrap_or(false);
+            let supports_vision = model_info
+                .get("supports_vision")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
             let supports_audio = model_info
                 .get("supports_audio_input")
                 .or_else(|| model_info.get("supports_audio"))
@@ -425,7 +448,10 @@ pub fn extract_unique_litellm_providers_not_in_models_dev(
     models_dev: &[DiscoveredProvider],
     litellm: &[DiscoveredProvider],
 ) -> Vec<DiscoveredProvider> {
-    let known: BTreeSet<String> = models_dev.iter().map(|provider| provider.id.clone()).collect();
+    let known: BTreeSet<String> = models_dev
+        .iter()
+        .map(|provider| provider.id.clone())
+        .collect();
     litellm
         .iter()
         .filter(|provider| !known.contains(&provider.id))
@@ -434,7 +460,11 @@ pub fn extract_unique_litellm_providers_not_in_models_dev(
 }
 
 fn parse_openrouter_json(data: Value) -> Vec<DiscoveredProvider> {
-    let models = data.get("data").and_then(Value::as_array).cloned().unwrap_or_default();
+    let models = data
+        .get("data")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
 
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
     let mut supports_tools = BTreeMap::<String, bool>::new();
@@ -470,7 +500,11 @@ fn parse_openrouter_json(data: Value) -> Vec<DiscoveredProvider> {
         if let Some(tool) = model
             .get("supported_parameters")
             .and_then(Value::as_array)
-            .map(|params| params.iter().any(|parameter| parameter.as_str() == Some("tools")))
+            .map(|params| {
+                params
+                    .iter()
+                    .any(|parameter| parameter.as_str() == Some("tools"))
+            })
         {
             let entry = supports_tools.entry(provider_id.clone()).or_insert(false);
             *entry |= tool;
@@ -604,9 +638,14 @@ pub fn merge_discovery_sources(
 ) -> Vec<DiscoveredProvider> {
     let mut merged: BTreeMap<String, DiscoveredProvider> = BTreeMap::new();
 
-    for provider in models_dev.into_iter().chain(litellm.into_iter()).chain(openrouter.into_iter())
+    for provider in models_dev
+        .into_iter()
+        .chain(litellm.into_iter())
+        .chain(openrouter.into_iter())
     {
-        let entry = merged.entry(provider.id.clone()).or_insert_with(|| provider.clone());
+        let entry = merged
+            .entry(provider.id.clone())
+            .or_insert_with(|| provider.clone());
 
         entry.model_count = entry.model_count.max(provider.model_count);
         entry.openai_compatible |= provider.openai_compatible;
@@ -773,7 +812,10 @@ pub async fn refresh_discovery_catalog(
     let content = serde_json::to_string_pretty(&catalog)?;
     fs::write(&cache_file, content).map_err(|err| ProviderError::InvalidConfig {
         provider: "discovery".to_string(),
-        detail: format!("failed writing merged provider cache {}: {err}", cache_file.display()),
+        detail: format!(
+            "failed writing merged provider cache {}: {err}",
+            cache_file.display()
+        ),
     })?;
 
     Ok(catalog)

@@ -192,7 +192,9 @@ impl PromptInteraction for CodeSnippetPicker {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("↑↓: navigate, Space/Tab: preview, Enter: select")
+                    theme
+                        .dim
+                        .apply_to("↑↓: navigate, Space/Tab: preview, Enter: select")
                 ))?;
                 lines += 1;
             }
@@ -221,12 +223,15 @@ impl PromptInteraction for CodeSnippetPicker {
     }
 
     fn value(&self) -> CodeSnippet {
-        self.snippets.get(self.cursor).cloned().unwrap_or_else(|| CodeSnippet {
-            name: String::new(),
-            language: String::new(),
-            code: String::new(),
-            description: String::new(),
-        })
+        self.snippets
+            .get(self.cursor)
+            .cloned()
+            .unwrap_or_else(|| CodeSnippet {
+                name: String::new(),
+                language: String::new(),
+                code: String::new(),
+                description: String::new(),
+            })
     }
 }
 

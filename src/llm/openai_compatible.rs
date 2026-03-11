@@ -130,7 +130,10 @@ mod tests {
         });
 
         let provider = OpenAiCompatibleProvider::new("test", server.base_url(), "token-1");
-        let response = provider.chat(sample_request()).await.expect("chat response");
+        let response = provider
+            .chat(sample_request())
+            .await
+            .expect("chat response");
         mock.assert();
         assert_eq!(response.content, "ok");
     }
@@ -157,7 +160,10 @@ mod tests {
         for provider_id in supported {
             let provider =
                 OpenAiCompatibleProvider::specific_provider(provider_id, "token".to_string());
-            assert!(provider.is_some(), "provider factory missing: {provider_id}");
+            assert!(
+                provider.is_some(),
+                "provider factory missing: {provider_id}"
+            );
         }
     }
 }

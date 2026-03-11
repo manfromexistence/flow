@@ -364,7 +364,8 @@ impl ChatApp {
         }
 
         // Add user message
-        self.messages.push(super::components::Message::user(content.clone()));
+        self.messages
+            .push(super::components::Message::user(content.clone()));
 
         // Trigger matrix animation on first message (2 seconds)
         if self.messages.len() == 1 {
@@ -377,7 +378,8 @@ impl ChatApp {
         self.shimmer.reset();
 
         // Add empty assistant message for streaming
-        self.messages.push(super::components::Message::assistant(String::new()));
+        self.messages
+            .push(super::components::Message::assistant(String::new()));
 
         // Generate LLM response with streaming
         if let Some(llm) = self.llm.clone() {
@@ -448,7 +450,9 @@ impl ChatApp {
         if let Ok(chunk) = self.llm_rx.try_recv() {
             if chunk.starts_with("__GOOGLE_MODELS_WITH_MODAL__:") {
                 // Parse Google models and open modal
-                let models_json = chunk.strip_prefix("__GOOGLE_MODELS_WITH_MODAL__:").unwrap_or("");
+                let models_json = chunk
+                    .strip_prefix("__GOOGLE_MODELS_WITH_MODAL__:")
+                    .unwrap_or("");
                 if let Ok(models) = serde_json::from_str::<Vec<GoogleModel>>(models_json) {
                     self.google_models = models;
                     // Ensure model modal is open
@@ -476,7 +480,9 @@ impl ChatApp {
                     }
                 }
             } else if chunk.starts_with("__GOOGLE_ERROR__:") {
-                let error = chunk.strip_prefix("__GOOGLE_ERROR__:").unwrap_or("Unknown error");
+                let error = chunk
+                    .strip_prefix("__GOOGLE_ERROR__:")
+                    .unwrap_or("Unknown error");
                 // Show error as last shortcut pressed
                 self.last_shortcut_pressed = Some(error.to_string());
                 self.last_shortcut_time = Instant::now();

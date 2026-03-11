@@ -213,12 +213,18 @@ impl LlmProvider for GenericProvider {
         let raw: Value = response.json().await?;
         let parsed: OpenAiChatResponse = serde_json::from_value(raw.clone())?;
 
-        let first = parsed.choices.first().ok_or_else(|| ProviderError::InvalidResponse {
-            provider: self.id.clone(),
-            detail: "missing choices[0] in chat response".to_string(),
-        })?;
-        let content =
-            first.message.as_ref().and_then(|msg| msg.content.clone()).unwrap_or_default();
+        let first = parsed
+            .choices
+            .first()
+            .ok_or_else(|| ProviderError::InvalidResponse {
+                provider: self.id.clone(),
+                detail: "missing choices[0] in chat response".to_string(),
+            })?;
+        let content = first
+            .message
+            .as_ref()
+            .and_then(|msg| msg.content.clone())
+            .unwrap_or_default();
 
         Ok(ChatResponse {
             id: parsed.id,
@@ -368,7 +374,10 @@ mod tests {
             .await;
 
         let provider = GenericProvider::new("test", server.base_url(), "key");
-        let response = provider.chat(build_request("test-model")).await.expect("chat response");
+        let response = provider
+            .chat(build_request("test-model"))
+            .await
+            .expect("chat response");
         assert_eq!(response.content, "hello from provider");
         assert_eq!(response.finish_reason.as_deref(), Some("stop"));
     }

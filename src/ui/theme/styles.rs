@@ -143,7 +143,12 @@ impl Theme {
     pub fn step(&self, current: usize, total: usize, message: &str) {
         let step_info = format!("[{}/{}]", current, total);
         if self.colors_enabled {
-            eprintln!("  {} {} {}", step_info.bright_black(), icons::ARROW.cyan(), message.white());
+            eprintln!(
+                "  {} {} {}",
+                step_info.bright_black(),
+                icons::ARROW.cyan(),
+                message.white()
+            );
         } else {
             eprintln!("  {} {} {}", step_info, icons::ARROW, message);
         }
@@ -180,7 +185,11 @@ impl Theme {
 
     pub fn print_section(&self, title: &str) {
         if self.colors_enabled {
-            eprintln!("  {} {}", icons::VERTICAL.bright_black(), title.bright_white().bold());
+            eprintln!(
+                "  {} {}",
+                icons::VERTICAL.bright_black(),
+                title.bright_white().bold()
+            );
         } else {
             eprintln!("  {} {}", icons::VERTICAL, title);
         }
@@ -238,7 +247,11 @@ impl Theme {
                 format!("{time_ms}ms").cyan().bold()
             );
             eprintln!();
-            eprintln!("  {} Local:{}", icons::ARROW.cyan(), url.cyan().bold().underline());
+            eprintln!(
+                "  {} Local:{}",
+                icons::ARROW.cyan(),
+                url.cyan().bold().underline()
+            );
         } else {
             eprintln!("  {} Ready in {}ms", icons::SUCCESS, time_ms);
             eprintln!();
@@ -385,7 +398,12 @@ impl Theme {
     pub fn format_step(&self, current: usize, total: usize, message: &str) -> String {
         let step_info = format!("[{}/{}]", current, total);
         if self.colors_enabled {
-            format!("  {} {} {}", step_info.bright_black(), icons::ARROW.cyan(), message.white())
+            format!(
+                "  {} {} {}",
+                step_info.bright_black(),
+                icons::ARROW.cyan(),
+                message.white()
+            )
         } else {
             format!("  {} {} {}", step_info, icons::ARROW, message)
         }

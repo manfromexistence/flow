@@ -170,7 +170,11 @@ impl GenAiProvider {
         }
 
         let endpoint = format!("{}/v1/models", base_url.trim_end_matches('/'));
-        let response = reqwest::Client::new().get(endpoint).bearer_auth(api_key).send().await?;
+        let response = reqwest::Client::new()
+            .get(endpoint)
+            .bearer_auth(api_key)
+            .send()
+            .await?;
 
         if !response.status().is_success() {
             let status = response.status().as_u16();
@@ -388,14 +392,14 @@ impl LlmProvider for GenAiProvider {
             request.model.clone()
         };
         let genai_request = self.to_genai_request(request)?;
-        let response =
-            self.client
-                .exec_chat(&requested_model, genai_request, None)
-                .await
-                .map_err(|err| ProviderError::InvalidResponse {
-                    provider: self.id.clone(),
-                    detail: format!("genai chat failed: {err}"),
-                })?;
+        let response = self
+            .client
+            .exec_chat(&requested_model, genai_request, None)
+            .await
+            .map_err(|err| ProviderError::InvalidResponse {
+                provider: self.id.clone(),
+                detail: format!("genai chat failed: {err}"),
+            })?;
 
         let content = response.first_text().unwrap_or("").to_string();
 
@@ -430,8 +434,9 @@ impl LlmProvider for GenAiProvider {
 
         if self.id == "groq" {
             if let Some(api_key) = self.resolve_api_key() {
-                let models =
-                    self.fetch_openai_models("https://api.groq.com/openai", &api_key).await?;
+                let models = self
+                    .fetch_openai_models("https://api.groq.com/openai", &api_key)
+                    .await?;
                 if !models.is_empty() {
                     return Ok(models);
                 }
@@ -441,8 +446,9 @@ impl LlmProvider for GenAiProvider {
 
         if self.id == "openrouter" {
             if let Some(api_key) = self.resolve_api_key() {
-                let models =
-                    self.fetch_openai_models("https://openrouter.ai/api", &api_key).await?;
+                let models = self
+                    .fetch_openai_models("https://openrouter.ai/api", &api_key)
+                    .await?;
                 if !models.is_empty() {
                     return Ok(models);
                 }
@@ -451,7 +457,11 @@ impl LlmProvider for GenAiProvider {
         }
 
         // For other providers, return well-known fallback models by provider id
-        Ok(Self::fallback_models_for(&self.id, &self.model, &self.metadata))
+        Ok(Self::fallback_models_for(
+            &self.id,
+            &self.model,
+            &self.metadata,
+        ))
     }
 }
 

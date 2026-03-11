@@ -53,14 +53,21 @@ impl Backend for KhromaBackend {
             temperature: 0.7,
         };
 
-        let mut req = self.client.post(format!("{}/generate", self.endpoint)).json(&request);
+        let mut req = self
+            .client
+            .post(format!("{}/generate", self.endpoint))
+            .json(&request);
 
         if let Some(key) = &self.api_key {
             req = req.header("Authorization", format!("Bearer {}", key));
         }
 
-        let response: KhromaResponse =
-            req.send().await?.json().await.context("Failed to parse Khroma response")?;
+        let response: KhromaResponse = req
+            .send()
+            .await?
+            .json()
+            .await
+            .context("Failed to parse Khroma response")?;
 
         Ok(response.text)
     }

@@ -124,7 +124,10 @@ impl ElevenLabsBackend {
 
     /// List available voices
     pub async fn list_voices(&self) -> Result<Vec<Voice>> {
-        let api_key = self.api_key.as_ref().context("ElevenLabs API key not configured")?;
+        let api_key = self
+            .api_key
+            .as_ref()
+            .context("ElevenLabs API key not configured")?;
 
         let url = format!("{}/v1/voices", self.base_url);
 
@@ -142,15 +145,20 @@ impl ElevenLabsBackend {
             anyhow::bail!("ElevenLabs API error {}: {}", status, error_text);
         }
 
-        let result: VoicesResponse =
-            response.json().await.context("Failed to parse voices response")?;
+        let result: VoicesResponse = response
+            .json()
+            .await
+            .context("Failed to parse voices response")?;
 
         Ok(result.voices)
     }
 
     /// Generate speech from text and save to file
     pub async fn text_to_speech(&self, text: &str, output_path: &PathBuf) -> Result<()> {
-        let api_key = self.api_key.as_ref().context("ElevenLabs API key not configured")?;
+        let api_key = self
+            .api_key
+            .as_ref()
+            .context("ElevenLabs API key not configured")?;
 
         let url = format!(
             "{}/v1/text-to-speech/{}?output_format={}",
@@ -181,7 +189,10 @@ impl ElevenLabsBackend {
             anyhow::bail!("ElevenLabs TTS API error {}: {}", status, error_text);
         }
 
-        let audio_bytes = response.bytes().await.context("Failed to read audio response")?;
+        let audio_bytes = response
+            .bytes()
+            .await
+            .context("Failed to read audio response")?;
 
         // Ensure parent directory exists
         if let Some(parent) = output_path.parent() {
@@ -195,7 +206,10 @@ impl ElevenLabsBackend {
 
     /// Generate speech and return audio bytes
     pub async fn text_to_speech_bytes(&self, text: &str) -> Result<Vec<u8>> {
-        let api_key = self.api_key.as_ref().context("ElevenLabs API key not configured")?;
+        let api_key = self
+            .api_key
+            .as_ref()
+            .context("ElevenLabs API key not configured")?;
 
         let url = format!(
             "{}/v1/text-to-speech/{}?output_format={}",
@@ -226,7 +240,10 @@ impl ElevenLabsBackend {
             anyhow::bail!("ElevenLabs TTS API error {}: {}", status, error_text);
         }
 
-        let audio_bytes = response.bytes().await.context("Failed to read audio response")?;
+        let audio_bytes = response
+            .bytes()
+            .await
+            .context("Failed to read audio response")?;
 
         Ok(audio_bytes.to_vec())
     }
@@ -248,7 +265,10 @@ impl Backend for ElevenLabsBackend {
 
         self.text_to_speech(prompt, &output_path).await?;
 
-        Ok(format!("Audio generated successfully: {}", output_path.display()))
+        Ok(format!(
+            "Audio generated successfully: {}",
+            output_path.display()
+        ))
     }
 
     async fn generate_stream(

@@ -25,8 +25,11 @@ impl ChatApp {
             }
             MouseEventKind::ScrollDown => {
                 // Calculate max scroll based on total content height
-                let total_height =
-                    self.messages.iter().map(|msg| msg.content.lines().count() + 4).sum::<usize>();
+                let total_height = self
+                    .messages
+                    .iter()
+                    .map(|msg| msg.content.lines().count() + 4)
+                    .sum::<usize>();
 
                 // Only scroll if there's more content below
                 let max_scroll = total_height.saturating_sub(20); // Assume ~20 lines visible
@@ -439,7 +442,9 @@ impl ChatApp {
             _ => {}
         }
 
-        let list_action = self.model_modal_list.handle_key(key.code, key.modifiers, 15);
+        let list_action = self
+            .model_modal_list
+            .handle_key(key.code, key.modifiers, 15);
         match list_action {
             ModalListAction::ItemSelected(idx) => {
                 let models = modals::model::get_filtered_models(&self.model_modal_search.content);
@@ -697,7 +702,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.changes_modal_list.handle_key(key.code, key.modifiers, 10);
+        let action = self
+            .changes_modal_list
+            .handle_key(key.code, key.modifiers, 10);
         match action {
             ModalListAction::Close => {
                 self.show_changes_modal = false;
@@ -718,7 +725,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.tasks_modal_list.handle_key(key.code, key.modifiers, 10);
+        let action = self
+            .tasks_modal_list
+            .handle_key(key.code, key.modifiers, 10);
         match action {
             ModalListAction::Close => {
                 self.show_tasks_modal = false;
@@ -779,7 +788,9 @@ impl ChatApp {
                 return;
             }
 
-            let action = self.workspace_create_input.handle_key(key.code, key.modifiers);
+            let action = self
+                .workspace_create_input
+                .handle_key(key.code, key.modifiers);
             match action {
                 TextInputAction::NumberKey(c) => {
                     self.workspace_create_input.insert_char(c);
@@ -790,7 +801,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.agents_modal_list.handle_key(key.code, key.modifiers, 10);
+        let action = self
+            .agents_modal_list
+            .handle_key(key.code, key.modifiers, 10);
         match action {
             ModalListAction::ItemSelected(idx) => {
                 // Switch to selected workspace with animation
@@ -826,7 +839,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.memory_modal_list.handle_key(key.code, key.modifiers, 3);
+        let action = self
+            .memory_modal_list
+            .handle_key(key.code, key.modifiers, 3);
         match action {
             ModalListAction::ItemSelected(idx) => {
                 let (mode, message) = app_handlers::handle_memory_modal_selection(idx);
@@ -877,7 +892,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.tools_modal_list.handle_key(key.code, key.modifiers, 10);
+        let action = self
+            .tools_modal_list
+            .handle_key(key.code, key.modifiers, 10);
         match action {
             ModalListAction::ItemSelected(idx) => {
                 // Check if ElevenLabs was selected
@@ -975,8 +992,10 @@ impl ChatApp {
 
         self.animation_start_time = Some(Instant::now());
         app_helpers::play_sound("click");
-        self.last_shortcut_pressed =
-            Some(format!("◀ {}", animations[self.current_animation_index].name()));
+        self.last_shortcut_pressed = Some(format!(
+            "◀ {}",
+            animations[self.current_animation_index].name()
+        ));
         self.last_shortcut_time = Instant::now();
     }
 
@@ -993,8 +1012,10 @@ impl ChatApp {
 
         self.animation_start_time = Some(Instant::now());
         app_helpers::play_sound("click");
-        self.last_shortcut_pressed =
-            Some(format!("▶ {}", animations[self.current_animation_index].name()));
+        self.last_shortcut_pressed = Some(format!(
+            "▶ {}",
+            animations[self.current_animation_index].name()
+        ));
         self.last_shortcut_time = Instant::now();
     }
 
@@ -1056,7 +1077,8 @@ impl ChatApp {
             let (git_changes, changes_count) = app_helpers::fetch_git_changes();
             self.git_changes = git_changes;
             self.changes_count = changes_count;
-            self.changes_modal_list.set_items_count(self.git_changes.len());
+            self.changes_modal_list
+                .set_items_count(self.git_changes.len());
             self.changes_modal_list.reset();
             self.show_changes_modal = true;
             app_helpers::play_sound("click");
@@ -1138,7 +1160,8 @@ impl ChatApp {
             app_helpers::play_sound("click");
         } else {
             self.show_more_modal = true;
-            self.more_modal_list.set_items_count(self.more_options.len());
+            self.more_modal_list
+                .set_items_count(self.more_options.len());
             self.more_modal_list.reset();
             app_helpers::play_sound("click");
         }
@@ -1294,7 +1317,9 @@ impl ChatApp {
             return;
         }
 
-        let action = self.elevenlabs_api_input.handle_key(key.code, key.modifiers);
+        let action = self
+            .elevenlabs_api_input
+            .handle_key(key.code, key.modifiers);
         match action {
             TextInputAction::NumberKey(c) => {
                 self.elevenlabs_api_input.insert_char(c);

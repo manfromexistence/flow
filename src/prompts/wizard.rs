@@ -124,7 +124,11 @@ impl PromptInteraction for Wizard {
 
                 // Progress indicator
                 let progress = format!("Step {} of {}", self.current_step + 1, self.steps.len());
-                term.write_line(&format!("{}  {}", bar, theme.primary.apply_to(progress).bold()))?;
+                term.write_line(&format!(
+                    "{}  {}",
+                    bar,
+                    theme.primary.apply_to(progress).bold()
+                ))?;
                 lines += 1;
 
                 term.write_line(&format!("{}", bar))?;

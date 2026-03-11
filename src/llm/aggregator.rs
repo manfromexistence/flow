@@ -153,7 +153,9 @@ mod tests {
         let server = MockServer::start();
 
         let _openai_models = server.mock(|when, then| {
-            when.method(GET).path("/v1/models").header("authorization", "Bearer token-a");
+            when.method(GET)
+                .path("/v1/models")
+                .header("authorization", "Bearer token-a");
             then.status(200).header("content-type", "application/json").body(
                 r#"{"data":[{"id":"openai/gpt-4o-mini"},{"id":"anthropic/claude-sonnet-4.5"}]}"#,
             );

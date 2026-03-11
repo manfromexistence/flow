@@ -145,7 +145,9 @@ impl PromptInteraction for ColorPicker {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Tab: switch, ↑↓: adjust, Enter: confirm")
+                    theme
+                        .dim
+                        .apply_to("Tab: switch, ↑↓: adjust, Enter: confirm")
                 ))?;
                 lines += 1;
             }

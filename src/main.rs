@@ -9,8 +9,8 @@ use llama_cpp_2::sampling::LlamaSampler;
 use std::collections::HashSet;
 use std::io::{self, Write};
 use std::num::NonZeroU32;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
@@ -555,11 +555,7 @@ fn print_help() {
         ("exit | quit | /quit", "End the session"),
     ];
     for (cmd, desc) in cmds {
-        println!(
-            "  {} {}",
-            c_accent(&format!("{:<22}", cmd)),
-            c_muted(desc)
-        );
+        println!("  {} {}", c_accent(&format!("{:<22}", cmd)), c_muted(desc));
     }
     println!();
 }
@@ -715,10 +711,7 @@ fn main() -> Result<()> {
                 print_metric("Top-K", SAMPLER_TOP_K.to_string());
                 print_metric("Min-P", SAMPLER_MIN_P.to_string());
                 print_metric("Repeat penalty", SAMPLER_REPEAT_PENALTY.to_string());
-                print_metric(
-                    "Thinking",
-                    if show_thinking { "visible" } else { "hidden" },
-                );
+                print_metric("Thinking", if show_thinking { "visible" } else { "hidden" });
                 print_metric("History turns", (history.len() / 2).to_string());
                 println!();
                 continue;
@@ -879,16 +872,15 @@ fn main() -> Result<()> {
             }
 
             #[allow(deprecated)]
-            let piece_bytes = match model
-                .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)
-            {
-                Ok(b) => b,
-                Err(e) => {
-                    print_error(format!("Token decode error: {e}"));
-                    stop_reason = Some("token decode error");
-                    break;
-                }
-            };
+            let piece_bytes =
+                match model.token_to_bytes(token, llama_cpp_2::model::Special::Tokenize) {
+                    Ok(b) => b,
+                    Err(e) => {
+                        print_error(format!("Token decode error: {e}"));
+                        stop_reason = Some("token decode error");
+                        break;
+                    }
+                };
             let piece = String::from_utf8_lossy(&piece_bytes);
             gen_text.push_str(&piece);
 

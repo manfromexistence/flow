@@ -169,7 +169,9 @@ impl PromptInteraction for MarkdownEditor {
                 term.write_line(&format!(
                     "{}  {}",
                     bar,
-                    theme.dim.apply_to("Tab: toggle preview, Enter: new line/submit, Esc: cancel")
+                    theme
+                        .dim
+                        .apply_to("Tab: toggle preview, Enter: new line/submit, Esc: cancel")
                 ))?;
                 lines += 1;
             }

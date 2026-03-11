@@ -35,9 +35,13 @@ pub fn fetch_git_changes() -> (Vec<GitChange>, usize) {
             };
 
             let diff_output = if change_type == ChangeType::Added {
-                Command::new("git").args(["diff", "--cached", "--", &file_path]).output()
+                Command::new("git")
+                    .args(["diff", "--cached", "--", &file_path])
+                    .output()
             } else {
-                Command::new("git").args(["diff", "HEAD", "--", &file_path]).output()
+                Command::new("git")
+                    .args(["diff", "HEAD", "--", &file_path])
+                    .output()
             };
 
             let (diff, additions, deletions) = if let Ok(diff_out) = diff_output {
