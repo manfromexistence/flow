@@ -268,8 +268,10 @@ impl Widget for MessageList<'_> {
         let viewport_height = area.height as usize;
         
         if total_height > viewport_height {
-            // ScrollbarState needs: content_length and viewport_content_length
-            let mut scrollbar_state = ScrollbarState::new(total_height)
+            // content_length should be the total scrollable content
+            // position should be the current scroll offset
+            // viewport_content_length should be how much is visible
+            let mut scrollbar_state = ScrollbarState::new(total_height.saturating_sub(viewport_height))
                 .position(self.scroll_offset)
                 .viewport_content_length(viewport_height);
             

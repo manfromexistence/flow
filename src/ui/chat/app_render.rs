@@ -552,11 +552,16 @@ impl ChatApp {
         let mode_width = mode_text.len() as u16;
         let model_width = self.selected_model.len() as u16;
 
-        let token_info = "1.2K/128K";
-        let path_info = "/workspace";
-        let token_width = token_info.len() as u16;
-        let path_width = path_info.len() as u16;
-        let spinner_width = 2;
+        // Show input details instead of dummy data
+        let input_length = self.input.content.len();
+        let cursor_pos = self.input.cursor_position;
+        let input_info = format!("{}:{}", input_length, cursor_pos);
+        let input_width = input_info.len() as u16;
+        
+        let message_count = format!("{}msg", self.messages.len());
+        let message_width = message_count.len() as u16;
+        
+        let spinner_width = if self.is_loading { 2 } else { 0 };
 
         let padded = Rect {
             x: area.x + 1,
@@ -565,21 +570,26 @@ impl ChatApp {
             height: area.height,
         };
 
+        let mut constraints = vec![
+            Constraint::Length(local_width),
+            Constraint::Length(2),
+            Constraint::Length(mode_width),
+            Constraint::Length(2),
+            Constraint::Length(model_width),
+            Constraint::Min(10),
+            Constraint::Length(input_width),
+            Constraint::Length(2),
+            Constraint::Length(message_width),
+        ];
+        
+        if self.is_loading {
+            constraints.push(Constraint::Length(2));
+            constraints.push(Constraint::Length(spinner_width));
+        }
+
         let bottom_chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Length(local_width),
-                Constraint::Length(2),
-                Constraint::Length(mode_width),
-                Constraint::Length(2),
-                Constraint::Length(model_width),
-                Constraint::Min(10),
-                Constraint::Length(token_width),
-                Constraint::Length(2),
-                Constraint::Length(path_width),
-                Constraint::Length(2),
-                Constraint::Length(spinner_width),
-            ])
+            .constraints(constraints)
             .split(padded);
 
         Paragraph::new(Span::styled(
@@ -607,30 +617,33 @@ impl ChatApp {
         .alignment(ratatui::layout::Alignment::Center)
         .render(bottom_chunks[5], buf);
 
-        Paragraph::new(Span::styled(token_info, Style::default().fg(self.theme.fg)))
+        Paragraph::new(Span::styled(&input_info, Style::default().fg(self.theme.fg)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[6], buf);
 
-        Paragraph::new(Span::styled(path_info, Style::default().fg(self.theme.fg)))
+        Paragraph::new(Span::styled(&message_count, Style::default().fg(self.theme.fg)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[8], buf);
 
-        let spinner_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-        let elapsed_ms = (self.rainbow_animation.elapsed() * 1000.0) as u64;
-        let frame_idx = ((elapsed_ms / 80) as usize) % spinner_frames.len();
-        let spinner_char = spinner_frames[frame_idx];
+        // Only show spinner when loading
+        if self.is_loading {
+            let spinner_frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+            let elapsed_ms = (self.rainbow_animation.elapsed() * 1000.0) as u64;
+            let frame_idx = ((elapsed_ms / 80) as usize) % spinner_frames.len();
+            let spinner_char = spinner_frames[frame_idx];
 
-        let color = self.rainbow_animation.color_at(frame_idx);
-        let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
+            let color = self.rainbow_animation.color_at(frame_idx);
+            let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
 
-        Paragraph::new(Span::styled(
-            spinner_char.to_string(),
-            Style::default()
-                .fg(ratatui_color)
-                .add_modifier(Modifier::BOLD),
-        ))
-        .alignment(ratatui::layout::Alignment::Left)
-        .render(bottom_chunks[10], buf);
+            Paragraph::new(Span::styled(
+                spinner_char.to_string(),
+                Style::default()
+                    .fg(ratatui_color)
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .alignment(ratatui::layout::Alignment::Left)
+            .render(bottom_chunks[10], buf);
+        }
 
         (
             bottom_chunks[2],
