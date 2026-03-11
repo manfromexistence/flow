@@ -1,349 +1,40 @@
-Please learn from this details and make our dx't best system prompt so that it can beat openclaw and SOUL.md heartbeat and that stuffs!!!
+Today is 9th March 2026 so web-search
+In our CLI there you can see many models but they require a certain key trigger. Just make all of the models trigger with just a number so when I press any numbers the one model will show. When I press the model number again it will disappear. Use this raster crate to make the model appear with a good animation - Here is the rust crate name as its gives animations to rataui "tachyonfx"
 
-```markdown
-Awesome now then also do phase 2 and convert the remaining non-home routes (like assistant, pricing, integrations, docs pages) into fully DX-specific page content as well. And do web search and learn about latest "motion" pakcage and use that with gsap to all sorts of animations our website and scrollbased animations - plus please make sure to add Different carousels where I will add small videos of me showing the full power of DX software. Please put carousels and video and keep that blank when I will later put the actual video. Please create sections with the carousel video containers of one token saving to connection, like everything in DX software is connected to each other.
-- 3D speed: DX is created by Rust, so it is more powerful and uses less RAM at the same time so that you can do more in less time.
-- 4th: offline capability
-5th integration with modem 400
-6th Shortcuts, automations, workflow 
+So in Crate CLI we're showing fonts in an animation, right? Those fonts are rendering incorrectly so please search the web. Today is 9th March 2026 so search for the base Rasprics to show Figlet Fonts and use that Figlet font renderer instead of our custom renderer and render the fonts correctly in there. 
 
-In our midday/apps/website folder please update the website to be for dx not midday and use the current ui styles and design to create dx website related pages instead of midday related pages!!! And create our dx website landing page inside the midday/apps/website folder!!! The core UI should be the same as what Midday are using for their design system, but you can use the latest motion library package for animation. Make sure that the core design system should be the same; just customize the current components to be ours instead of Midday. The content of the website should be about dx, which is a software to enhance development experience on 24 February 2026. Normal division of category doesn't apply to dx, which means that dx is not only an AI automation or AI chatbot. It's a mixture of many things but all things are not different from each other. They are connected with the same purpose of being a tool to enhance development experience.
+Finally we have to work on the CLI chat UI as you can see from the screenshot that Ad agent and portal provider are in the row of the chat box. Please move them to the bottom and outside the chat box so only the question will remain in the chat box. Instead of the changes, "Revenge" and "Workspace", put the ad agent Gemini items in the bottom so there should be a box with input and nothing else. In the bottom of the box there should be ad agent and model provider with audio local options.
 
-```
-# DX — Professional Website Prompt
+Now in our STL I check. Isn't there, say, mood here? We can click on the tab key and it will show numbers, focus command menus, and other. Will be common focus menu as currently the tab is triggered by AI moods so please when the tab is triggered please show that number focus menus and things like that. 
 
-Here's a polished, professional prompt you can use to generate or guide the creation of your DX website copy:
+First of all another model is doing the animation instead of doing the animation in the actual model and do this:
+Good now in our chat input UI when I will press zero it will show matrix animation first. In the place of the splash screen make sure it will show only on the splash screen not in the chat input and will show train animation next. When I will press zero on my key on that chat input 
 
----
+the matrix animation is a rain of color columns of text, not a bunch of text, so please render the matrix animation correctly. The train animation is not showing; instead, just a message list is showing. I told you when the 0 is pressed: please show the first matrix animation, then the train animation, and finally show the splash screen again. But you somehow misconfigured everything, so please do it rightly this time
 
-```markdown
-# PROMPT: DX Website — Professional Copy & Messaging
+In our state a chat UI. Please make it so that when we do left or right arrow key, it should freeze screen with all other animations. Like, for first, it will show splat screen. When we do right arrow click in the keyboard, it will move to matrix animation, then train animation, and others. The arrow key will be the one responsible for showing all the animations that we have, like all of them. So, all of them in our chat input. And make sure that in all animations, the chat input box should be visible. 
 
-## Brand Identity
-- **Product Name:** DX
-- **Launch Date:** February 24, 2026
-- **Tagline Concept:** "Enhance Your Development Experience."
-- **Tone:** Bold, confident, technically credible, developer-first. No fluff. Speak like engineers who ship, not marketers who hype.
+And make sure that all animation show correctly and all them time the chat input will be visisble learn from the splash, matrxi and train ainmation and make all the animation in way that the chat input is viisble!!!! Good now, please actually render those animations. Currently, we may have left and right arrow other animations as we can only switch among these full screen animations when focus on the chat input. By default, the arrow left and right key is switching the plan and other AI profile mode. Please make sure to remove that and make sure that when we click on left arrow keys it always chooses the full screen animations. 
 
----
+UI Effects (in chat interface):
+ShimmerEffect - Color gradient cycling for loading states
+TypingIndicator - Animated dots for typing feedback
+PulseEffect - Opacity pulsing for attention
+RainbowAnimation - Animated rainbow colors (now on splash & spinner)
 
-## Core Messaging Framework
+In our models, currently we are using animations for all of our models, but the current animation is not that good. So, please use more, better-looking animations in our models that more visiable as animation in our modals - Do a web search and use the most visible and beautiful animation possible by Rust, as today is 9th March 2026.
 
-### 1. What Is DX?
-DX is not a chatbot. Not just an AI agent. Not another Electron wrapper around an LLM.
+In our chat-input bottom right there is animated rainbow spinner so please show the spinner when we the ai giving answer!
 
-DX is a **unified development experience platform** — a single, blazing-fast tool that
-connects AI generation, tool calling, media creation, and deep workflow integration
-under one roof. Every feature exists for one purpose: **to enhance how developers
-and creators build.**
+# Chat ui:
+1. modal animation
+2. todo and tasks
+3. diff
+4. typing suggestions
+5. cli onboard
+6. real terminal scroll in message list
 
-There are no arbitrary category boundaries. Code generation, chart creation, deep
-research, video generation, 3D rendering, audio synthesis, real-time conversation
-— they are all connected as facets of a single, cohesive experience.
+Dx works where you needed it the most. 
+Left and right arrow key matrix rain and train animation control 
 
----
-
-### 2. Built on Rust. Not Node.js. Not Electron. Rust.
-DX is engineered from the ground up in **Rust** — the same language trusted by
-operating systems, browsers, and mission-critical infrastructure.
-
-**Why this matters:**
-- **Speed:** Near-native performance on every operation.
-- **Efficiency:** Runs smoothly on low-end hardware while unlocking the full
-  potential of high-end machines. DX scales with your device — it doesn't
-  demand a minimum.
-- **Desktop UI:** DX uses **Zed's GPUI framework** for its desktop application,
-  making it the fastest AI agent desktop app in the world. While competitors
-  (Claude Desktop, Codex, ChatGPT, etc.) ship bloated Electron/Node.js apps,
-  DX renders at GPU speed with minimal resource consumption.
-
-**Supported Platforms (Native Apps):**
-- macOS
-- Linux
-- Windows
-- Android
-- iOS
-
-Every platform gets a true native-grade experience. No compromises.
-
----
-
-### 3. Free AI Access — Any Provider, Even Offline
-DX provides **free access to AI** with support for virtually any provider:
-
-- **Online:** Connect to any major or minor LLM provider — OpenAI, Anthropic,
-  Google, Mistral, open-source endpoints, self-hosted models, and more.
-- **Offline:** DX runs capable local models **offline, with no token limits**.
-  No internet? No problem. DX still works — unlimited.
-- **Hybrid:** Use cloud providers when available, fall back to local seamlessly.
-
-You own your workflow. No vendor lock-in. No forced subscriptions to use
-basic features.
-
----
-
-### 4. Generate Literally Anything
-DX is a universal generation engine:
-
-| Category              | Capabilities                                              |
-|-----------------------|-----------------------------------------------------------|
-| **Code**              | Any language, any framework, full-project scaffolding      |
-| **Charts & Data**     | Visualizations, dashboards, data analysis                  |
-| **Deep Research**     | Multi-step reasoning, deep dives, synthesis                |
-| **Tool Calling**      | Full support for MCP, ACP, A2A protocols                   |
-| **Video**             | AI video generation and editing                            |
-| **3D**                | 3D asset and scene generation                              |
-| **Audio & Music**     | Sound design, music composition, voice synthesis           |
-| **Conversation**      | Real-time voice interaction — talk to DX naturally         |
-
-If you can name it, DX can generate it.
-
----
-
-### 5. Revolutionary Token Savings
-This is DX's **biggest competitive advantage** over every Vercel-backed,
-VC-funded competitor.
-
-#### 5a. RLM (Reference-Length Minimization)
-In 2023, MIT researchers proved that **RLM techniques save 80–90% of tokens**
-on large files. The industry ignored it. Why? Because RLM is computationally
-expensive — and Node.js is too slow to make it practical.
-
-**DX solves this.** Rust's performance eliminates the overhead that makes RLM
-impractical. What competitors dismiss as "not worth it," DX runs in real-time.
-
-> *Result: 80–90% token savings on large file operations.*
-
-#### 5b. DX Serializer
-Every tool call in the industry sends bloated JSON. DX replaces this with the
-**DX Serializer** — a custom, compact serialization format purpose-built for
-AI tool communication.
-
-> *Result: 70–90% token savings on every single tool call.*
-
-#### 5c. Compound Savings
-RLM + DX Serializer + dozens of micro-optimizations across the entire pipeline.
-DX doesn't save tokens in one place — **it saves tokens everywhere.**
-
-This means:
-- Your free tier goes further.
-- Your paid usage costs a fraction of competitors.
-- Complex, multi-step agent workflows become economically viable.
-
----
-
-### 6. Extensions Everywhere
-DX doesn't live in a silo. It integrates into the tools you already use:
-
-#### Browser Extension
-- Works in any Chromium or Firefox-based browser.
-- AI assistance on any webpage, any web app.
-
-#### Editor & IDE Extensions
-- VS Code, Zed, JetBrains, Neovim, and more.
-- DX powers your coding environment directly.
-
-#### Video Editor Plugins
-- Adobe Premiere Pro
-- CapCut
-- DaVinci Resolve
-- Filmic Pro
-
-#### Image & Design Plugins
-- Adobe Photoshop
-- Adobe Illustrator
-- Affinity Photo
-- Affinity Designer
-- And virtually any professional-grade creative application.
-
-**The principle:** DX meets you where you work. Every professional tool you
-use gains the full power of DX through native extensions.
-
----
-
-### 7. Platform Coverage Summary
-
-| Platform       | App Type            | Status     |
-|----------------|---------------------|------------|
-| macOS          | Native Desktop App  | ✅ Launch  |
-| Windows        | Native Desktop App  | ✅ Launch  |
-| Linux          | Native Desktop App  | ✅ Launch  |
-| Android        | Mobile App          | ✅ Launch  |
-| iOS            | Mobile App          | ✅ Launch  |
-| Browser        | Extension           | ✅ Launch  |
-| IDEs/Editors   | Extensions          | ✅ Launch  |
-| Video Editors  | Plugins             | ✅ Launch  |
-| Image Editors  | Plugins             | ✅ Launch  |
-
----
-
-## Competitive Positioning
-
-| Feature                  | DX                    | Competitors                     |
-|--------------------------|-----------------------|---------------------------------|
-| Core Language            | Rust + GPUI           | Node.js / Electron              |
-| Token Efficiency         | 80–90% savings (RLM)  | No RLM implementation           |
-| Serialization            | DX Serializer (70–90% savings) | Raw JSON                |
-| Offline Support          | Unlimited, free       | Requires internet / paid tiers  |
-| AI Provider Support      | Any provider          | Locked to 1–3 providers         |
-| Media Generation         | Code, video, 3D, audio, music | Code only (mostly)      |
-| Platform Coverage        | 5 OS + extensions everywhere | 1–2 platforms, limited plugins |
-| Low-End Device Support   | Fully optimized       | Heavy, laggy, resource-hungry   |
-
----
-
-## Website Section Structure (Suggested)
-
-1. **Hero** — Bold statement + launch date + CTA (waitlist/early access)
-2. **What is DX?** — The "it's not a chatbot" explanation
-3. **Built on Rust** — Technical credibility, speed benchmarks, GPUI
-4. **Generate Anything** — Showcase the breadth (code → video → 3D → audio)
-5. **Token Revolution** — RLM explainer, DX Serializer, savings comparisons
-6. **Works Everywhere** — Extensions grid, platform matrix
-7. **Free AI Access** — Provider flexibility, offline capability
-8. **Pricing** — Generous free tier, transparent paid tiers
-9. **Waitlist / Early Access CTA** — Final conversion
-
----
-
-## Voice & Style Rules
-- Use short, punchy sentences for impact. Use longer ones for technical depth.
-- Never say "leveraging" or "revolutionizing" — show, don't buzzword.
-- Comparisons to competitors should be factual and specific, not petty.
-- Code examples, benchmarks, and demos > marketing adjectives.
-- Developer respect: assume your reader is smart. Don't over-explain basics.
-- Confidence without arrogance: "We built it this way because the math works."
-```
-
----
-
-This prompt gives any designer, copywriter, or AI tool everything needed to produce a **cohesive, technically grounded, and compelling** DX website. Adjust the section structure and tone dials as you see fit for your brand.
-```
-```
-
-And please fix these errors:
-Shohan@dx MINGW64 /f/edith (main)
-$ cargo run
-   Compiling ctrlc v3.5.2
-   Compiling edith v0.1.0 (F:\edith)
-error[E0308]: mismatched types
-   --> src\main.rs:593:25
-    |
-593 |         .with_n_threads(n_threads)
-    |          -------------- ^^^^^^^^^ expected `i32`, found `u32`
-    |          |
-    |          arguments to this method are incorrect
-    |
-note: method defined here
-   --> F:\DevCaches\cargo\registry\src\index.crates.io-1949cf8c6b5b557f\llama-cpp-2-0.1.138\src\context\params.rs:508:12
-    |
-508 |     pub fn with_n_threads(mut self, n_threads: i32) -> Self {
-    |            ^^^^^^^^^^^^^^
-help: you can convert a `u32` to an `i32` and panic if the converted value doesn't fit
-    |
-593 |         .with_n_threads(n_threads.try_into().unwrap())
-    |                                  ++++++++++++++++++++
-
-error[E0308]: mismatched types
-   --> src\main.rs:594:31
-    |
-594 |         .with_n_threads_batch(n_threads)
-    |          -------------------- ^^^^^^^^^ expected `i32`, found `u32`
-    |          |
-    |          arguments to this method are incorrect
-    |
-note: method defined here
-   --> F:\DevCaches\cargo\registry\src\index.crates.io-1949cf8c6b5b557f\llama-cpp-2-0.1.138\src\context\params.rs:524:12
-    |
-524 |     pub fn with_n_threads_batch(mut self, n_threads: i32) -> Self {
-    |            ^^^^^^^^^^^^^^^^^^^^
-help: you can convert a `u32` to an `i32` and panic if the converted value doesn't fit
-    |
-594 |         .with_n_threads_batch(n_threads.try_into().unwrap())
-    |                                        ++++++++++++++++++++
-
-error[E0599]: no method named `with_flash_attention` found for struct `LlamaContextParams` in the current scope
-   --> src\main.rs:595:10
-    |
-590 |       let ctx_params = LlamaContextParams::default()
-    |  ______________________-
-591 | |         .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
-592 | |         .with_n_batch(PROMPT_BATCH_SIZE as u32)
-593 | |         .with_n_threads(n_threads)
-594 | |         .with_n_threads_batch(n_threads)
-595 | |         .with_flash_attention(true);
-    | |_________-^^^^^^^^^^^^^^^^^^^^
-    |
-help: there is a method `with_flash_attention_policy` with a similar name
-    |
-595 |         .with_flash_attention_policy(true);
-    |                              +++++++
-
-Some errors have detailed explanations: E0308, E0599.
-For more information about an error, try `rustc --explain E0308`.
-error: could not compile `edith` (bin "edith") due to 3 previous errors
-
-Shohan@dx MINGW64 /f/edith (main)
-$
- *  History restored 
-
-
-Shohan@dx MINGW64 /f/edith (main)
-$ cargo run
-   Compiling edith v0.1.0 (F:\edith)
-error[E0308]: mismatched types
-   --> src\main.rs:593:25
-    |
-593 |         .with_n_threads(n_threads)
-    |          -------------- ^^^^^^^^^ expected `i32`, found `u32`
-    |          |
-    |          arguments to this method are incorrect
-    |
-note: method defined here
-   --> F:\DevCaches\cargo\registry\src\index.crates.io-1949cf8c6b5b557f\llama-cpp-2-0.1.138\src\context\params.rs:508:12
-    |
-508 |     pub fn with_n_threads(mut self, n_threads: i32) -> Self {
-    |            ^^^^^^^^^^^^^^
-help: you can convert a `u32` to an `i32` and panic if the converted value doesn't fit
-    |
-593 |         .with_n_threads(n_threads.try_into().unwrap())
-    |                                  ++++++++++++++++++++
-
-error[E0308]: mismatched types
-   --> src\main.rs:594:31
-    |
-594 |         .with_n_threads_batch(n_threads)
-    |          -------------------- ^^^^^^^^^ expected `i32`, found `u32`
-    |          |
-    |          arguments to this method are incorrect
-    |
-note: method defined here
-   --> F:\DevCaches\cargo\registry\src\index.crates.io-1949cf8c6b5b557f\llama-cpp-2-0.1.138\src\context\params.rs:524:12
-    |
-524 |     pub fn with_n_threads_batch(mut self, n_threads: i32) -> Self {
-    |            ^^^^^^^^^^^^^^^^^^^^
-help: you can convert a `u32` to an `i32` and panic if the converted value doesn't fit
-    |
-594 |         .with_n_threads_batch(n_threads.try_into().unwrap())
-    |                                        ++++++++++++++++++++
-
-error[E0599]: no method named `with_flash_attention` found for struct `LlamaContextParams` in the current scope
-   --> src\main.rs:595:10
-    |
-590 |       let ctx_params = LlamaContextParams::default()
-    |  ______________________-
-591 | |         .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
-592 | |         .with_n_batch(PROMPT_BATCH_SIZE as u32)
-593 | |         .with_n_threads(n_threads)
-594 | |         .with_n_threads_batch(n_threads)
-595 | |         .with_flash_attention(true);
-    | |_________-^^^^^^^^^^^^^^^^^^^^
-    |
-help: there is a method `with_flash_attention_policy` with a similar name
-    |
-595 |         .with_flash_attention_policy(true);
-    |                              +++++++
-
-Some errors have detailed explanations: E0308, E0599.
-For more information about an error, try `rustc --explain E0308`.
-error: could not compile `edith` (bin "edith") due to 3 previous errors
+Please look at the src/tui.rs and you are ChatUI. Please use local models with the code of llm.rs. Please don't brainstorm anything and just use the local models as listed in llm.rs at src/llm.rs path.
