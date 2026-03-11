@@ -31,7 +31,7 @@ pub fn render(
         vec![]
     };
 
-    let mut splash_lines = vec![Line::from("")];
+    let mut splash_lines = vec![];
 
     if !figlet_lines.is_empty() {
         // Apply rainbow colors to each character using ratatui Spans
@@ -68,10 +68,28 @@ pub fn render(
         Style::default().fg(theme.border),
     )));
 
+    // Calculate vertical centering
+    let content_height = splash_lines.len() as u16;
+    let available_height = area.height;
+    
+    // If content is too large, shift it up to keep description visible
+    let vertical_offset = if content_height >= available_height {
+        0 // Start from top if content is too large
+    } else {
+        (available_height.saturating_sub(content_height)) / 2
+    };
+
+    let centered_area = Rect {
+        x: area.x,
+        y: area.y + vertical_offset,
+        width: area.width,
+        height: content_height.min(available_height),
+    };
+
     Paragraph::new(splash_lines)
         .alignment(ratatui::layout::Alignment::Center)
         .block(Block::default())
-        .render(area, buf);
+        .render(centered_area, buf);
 }
 
 fn get_valid_fonts() -> Vec<&'static str> {
