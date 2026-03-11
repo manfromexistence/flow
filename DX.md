@@ -32,6 +32,7 @@ Please look at the src/tui.rs and you are ChatUI. Please use local models with t
 
 The reason we have to do this is that we have to show visible animations that are eye-catching in our CLI. Use the best animation that is most eye-catching and visible, and apply it in our models.
 
+Good. Now in our main src folder, tui at our chat UI, on all modal we are trying to show animations via techonfx effects rust crate. Currently we are not initializing or using it correctly so that's why I have cloned a local copy of that rust crate at our root folder. Please learn from it and learn from its example Basic example.rs file and update all of our modals to have the animations of that exmple file here is the path "F:\cli\tachyonfx\examples\basic-effects\src\main.rs". Add all the example animations in that file and apply in all of our modals in our tui. 
 
 # Chat ui:
 1. todo and tasks

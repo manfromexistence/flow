@@ -29,8 +29,7 @@ use std::path::PathBuf;
 ///
 /// This directory contains all the `.dx` font files for ASCII art rendering.
 pub fn fonts_dir() -> PathBuf {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    PathBuf::from(manifest_dir).join("figlet")
+    PathBuf::from("F:/cli/font/figlet")
 }
 
 /// Lists all available figlet font names.
