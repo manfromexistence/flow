@@ -171,6 +171,9 @@ impl ChatApp {
     }
 
     fn render_modals(&mut self, frame: &mut ratatui::Frame) {
+        use tachyonfx::{fx, Interpolation};
+        use std::time::Duration;
+        
         // Track modal animation timing
         let any_modal_open = self.show_focus_menu
             || self.show_add_modal
@@ -192,6 +195,12 @@ impl ChatApp {
             self.modal_animation_start = None;
         }
 
+        // Calculate animation progress
+        let animation_duration_ms = 300;
+        let elapsed = self.modal_animation_start
+            .map(|start| start.elapsed())
+            .unwrap_or(Duration::from_millis(animation_duration_ms as u64));
+
         if self.show_focus_menu {
             modals::focus::render(
                 frame.area(),
@@ -199,6 +208,18 @@ impl ChatApp {
                 &self.theme,
                 &self.focus_menu_list,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_add_modal {
@@ -210,6 +231,18 @@ impl ChatApp {
                 &self.add_modal_list,
                 self.add_modal_focus,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_plan_modal {
@@ -220,6 +253,18 @@ impl ChatApp {
                 &self.plan_modal_list,
                 self.mode,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_model_modal {
@@ -239,6 +284,18 @@ impl ChatApp {
                 &self.model_modal_list,
                 &config,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_local_modal {
@@ -249,6 +306,18 @@ impl ChatApp {
                 &self.local_modal_list,
                 &self.selected_local_mode,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_changes_modal {
@@ -260,6 +329,18 @@ impl ChatApp {
                 &self.git_changes,
                 self.changes_count,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_tasks_modal {
@@ -271,6 +352,18 @@ impl ChatApp {
                 &self.tasks,
                 self.tasks_count,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_agents_modal {
@@ -283,6 +376,18 @@ impl ChatApp {
                 self.workspace_create_mode,
                 &self.workspace_create_input,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_memory_modal {
@@ -293,6 +398,18 @@ impl ChatApp {
                 &self.memory_modal_list,
                 &self.selected_memory_mode,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_tools_modal {
@@ -303,6 +420,18 @@ impl ChatApp {
                 &self.tools_modal_list,
                 &self.tools,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_more_modal {
@@ -313,6 +442,18 @@ impl ChatApp {
                 &self.more_modal_list,
                 &self.more_options,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_google_api_modal {
@@ -323,6 +464,18 @@ impl ChatApp {
                 &self.google_api_input,
                 self.cursor_visible,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
 
         if self.show_elevenlabs_api_modal {
@@ -333,6 +486,18 @@ impl ChatApp {
                 &self.elevenlabs_api_input,
                 self.cursor_visible,
             );
+            
+            // Apply slide-in animation
+            if elapsed.as_millis() < animation_duration_ms as u128 {
+                let mut effect = fx::slide_in(
+                    fx::Direction::UpToDown,
+                    15,
+                    0,
+                    self.theme.bg,
+                    (animation_duration_ms, Interpolation::QuadOut)
+                );
+                effect.process(elapsed.into(), frame.buffer_mut(), frame.area());
+            }
         }
     }
 
