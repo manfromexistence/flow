@@ -71,7 +71,7 @@ pub fn render(
     // Calculate vertical centering
     let content_height = splash_lines.len() as u16;
     let available_height = area.height;
-    
+
     // If content is too large, shift it up to keep description visible
     let vertical_offset = if content_height >= available_height {
         0 // Start from top if content is too large

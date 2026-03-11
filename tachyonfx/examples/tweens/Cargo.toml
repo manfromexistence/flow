@@ -1,0 +1,11 @@
+[package]
+name = "tweens"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+tachyonfx = { workspace = true }
+ratatui = { workspace = true, features = ["crossterm"] }
+crossterm = { workspace = true }
+common = { path = "../common" }

@@ -1,0 +1,134 @@
+use bon::Builder;
+use ratatui::{
+    buffer::Buffer,
+    layout::Rect,
+    style::Style,
+    text::Line,
+    widgets::{Block, BorderType, Borders, Widget},
+};
+use tachyonfx::{CellFilter, Duration, Effect, EffectTimer, Shader};
+
+#[derive(Builder, Clone, Debug)]
+pub struct OpenWindow {
+    title: Line<'static>,
+    pre_render_fx: Option<Effect>,    // for setting up geometry etc
+    parent_window_fx: Option<Effect>, // applied to whole buffer
+    content_fx: Option<Effect>,       // applied to content area
+    title_style: Style,
+    border_style: Style,
+    border_type: BorderType,
+    background: Style,
+    borders: Borders,
+}
+
+impl OpenWindow {
+    fn window_block(&self) -> Block<'_> {
+        Block::new()
+            .borders(Borders::ALL)
+            .title_style(self.title_style)
+            .title(self.title.clone())
+            .border_style(self.border_style)
+            .borders(self.borders)
+            .border_type(self.border_type)
+            .style(self.background)
+    }
+
+    pub fn processing_content_fx(&mut self, duration: Duration, buf: &mut Buffer, area: Rect) {
+        if let Some(fx) = self.content_fx.as_mut() {
+            if fx.running() {
+                fx.process(duration, buf, area);
+            }
+        }
+    }
+}
+
+impl Shader for OpenWindow {
+    fn name(&self) -> &'static str {
+        "window"
+    }
+
+    fn process(&mut self, duration: Duration, buf: &mut Buffer, area: Rect) -> Option<Duration> {
+        if let Some(parent_window_fx) = self.parent_window_fx.as_mut() {
+            parent_window_fx.process(duration, buf, area);
+            if parent_window_fx.done() {
+                self.parent_window_fx = None;
+            }
+        }
+
+        let overflow = match self.pre_render_fx.as_mut() {
+            Some(fx) if fx.running() => fx.process(duration, buf, area),
+            _ => Some(duration),
+        };
+
+        let area = if let Some(fx) = self.pre_render_fx.as_ref() {
+            fx.area()
+                .map(|a| a.intersection(buf.area))
+                .unwrap_or(Rect::default())
+        } else {
+            area
+        };
+
+        if let Some(content_fx) = self.content_fx.as_mut() {
+            content_fx.set_area(area)
+        }
+
+        if area != Rect::default() {
+            self.window_block().render(area, buf);
+        }
+
+        overflow
+    }
+
+    fn done(&self) -> bool {
+        self.pre_render_fx.is_none()
+            || self
+                .pre_render_fx
+                .as_ref()
+                .is_some_and(Effect::done)
+    }
+
+    fn clone_box(&self) -> Box<dyn Shader> {
+        Box::new(self.clone())
+    }
+
+    fn area(&self) -> Option<Rect> {
+        self.pre_render_fx
+            .as_ref()
+            .map(Effect::area)
+            .unwrap_or(None)
+    }
+
+    fn set_area(&mut self, area: Rect) {
+        if let Some(open_window_fx) = self.pre_render_fx.as_mut() {
+            open_window_fx.set_area(area);
+        }
+    }
+
+    fn filter(&mut self, _strategy: CellFilter) {
+        todo!()
+    }
+
+    fn timer_mut(&mut self) -> Option<&mut EffectTimer> {
+        self.pre_render_fx
+            .as_mut()
+            .and_then(Effect::timer_mut)
+    }
+
+    fn timer(&self) -> Option<EffectTimer> {
+        self.pre_render_fx
+            .as_ref()
+            .and_then(Effect::timer)
+    }
+
+    fn cell_filter(&self) -> Option<&CellFilter> {
+        self.pre_render_fx
+            .as_ref()
+            .and_then(Effect::cell_filter)
+    }
+
+    fn reset(&mut self) {
+        if let Some(fx) = self.pre_render_fx.as_mut() {
+            fx.reset();
+        }
+    }
+}

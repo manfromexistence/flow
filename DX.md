@@ -30,15 +30,17 @@ In our chat-input bottom right there is animated rainbow spinner so please show 
 
 Please look at the src/tui.rs and you are ChatUI. Please use local models with the code of llm.rs. Please don't brainstorm anything and just use the local models as listed in llm.rs at src/llm.rs path.
 
-Sweep in for continuous modals and sliding for different modals. 
+The reason we have to do this is that we have to show visible animations that are eye-catching in our CLI. Use the best animation that is most eye-catching and visible, and apply it in our models.
+
 
 # Chat ui:
-1. modal animation
-2. todo and tasks
-3. diff
-4. typing suggestions
-5. cli onboard
-6. real terminal scroll in message list
+1. todo and tasks
+2. diff
+3. typing suggestions
+4. cli onboard
+5. real terminal scroll in message list
+6. Sweep in for continuous modals and sliding for different modals. 
+7. modal animation
 
 Dx works where you needed it the most. 
 Left and right arrow key matrix rain and train animation control 

@@ -28,7 +28,7 @@ impl ChatApp {
                 if self.messages.is_empty() {
                     return;
                 }
-                
+
                 // Calculate total content height using the same method as MessageList
                 let total_height = self
                     .messages
@@ -41,15 +41,15 @@ impl ChatApp {
 
                 // Get viewport height from input_area (chat area is everything above input)
                 let viewport_height = self.input_area.y.saturating_sub(1) as usize;
-                
+
                 // Only allow scrolling if content exceeds viewport
                 if total_height <= viewport_height {
                     return;
                 }
-                
+
                 // Calculate max scroll: total content minus what fits in viewport
                 let max_scroll = total_height.saturating_sub(viewport_height);
-                
+
                 if self.chat_scroll_offset < max_scroll {
                     self.chat_scroll_offset =
                         self.chat_scroll_offset.saturating_add(3).min(max_scroll);

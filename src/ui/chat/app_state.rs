@@ -715,10 +715,10 @@ impl ChatApp {
         self.workspace_create_input.clear();
     }
 
-    /// Open a modal with sweep-in animation
+    /// Open a modal with the most eye-catching raster-based animation
     pub fn open_modal(&mut self, modal_type: ModalType) {
-        use tachyonfx::{fx, Interpolation};
-        
+        use tachyonfx::{Interpolation, fx};
+
         // Set the modal flag to true immediately
         match modal_type {
             ModalType::Focus => self.show_focus_menu = true,
@@ -735,25 +735,26 @@ impl ChatApp {
             ModalType::GoogleApi => self.show_google_api_modal = true,
             ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal = true,
         }
-        
-        // Create sweep_in effect: top to bottom, 300ms, QuadOut interpolation
-        let sweep_effect = fx::sweep_in(
-            tachyonfx::fx::Direction::UpToDown,
-            20, // cell_glider_length
-            0,  // cell_glider_gap
-            ratatui::style::Color::Black,
-            (300, Interpolation::QuadOut),
-        );
-        
+
+        // Create the most eye-catching effect: coalesce (organic particle materialization)
+        let coalesce_effect = fx::coalesce((400, Interpolation::BounceOut));
+
+        // Add fade in for smooth appearance
+        let fade_effect =
+            fx::fade_from_fg(ratatui::style::Color::Black, (400, Interpolation::ExpoOut));
+
+        // Combine effects in parallel for maximum eye-catching impact
+        let combined = fx::parallel(&[coalesce_effect, fade_effect]);
+
         // Add effect
-        self.modal_effect_manager.add_effect(sweep_effect);
+        self.modal_effect_manager.add_effect(combined);
         self.modal_opening = Some((modal_type, Instant::now()));
     }
 
-    /// Close a modal with sweep-out animation
+    /// Close a modal with the most eye-catching raster-based animation
     pub fn close_modal(&mut self, modal_type: ModalType) {
-        use tachyonfx::{fx, Interpolation};
-        
+        use tachyonfx::{Interpolation, fx};
+
         // Don't close if not open
         let is_open = match modal_type {
             ModalType::Focus => self.show_focus_menu,
@@ -770,29 +771,30 @@ impl ChatApp {
             ModalType::GoogleApi => self.show_google_api_modal,
             ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal,
         };
-        
+
         if !is_open {
             return;
         }
-        
-        // Create sweep_out effect: bottom to top, 300ms, QuadIn interpolation
-        let sweep_effect = fx::sweep_out(
-            tachyonfx::fx::Direction::DownToUp,
-            20, // cell_glider_length
-            0,  // cell_glider_gap
-            ratatui::style::Color::Black,
-            (300, Interpolation::QuadIn),
-        );
-        
+
+        // Create the most eye-catching exit: dissolve (organic particle disintegration)
+        let dissolve_effect = fx::dissolve((400, Interpolation::BackIn));
+
+        // Add fade to black for dramatic exit
+        let fade_effect =
+            fx::fade_to_fg(ratatui::style::Color::Black, (400, Interpolation::ExpoIn));
+
+        // Combine effects in parallel for maximum eye-catching impact
+        let combined = fx::parallel(&[dissolve_effect, fade_effect]);
+
         // Add effect
-        self.modal_effect_manager.add_effect(sweep_effect);
+        self.modal_effect_manager.add_effect(combined);
         self.modal_closing = Some((modal_type, Instant::now()));
     }
 
     /// Check if modal animation is complete and update state accordingly
     pub fn update_modal_animations(&mut self) {
-        const ANIMATION_DURATION_MS: u128 = 300;
-        
+        const ANIMATION_DURATION_MS: u128 = 400; // Updated to match new animation duration
+
         // Check if closing animation is complete
         if let Some((closing_modal, start_time)) = self.modal_closing {
             if start_time.elapsed().as_millis() >= ANIMATION_DURATION_MS {
@@ -815,7 +817,7 @@ impl ChatApp {
                 self.modal_closing = None;
             }
         }
-        
+
         // Check if opening animation is complete
         if let Some((_opening_modal, start_time)) = self.modal_opening {
             if start_time.elapsed().as_millis() >= ANIMATION_DURATION_MS {

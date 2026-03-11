@@ -13,7 +13,7 @@ use super::app_state::ModalType;
 
 use super::app_state::ChatApp;
 use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-use tachyonfx::{Shader, fx, Effect, Interpolation, CellFilter};
+use tachyonfx::{CellFilter, Effect, Interpolation, Shader, fx};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
@@ -158,7 +158,7 @@ impl ChatApp {
         self.plan_button_area = plan_area;
         self.model_button_area = model_area;
         self.local_button_area = local_area;
-        
+
         // Update modal animations before rendering
         self.update_modal_animations();
         self.render_modals(frame);
@@ -177,15 +177,10 @@ impl ChatApp {
 
     fn render_modals(&mut self, frame: &mut ratatui::Frame) {
         let area = frame.area();
-        
+
         // Render the modal content first
         if self.show_focus_menu {
-            modals::focus::render(
-                area,
-                frame.buffer_mut(),
-                &self.theme,
-                &self.focus_menu_list,
-            );
+            modals::focus::render(area, frame.buffer_mut(), &self.theme, &self.focus_menu_list);
         } else if self.show_add_modal {
             modals::add::render(
                 area,
@@ -297,10 +292,11 @@ impl ChatApp {
                 self.cursor_visible,
             );
         }
-        
+
         // Apply sweep animation effects after rendering modal content
         let elapsed = self.last_render.elapsed();
-        self.modal_effect_manager.process_effects(elapsed.into(), frame.buffer_mut(), area);
+        self.modal_effect_manager
+            .process_effects(elapsed.into(), frame.buffer_mut(), area);
     }
     fn render_shortcut_debug(&self, area: Rect, buf: &mut Buffer, shortcut: &str) {
         let max_len = area.width.saturating_sub(10).max(20) as usize;
@@ -497,7 +493,9 @@ impl ChatApp {
         let model_width = self.selected_model.len() as u16;
 
         // Calculate token usage
-        let total_tokens: usize = self.messages.iter()
+        let total_tokens: usize = self
+            .messages
+            .iter()
             .map(|msg| msg.content.len() / 4) // Rough estimate: 1 token ≈ 4 chars
             .sum();
         let context_limit = 128_000; // 128K context window
@@ -506,13 +504,14 @@ impl ChatApp {
         } else {
             0
         };
-        let token_info = format!("{:.1}K/{}K({}%)", 
-            total_tokens as f32 / 1000.0, 
+        let token_info = format!(
+            "{:.1}K/{}K({}%)",
+            total_tokens as f32 / 1000.0,
             context_limit / 1000,
             token_ratio
         );
         let token_width = token_info.len() as u16;
-        
+
         // Get current working directory and truncate
         let cwd = std::env::current_dir()
             .ok()
@@ -525,7 +524,7 @@ impl ChatApp {
         } else {
             path_info.clone()
         };
-        
+
         let spinner_width = if self.is_loading { 2 } else { 0 };
 
         let padded = Rect {
@@ -546,7 +545,7 @@ impl ChatApp {
             Constraint::Length(1),
             Constraint::Length(path_width),
         ];
-        
+
         if self.is_loading {
             constraints.push(Constraint::Length(1));
             constraints.push(Constraint::Length(spinner_width));
@@ -590,14 +589,17 @@ impl ChatApp {
         } else {
             self.theme.fg
         };
-        
+
         Paragraph::new(Span::styled(&token_info, Style::default().fg(token_color)))
             .alignment(ratatui::layout::Alignment::Left)
             .render(bottom_chunks[6], buf);
 
-        Paragraph::new(Span::styled(&truncated_path, Style::default().fg(self.theme.fg)))
-            .alignment(ratatui::layout::Alignment::Left)
-            .render(bottom_chunks[8], buf);
+        Paragraph::new(Span::styled(
+            &truncated_path,
+            Style::default().fg(self.theme.fg),
+        ))
+        .alignment(ratatui::layout::Alignment::Left)
+        .render(bottom_chunks[8], buf);
 
         // Only show spinner when loading
         if self.is_loading {
