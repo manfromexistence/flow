@@ -238,11 +238,11 @@ impl Theme {
                 format!("{time_ms}ms").cyan().bold()
             );
             eprintln!();
-            eprintln!("  {} Local:   {}", icons::ARROW.cyan(), url.cyan().bold().underline());
+            eprintln!("  {} Local:{}", icons::ARROW.cyan(), url.cyan().bold().underline());
         } else {
             eprintln!("  {} Ready in {}ms", icons::SUCCESS, time_ms);
             eprintln!();
-            eprintln!("  {} Local:   {}", icons::ARROW, url);
+            eprintln!("  {} Local:{}", icons::ARROW, url);
         }
         eprintln!();
     }

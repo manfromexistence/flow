@@ -13,7 +13,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
 const MODEL_PATH: &str = r"F:\edith\models\llm\Qwen3.5-0.8B-Q4_K_M.gguf";
-const MODEL_NAME: &str = "Qwen 3.5 0.8B Q4_K_M";
+const MODEL_NAME: &str = "Qwen-3.5-0.8B-Q4_K_M";
 
 const SYSTEM_PROMPT: &str = "\
 # IDENTITY
@@ -206,7 +206,7 @@ impl LocalLlm {
     }
 
     pub fn get_model_name(&self) -> String {
-        format!("Local: {}", MODEL_NAME)
+        format!("Local:{}", MODEL_NAME)
     }
 
     fn build_prompt(history: &[Message]) -> String {

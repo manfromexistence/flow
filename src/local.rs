@@ -16,7 +16,7 @@ use sysinfo::System;
 
 // ─── Model configuration ───────────────────────────────────────────────────────
 const MODEL_PATH: &str = r"F:\edith\models\llm\Qwen3.5-0.8B-Q4_K_M.gguf";
-const MODEL_NAME: &str = "Qwen 3.5 0.8B Q4_K_M";
+const MODEL_NAME: &str = "Qwen-3.5-0.8B-Q4_K_M";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // ─── System prompt ─────────────────────────────────────────────────────────────

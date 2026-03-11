@@ -1,7 +1,7 @@
 [package]
 name = "dx-font"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "A comprehensive font search and download tool with access to 50k+ commercial-free fonts"
 keywords = ["fonts", "typography", "download", "cli", "assets"]
 categories = ["command-line-utilities", "multimedia", "web-programming"]
