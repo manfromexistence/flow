@@ -210,7 +210,7 @@ pub struct ChatApp {
 
     // Effects Demo modal
     pub show_effects_demo_modal: bool,
-    pub effects_demo: super::modals::effects_demo::EffectsDemoModal,
+    pub effects_demo: crate::ui::demos::effects_demo::EffectsDemoModal,
 
     // Tools modal
     pub show_tools_modal: bool,
@@ -241,7 +241,7 @@ pub struct ChatApp {
     pub modal_effect_manager: tachyonfx::EffectManager<()>,
     pub modal_opening: Option<(ModalType, Instant)>,
     pub modal_closing: Option<(ModalType, Instant)>,
-    
+
     // Current modal effect for rendering
     pub current_modal_effect: Option<tachyonfx::Effect>,
     pub modal_effect_start_time: Option<Instant>,
@@ -346,7 +346,7 @@ impl ChatApp {
             show_elevenlabs_api_modal: false,
             elevenlabs_api_input: TextInput::new(),
             show_effects_demo_modal: false, // Commented out - was showing by default
-            effects_demo: super::modals::effects_demo::EffectsDemoModal::new(),
+            effects_demo: crate::ui::demos::effects_demo::EffectsDemoModal::new(),
             show_tools_modal: false,
             tools_modal_list: ModalList::new(9),
             tools: super::modals::tools::get_available_tools(),
@@ -395,13 +395,13 @@ impl ChatApp {
     /// Start a modal effect animation
     pub fn start_modal_effect(&mut self, modal_type: ModalType) {
         use super::modal_effects;
-        
+
         let bg = self.theme.bg;
         let screen_bg = self.theme.bg;
-        
+
         // Create the effect based on modal type
         let effect = modal_effects::get_modal_open_effect(modal_type, bg, screen_bg);
-        
+
         self.current_modal_effect = Some(effect);
         self.modal_effect_start_time = Some(Instant::now());
     }
@@ -565,7 +565,7 @@ impl ChatApp {
             let temp_dir = std::env::temp_dir();
             let audio_path = temp_dir.join("dx_chat_recording.wav");
 
-            match super::audio::AudioRecorder::new() {
+            match crate::ui::integrations::audio::AudioRecorder::new() {
                 Ok(mut recorder) => {
                     if let Err(e) = recorder.start_recording() {
                         let _ = tx.send(format!("[Recording Error: {}]", e));
@@ -592,19 +592,19 @@ impl ChatApp {
                         //     Ok(text) => text,
                         //     Err(_) => {
                         //         // Fallback to local whisper
-                        //         match super::audio::transcribe_audio(&audio_path) {
+                        //         match crate::ui::integrations::audio::transcribe_audio(&audio_path) {
                         //             Ok(text) => text,
                         //             Err(e) => format!("[Transcription Error: {}]", e),
                         //         }
                         //     }
                         // }
-                        match super::audio::transcribe_audio(&audio_path) {
+                        match crate::ui::integrations::audio::transcribe_audio(&audio_path) {
                             Ok(text) => text,
                             Err(e) => format!("[Transcription Error: {}]", e),
                         }
                     } else {
                         // Use local whisper
-                        match super::audio::transcribe_audio(&audio_path) {
+                        match crate::ui::integrations::audio::transcribe_audio(&audio_path) {
                             Ok(text) => text,
                             Err(e) => format!("[Transcription Error: {}]", e),
                         }

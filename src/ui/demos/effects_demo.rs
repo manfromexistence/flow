@@ -7,8 +7,8 @@ use ratatui::{
 };
 use std::time::Instant;
 use tachyonfx::{
-    CellFilter, Duration, Effect, EffectRenderer, Interpolation, IntoEffect,
-    Motion, SimpleRng, Shader, color_from_hsl,
+    CellFilter, Duration, Effect, EffectRenderer, Interpolation, IntoEffect, Motion, Shader,
+    SimpleRng, color_from_hsl,
     fx::{self, ExpandDirection, never_complete, parallel, sequence},
 };
 
@@ -40,7 +40,7 @@ impl EffectsDemoModal {
 
     pub fn update(&mut self, elapsed: std::time::Duration) {
         self.last_tick = elapsed.into();
-        
+
         // Auto-cycle through effects every 3 seconds
         if self.auto_cycle && self.last_cycle_time.elapsed().as_secs() >= 3 {
             let fx_idx = (self.active_effect_idx + 1) % self.effects.len();
@@ -88,12 +88,7 @@ impl EffectsDemoModal {
     }
 }
 
-pub fn render(
-    area: Rect,
-    buf: &mut Buffer,
-    theme: &ChatTheme,
-    demo: &mut EffectsDemoModal,
-) {
+pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, demo: &mut EffectsDemoModal) {
     let modal_width = area.width.saturating_sub(10).min(100);
     let modal_height = area.height.saturating_sub(6).min(30);
     let modal_area = Rect {
@@ -117,12 +112,12 @@ pub fn render(
 
     // Create content area with border
     let content_area = modal_area.inner(Margin::new(2, 1));
-    
+
     // Render content background FIRST (before text)
     Block::default()
         .style(Style::default().bg(bg))
         .render(content_area, buf);
-    
+
     // Render border on top
     Block::default()
         .borders(Borders::ALL)
@@ -141,7 +136,9 @@ pub fn render(
     // Use tachyonfx original color scheme
     let anim_style = [
         Style::default().fg(Color::Rgb(254, 128, 25)), // Orange
-        Style::default().fg(Color::Rgb(254, 215, 170)).add_modifier(Modifier::BOLD), // Bright orange
+        Style::default()
+            .fg(Color::Rgb(254, 215, 170))
+            .add_modifier(Modifier::BOLD), // Bright orange
     ];
     let text_style = Style::default().fg(Color::Rgb(235, 219, 178)); // Light beige
     let shortcut_style = [
@@ -161,7 +158,12 @@ pub fn render(
     let active_animation: Line = Line::from(vec![
         Span::from("Active animation: ").style(anim_style[0]),
         Span::from(demo.active_effect.0).style(anim_style[1]),
-        Span::from(format!(" ({}/{})", demo.active_effect_idx + 1, demo.effects.len())).style(text_style),
+        Span::from(format!(
+            " ({}/{})",
+            demo.active_effect_idx + 1,
+            demo.effects.len()
+        ))
+        .style(text_style),
     ]);
 
     let main_text = Text::from(vec![
@@ -181,10 +183,10 @@ pub fn render(
         ])
     };
 
-    let auto_status_text = if demo.auto_cycle { 
-        "toggle auto-cycle (ON)" 
-    } else { 
-        "toggle auto-cycle (OFF)" 
+    let auto_status_text = if demo.auto_cycle {
+        "toggle auto-cycle (ON)"
+    } else {
+        "toggle auto-cycle (OFF)"
     };
     let shortcuts = Text::from(vec![
         shortcut("↵   ", "next transition"),
@@ -203,7 +205,9 @@ pub fn render(
     // CRITICAL: Apply effect to the ENTIRE content_area (not just text area)
     // This is how tachyonfx works - effects operate on all rendered cells
     if demo.active_effect.1.running() {
-        demo.active_effect.1.process(demo.last_tick, buf, content_area);
+        demo.active_effect
+            .1
+            .process(demo.last_tick, buf, content_area);
     }
 }
 
@@ -238,7 +242,13 @@ impl EffectsRepository {
         let effects = vec![
             (
                 "sweep in",
-                fx::sweep_in(Motion::LeftToRight, 30, 0, screen_bg, (slow, Interpolation::QuadOut)),
+                fx::sweep_in(
+                    Motion::LeftToRight,
+                    30,
+                    0,
+                    screen_bg,
+                    (slow, Interpolation::QuadOut),
+                ),
             ),
             (
                 "smooth expand and reversed",

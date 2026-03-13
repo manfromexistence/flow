@@ -509,7 +509,7 @@ impl ChatApp {
                     let tx = self.llm_tx.clone();
                     let llm = self.llm.clone();
                     tokio::spawn(async move {
-                        use crate::ui::chat::google_oauth::GoogleOAuthConfig;
+                        use crate::ui::integrations::google_oauth::GoogleOAuthConfig;
 
                         // Send status update
                         let _ = tx.send("__GOOGLE_ERROR__:Loading OAuth config...".to_string());
@@ -546,7 +546,7 @@ impl ChatApp {
                                         );
 
                                         // Fetch Antigravity models
-                                        match crate::ui::chat::google_oauth::fetch_antigravity_models(&access_token).await {
+                                        match crate::ui::integrations::google_oauth::fetch_antigravity_models(&access_token).await {
                                             Ok(models) => {
                                                 let _ = tx.send(format!(
                                                     "__GOOGLE_ERROR__:Found {} models",

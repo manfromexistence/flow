@@ -73,56 +73,74 @@ pub fn create_hsl_shift_effect() -> Effect {
 
 /// Creates a custom color cycle effect for modal highlights
 pub fn create_color_cycle_effect(base_color: Color) -> Effect {
-    fx::effect_fn(Instant::now(), Duration::from_millis(2000), move |state, _ctx, cell_iter| {
-        let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
+    fx::effect_fn(
+        Instant::now(),
+        Duration::from_millis(2000),
+        move |state, _ctx, cell_iter| {
+            let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
 
-        cell_iter
-            .filter(|(_, cell)| cell.symbol() != " ")
-            .enumerate()
-            .for_each(|(i, (_pos, cell))| {
-                let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
-                let color = color_from_hsl(hue, 100.0, 50.0);
-                cell.set_fg(color);
-            });
-    })
+            cell_iter
+                .filter(|(_, cell)| cell.symbol() != " ")
+                .enumerate()
+                .for_each(|(i, (_pos, cell))| {
+                    let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
+                    let color = color_from_hsl(hue, 100.0, 50.0);
+                    cell.set_fg(color);
+                });
+        },
+    )
     .with_filter(CellFilter::FgColor(base_color))
 }
 
 /// Creates a cycling effect that shows all the basic-effects examples one by one
 pub fn create_cycling_modal_effect() -> Effect {
     use tachyonfx::fx::{parallel, sequence};
-    
+
     let medium = Duration::from_millis(750);
     let slow = Duration::from_millis(1250);
-    
+
     // Create a sequence of all the effects from the basic-effects example
     fx::sequence(&[
         // 1. Sweep in
-        fx::sweep_in(Motion::LeftToRight, 30, 0, Color::Black, (medium, Interpolation::QuadOut)),
+        fx::sweep_in(
+            Motion::LeftToRight,
+            30,
+            0,
+            Color::Black,
+            (medium, Interpolation::QuadOut),
+        ),
         fx::sleep(Duration::from_millis(500)),
-        
         // 2. Coalesce
         fx::coalesce((medium, Interpolation::CubicOut)),
         fx::sleep(Duration::from_millis(500)),
-        
         // 3. Slide in/out
         fx::parallel(&[
             fx::fade_from_fg(Color::DarkGray, (1200, Interpolation::ExpoInOut)),
             fx::slide_in(Motion::UpToDown, 20, 0, Color::Black, medium),
         ]),
         fx::sleep(Duration::from_millis(500)),
-        
         // 4. HSL color shift
         fx::sequence(&[
             fx::hsl_shift_fg([180.0, 0.0, 0.0], medium),
             fx::hsl_shift_fg([180.0, 0.0, 0.0], medium).reversed(),
         ]),
         fx::sleep(Duration::from_millis(500)),
-        
         // 5. Sweep out/in sequence
         fx::sequence(&[
-            fx::sweep_out(Motion::DownToUp, 5, 20, Color::DarkGray, (1000, Interpolation::QuadOut)),
-            fx::sweep_in(Motion::UpToDown, 5, 20, Color::DarkGray, (1000, Interpolation::QuadOut)),
+            fx::sweep_out(
+                Motion::DownToUp,
+                5,
+                20,
+                Color::DarkGray,
+                (1000, Interpolation::QuadOut),
+            ),
+            fx::sweep_in(
+                Motion::UpToDown,
+                5,
+                20,
+                Color::DarkGray,
+                (1000, Interpolation::QuadOut),
+            ),
         ]),
     ])
 }

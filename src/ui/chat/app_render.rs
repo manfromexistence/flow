@@ -13,7 +13,8 @@ use super::app_state::ModalType;
 
 use super::app_state::ChatApp;
 use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-use tachyonfx::{CellFilter, Effect, Interpolation, Shader, fx, EffectRenderer};
+use crate::ui::{demos, integrations};
+use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
@@ -22,7 +23,7 @@ impl ChatApp {
             let elapsed = self.last_render.elapsed();
             self.effects_demo.update(elapsed);
         }
-        
+
         // Both animations show in chat area only, keeping input visible
         if self.show_train_animation || self.show_matrix_animation {
             let chunks = Layout::default()
@@ -282,7 +283,7 @@ impl ChatApp {
                 &self.more_options,
             );
         } else if self.show_google_api_modal {
-            modals::google_api::render(
+            integrations::google_api_modal::render(
                 area,
                 frame.buffer_mut(),
                 &self.theme,
@@ -290,7 +291,7 @@ impl ChatApp {
                 self.cursor_visible,
             );
         } else if self.show_elevenlabs_api_modal {
-            modals::elevenlabs_api::render(
+            integrations::elevenlabs_api_modal::render(
                 area,
                 frame.buffer_mut(),
                 &self.theme,
@@ -298,13 +299,13 @@ impl ChatApp {
                 self.cursor_visible,
             );
         } else if self.show_effects_demo_modal {
-            modals::effects_demo::render(
+            demos::effects_demo::render(
                 area,
                 frame.buffer_mut(),
                 &self.theme,
                 &mut self.effects_demo,
             );
-            
+
             // Render the effects demo effect
             if self.effects_demo.active_effect.1.running() {
                 let modal_width = area.width.saturating_sub(10).min(100);
@@ -316,13 +317,17 @@ impl ChatApp {
                     height: modal_height,
                 };
                 let content_area = modal_area.inner(ratatui::layout::Margin::new(2, 1));
-                frame.render_effect(&mut self.effects_demo.active_effect.1, content_area, self.effects_demo.last_tick);
+                frame.render_effect(
+                    &mut self.effects_demo.active_effect.1,
+                    content_area,
+                    self.effects_demo.last_tick,
+                );
             }
         }
 
         // Apply sweep animation effects after rendering modal content
         let elapsed = self.last_render.elapsed();
-        
+
         // Render the current modal effect if active
         if let Some(ref mut effect) = self.current_modal_effect {
             if effect.running() {
@@ -336,7 +341,7 @@ impl ChatApp {
                 self.modal_effect_start_time = None;
             }
         }
-        
+
         self.modal_effect_manager
             .process_effects(elapsed.into(), frame.buffer_mut(), area);
     }
