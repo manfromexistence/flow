@@ -14,6 +14,7 @@ pub mod google_oauth;
 pub mod input;
 pub mod llm_integration;
 pub mod local_llm;
+pub mod modal_effects;
 pub mod modal_list;
 pub mod modals;
 pub mod modes;

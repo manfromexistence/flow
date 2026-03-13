@@ -6,6 +6,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
 };
+use tachyonfx::{Duration as FxDuration, EffectRenderer};
 
 pub fn render(
     area: Rect,

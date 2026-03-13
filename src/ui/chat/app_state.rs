@@ -32,6 +32,7 @@ pub enum ModalType {
     More,
     GoogleApi,
     ElevenlabsApi,
+    EffectsDemo,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -207,6 +208,10 @@ pub struct ChatApp {
     pub show_elevenlabs_api_modal: bool,
     pub elevenlabs_api_input: TextInput,
 
+    // Effects Demo modal
+    pub show_effects_demo_modal: bool,
+    pub effects_demo: super::modals::effects_demo::EffectsDemoModal,
+
     // Tools modal
     pub show_tools_modal: bool,
     pub tools_modal_list: ModalList,
@@ -236,6 +241,10 @@ pub struct ChatApp {
     pub modal_effect_manager: tachyonfx::EffectManager<()>,
     pub modal_opening: Option<(ModalType, Instant)>,
     pub modal_closing: Option<(ModalType, Instant)>,
+    
+    // Current modal effect for rendering
+    pub current_modal_effect: Option<tachyonfx::Effect>,
+    pub modal_effect_start_time: Option<Instant>,
 
     // Rainbow animation for splash and spinner
     pub rainbow_animation: crate::ui::theme::animation::RainbowAnimation,
@@ -336,6 +345,8 @@ impl ChatApp {
             google_models: Vec::new(),
             show_elevenlabs_api_modal: false,
             elevenlabs_api_input: TextInput::new(),
+            show_effects_demo_modal: false, // Commented out - was showing by default
+            effects_demo: super::modals::effects_demo::EffectsDemoModal::new(),
             show_tools_modal: false,
             tools_modal_list: ModalList::new(9),
             tools: super::modals::tools::get_available_tools(),
@@ -353,6 +364,8 @@ impl ChatApp {
             modal_effect_manager: tachyonfx::EffectManager::default(),
             modal_opening: None,
             modal_closing: None,
+            current_modal_effect: None,
+            modal_effect_start_time: None,
             rainbow_animation: crate::ui::theme::animation::RainbowAnimation::new()
                 .with_speed(0.5)
                 .with_saturation(0.9)
@@ -377,6 +390,26 @@ impl ChatApp {
         if self.is_loading {
             self.shimmer.reset();
         }
+    }
+
+    /// Start a modal effect animation
+    pub fn start_modal_effect(&mut self, modal_type: ModalType) {
+        use super::modal_effects;
+        
+        let bg = self.theme.bg;
+        let screen_bg = self.theme.bg;
+        
+        // Create the effect based on modal type
+        let effect = modal_effects::get_modal_open_effect(modal_type, bg, screen_bg);
+        
+        self.current_modal_effect = Some(effect);
+        self.modal_effect_start_time = Some(Instant::now());
+    }
+
+    /// Stop the current modal effect
+    pub fn stop_modal_effect(&mut self) {
+        self.current_modal_effect = None;
+        self.modal_effect_start_time = None;
     }
 
     pub fn send_message(&mut self, content: String) {
@@ -734,6 +767,7 @@ impl ChatApp {
             ModalType::More => self.show_more_modal = true,
             ModalType::GoogleApi => self.show_google_api_modal = true,
             ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal = true,
+            ModalType::EffectsDemo => self.show_effects_demo_modal = true,
         }
 
         // Create the most eye-catching effect: coalesce (organic particle materialization)
@@ -770,6 +804,7 @@ impl ChatApp {
             ModalType::More => self.show_more_modal,
             ModalType::GoogleApi => self.show_google_api_modal,
             ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal,
+            ModalType::EffectsDemo => self.show_effects_demo_modal,
         };
 
         if !is_open {
@@ -813,6 +848,7 @@ impl ChatApp {
                     ModalType::More => self.show_more_modal = false,
                     ModalType::GoogleApi => self.show_google_api_modal = false,
                     ModalType::ElevenlabsApi => self.show_elevenlabs_api_modal = false,
+                    ModalType::EffectsDemo => self.show_effects_demo_modal = false,
                 }
                 self.modal_closing = None;
             }

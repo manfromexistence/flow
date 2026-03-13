@@ -6,6 +6,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
 };
+use tachyonfx::{Duration as FxDuration, EffectRenderer};
 
 pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, list: &ModalList) {
     let modal_width = area.width.saturating_sub(20).min(60);
@@ -43,6 +44,7 @@ pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, list: &ModalList)
         ("4", "Model Selector", "Choose AI model"),
         ("5", "Audio Toggle", "Enable/disable audio input"),
         ("6", "Local Mode", "Switch local processing mode"),
+        ("7", "Effects Demo", "Show TachyonFX animations"),
     ];
 
     for (number, title, description) in options.iter() {
@@ -111,7 +113,7 @@ pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, list: &ModalList)
     }
 
     let help_text = Line::from(vec![
-        Span::styled("1-6", Style::default().fg(theme.accent)),
+        Span::styled("1-7", Style::default().fg(theme.accent)),
         Span::styled(" Quick Select  ", Style::default().fg(theme.border)),
         Span::styled("↑↓", Style::default().fg(theme.accent)),
         Span::styled(" Navigate  ", Style::default().fg(theme.border)),

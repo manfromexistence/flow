@@ -73,6 +73,7 @@ impl ChatApp {
                     app_helpers::play_sound("click");
                 } else if self.is_in_rect(x, y, self.model_button_area) {
                     self.show_model_modal = true;
+                    self.start_modal_effect(super::app_state::ModalType::Model);
                     self.model_modal_list.reset();
                     app_helpers::play_sound("click");
                 } else if self.is_in_rect(x, y, self.local_button_area) {
@@ -157,7 +158,7 @@ impl ChatApp {
             (KeyCode::Tab, _, _) => {
                 // Show focus menu with numbered options
                 self.show_focus_menu = true;
-                self.focus_menu_list.set_items_count(6); // 6 focus options
+                self.focus_menu_list.set_items_count(7); // 7 focus options
                 self.focus_menu_list.reset();
                 app_helpers::play_sound("click");
             }
@@ -203,6 +204,9 @@ impl ChatApp {
             }
             (_, _, _) if self.show_elevenlabs_api_modal => {
                 self.handle_elevenlabs_api_modal(key);
+            }
+            (_, _, _) if self.show_effects_demo_modal => {
+                self.handle_effects_demo_modal(key);
             }
             // Arrow keys for animation carousel (when input is empty)
             (KeyCode::Left, KeyModifiers::NONE, Focus::Input) if self.input.content.is_empty() => {
@@ -341,17 +345,17 @@ impl ChatApp {
     }
 
     fn handle_focus_menu(&mut self, key: event::KeyEvent) {
-        // Handle number keys 1-6 for quick selection
+        // Handle number keys 1-7 for quick selection
         if let KeyCode::Char(c) = key.code {
             if let Some(digit) = c.to_digit(10) {
-                if digit >= 1 && digit <= 6 {
+                if digit >= 1 && digit <= 7 {
                     self.handle_focus_menu_selection((digit - 1) as usize);
                     return;
                 }
             }
         }
 
-        let action = self.focus_menu_list.handle_key(key.code, key.modifiers, 6);
+        let action = self.focus_menu_list.handle_key(key.code, key.modifiers, 7);
         match action {
             ModalListAction::ItemSelected(idx) => {
                 self.handle_focus_menu_selection(idx);
@@ -387,6 +391,7 @@ impl ChatApp {
             3 => {
                 // Model Selector
                 self.show_model_modal = true;
+                self.start_modal_effect(super::app_state::ModalType::Model);
                 self.model_modal_list.reset();
                 self.last_shortcut_pressed = Some("Opening Model Selector".to_string());
             }
@@ -407,6 +412,11 @@ impl ChatApp {
                 self.local_modal_list.reset();
                 self.last_shortcut_pressed = Some("Opening Local Mode Selector".to_string());
             }
+            6 => {
+                // Effects Demo
+                self.show_effects_demo_modal = true;
+                self.last_shortcut_pressed = Some("Opening Effects Demo".to_string());
+            }
             _ => {}
         }
         self.last_shortcut_time = Instant::now();
@@ -421,6 +431,7 @@ impl ChatApp {
                 // If the number key matches the modal trigger (2), close the modal
                 if c == '2' {
                     self.show_model_modal = false;
+                    self.stop_modal_effect();
                     self.model_modal_search.clear();
                     app_helpers::play_sound("click");
                     return;
@@ -660,6 +671,7 @@ impl ChatApp {
             }
             ModalListAction::Close => {
                 self.show_model_modal = false;
+                self.stop_modal_effect();
                 self.model_modal_search.clear();
                 app_helpers::play_sound("click");
             }
@@ -1057,9 +1069,11 @@ impl ChatApp {
         // 2: LLM Models - Toggle model modal
         if self.show_model_modal {
             self.show_model_modal = false;
+            self.stop_modal_effect();
             app_helpers::play_sound("click");
         } else {
             self.show_model_modal = true;
+            self.start_modal_effect(super::app_state::ModalType::Model);
             let models = modals::model::get_filtered_models(&self.model_modal_search.content);
             self.model_modal_list
                 .set_items_count(1 + 1 + 3 + self.google_models.len() + models.len()); // Configure API Key + Sign in + 3 config + Google models + regular models
@@ -1342,6 +1356,41 @@ impl ChatApp {
                 self.elevenlabs_api_input.insert_char(c);
             }
             TextInputAction::Changed => {}
+            _ => {}
+        }
+    }
+
+    fn handle_effects_demo_modal(&mut self, key: event::KeyEvent) {
+        match key.code {
+            KeyCode::Esc => {
+                self.show_effects_demo_modal = false;
+                app_helpers::play_sound("click");
+            }
+            KeyCode::Enter => {
+                // Next effect
+                self.effects_demo.next_effect();
+                app_helpers::play_sound("click");
+            }
+            KeyCode::Backspace => {
+                // Previous effect
+                self.effects_demo.prev_effect();
+                app_helpers::play_sound("click");
+            }
+            KeyCode::Char(' ') => {
+                // Restart current effect
+                self.effects_demo.restart_effect();
+                app_helpers::play_sound("click");
+            }
+            KeyCode::Char('a') => {
+                // Toggle auto-cycle
+                self.effects_demo.toggle_auto_cycle();
+                app_helpers::play_sound("click");
+            }
+            KeyCode::Char('r') => {
+                // Random effect - let the effects demo handle it internally
+                self.effects_demo.random_effect();
+                app_helpers::play_sound("click");
+            }
             _ => {}
         }
     }

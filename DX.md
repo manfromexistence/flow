@@ -39,9 +39,8 @@ Good. Now in our main src folder, tui at our chat UI, on all modal we are trying
 2. diff
 3. typing suggestions
 4. cli onboard
-5. real terminal scroll in message list
-6. Sweep in for continuous modals and sliding for different modals. 
-7. modal animation
+5. Sweep in for continuous modals and sliding for different modals. 
+6. modal animation
 
 Dx works where you needed it the most. 
 Left and right arrow key matrix rain and train animation control 

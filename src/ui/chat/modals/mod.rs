@@ -2,6 +2,7 @@ pub mod add;
 pub mod changes;
 pub mod checkpoints;
 pub mod drivens;
+pub mod effects_demo;
 pub mod elevenlabs_api;
 pub mod focus;
 pub mod google_api;

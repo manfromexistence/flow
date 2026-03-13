@@ -13,10 +13,16 @@ use super::app_state::ModalType;
 
 use super::app_state::ChatApp;
 use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-use tachyonfx::{CellFilter, Effect, Interpolation, Shader, fx};
+use tachyonfx::{CellFilter, Effect, Interpolation, Shader, fx, EffectRenderer};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
+        // Update effects demo if it's showing
+        if self.show_effects_demo_modal {
+            let elapsed = self.last_render.elapsed();
+            self.effects_demo.update(elapsed);
+        }
+        
         // Both animations show in chat area only, keeping input visible
         if self.show_train_animation || self.show_matrix_animation {
             let chunks = Layout::default()
@@ -291,10 +297,46 @@ impl ChatApp {
                 &self.elevenlabs_api_input,
                 self.cursor_visible,
             );
+        } else if self.show_effects_demo_modal {
+            modals::effects_demo::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &mut self.effects_demo,
+            );
+            
+            // Render the effects demo effect
+            if self.effects_demo.active_effect.1.running() {
+                let modal_width = area.width.saturating_sub(10).min(100);
+                let modal_height = area.height.saturating_sub(6).min(30);
+                let modal_area = Rect {
+                    x: (area.width.saturating_sub(modal_width)) / 2,
+                    y: (area.height.saturating_sub(modal_height)) / 2,
+                    width: modal_width,
+                    height: modal_height,
+                };
+                let content_area = modal_area.inner(ratatui::layout::Margin::new(2, 1));
+                frame.render_effect(&mut self.effects_demo.active_effect.1, content_area, self.effects_demo.last_tick);
+            }
         }
 
         // Apply sweep animation effects after rendering modal content
         let elapsed = self.last_render.elapsed();
+        
+        // Render the current modal effect if active
+        if let Some(ref mut effect) = self.current_modal_effect {
+            if effect.running() {
+                if let Some(start_time) = self.modal_effect_start_time {
+                    let duration = start_time.elapsed();
+                    frame.render_effect(effect, area, duration.into());
+                }
+            } else {
+                // Effect finished, clear it
+                self.current_modal_effect = None;
+                self.modal_effect_start_time = None;
+            }
+        }
+        
         self.modal_effect_manager
             .process_effects(elapsed.into(), frame.buffer_mut(), area);
     }

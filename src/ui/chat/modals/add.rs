@@ -6,6 +6,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
 };
+use tachyonfx::{Duration as FxDuration, EffectRenderer};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AddModalFocus {

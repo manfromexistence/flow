@@ -7,6 +7,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
 };
+use tachyonfx::{Duration as FxDuration, EffectRenderer};
 
 use crate::ui::chat::{text_input::TextInput, theme::ChatTheme};
 

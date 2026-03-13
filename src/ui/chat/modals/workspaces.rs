@@ -5,6 +5,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph, Widget},
 };
+use tachyonfx::{Duration as FxDuration, EffectRenderer};
 
 use crate::ui::chat::{
     app_data::Agent, modal_list::ModalList, text_input::TextInput, theme::ChatTheme,
