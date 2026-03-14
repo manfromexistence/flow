@@ -44,6 +44,9 @@ figlet-rs = "0.1"
 # Token counting
 tiktoken-rs = "0.9"
 
+[build-dependencies]
+serializer = { package = "dx-serializer", path = "./serializer" }
+
 [profile.release]
 opt-level = 3
 lto = "fat"
