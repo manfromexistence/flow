@@ -8,13 +8,24 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
+// use super::app_state::ModalType;
+
 use crate::app::{AnimationType, ChatApp};
 use crate::components::MessageList;
+// use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
+// use crate::ui::{demos, integrations};
+// use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
         // Update tachyon effects timing
         let _elapsed = self.last_render.elapsed();
+        // self.tachyon_last_tick = tachyonfx::Duration::from(elapsed);
+
+        // Update effects demo if it's showing
+        // if self.show_effects_demo_modal {
+        //     self.effects_demo.update(elapsed);
+        // }
 
         // Both animations show in chat area only, keeping input visible
         if self.show_train_animation || self.show_matrix_animation {
@@ -163,8 +174,188 @@ impl ChatApp {
         self.plan_button_area = plan_area;
         self.model_button_area = model_area;
         self.local_button_area = local_area;
+
+        // Update modal animations before rendering
+        // self.update_modal_animations();
+        // self.render_modals(frame);
+
+        // Render audio recording indicator in top right
+        // if self.audio_processing {
+        //     self.render_audio_recording_indicator(frame.area(), frame.buffer_mut());
+        // }
+
+        // if let Some(ref shortcut) = self.last_shortcut_pressed
+        //     && self.last_shortcut_time.elapsed() < Duration::from_secs(2)
+        // {
+        //     self.render_shortcut_debug(frame.area(), frame.buffer_mut(), shortcut);
+        // }
     }
 
+    /*
+    fn render_modals(&mut self, frame: &mut ratatui::Frame) {
+        let area = frame.area();
+
+        // Render the modal content first
+        if self.show_focus_menu {
+            modals::focus::render(area, frame.buffer_mut(), &self.theme, &self.focus_menu_list);
+        } else if self.show_add_modal {
+            modals::add::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.add_modal_search,
+                &self.add_modal_list,
+                self.add_modal_focus,
+            );
+        } else if self.show_plan_modal {
+            modals::plan::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.plan_modal_list,
+                self.mode,
+            );
+        } else if self.show_model_modal {
+            let config = modals::model::ModelConfig {
+                auto_mode: self.auto_mode,
+                max_mode: self.max_mode,
+                use_multiple_models: self.use_multiple_models,
+                selected_model: &self.selected_model,
+                selected_models: &self.selected_models,
+                google_models: &self.google_models,
+            };
+            modals::model::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.model_modal_search,
+                &self.model_modal_list,
+                &config,
+            );
+        } else if self.show_local_modal {
+            modals::local::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.local_modal_list,
+                &self.selected_local_mode,
+            );
+        } else if self.show_changes_modal {
+            modals::changes::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.changes_modal_list,
+                &self.git_changes,
+                self.changes_count,
+            );
+        } else if self.show_tasks_modal {
+            modals::drivens::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.tasks_modal_list,
+                &self.tasks,
+                self.tasks_count,
+            );
+        } else if self.show_agents_modal {
+            modals::workspaces::render(
+                area,
+                frame.buffer_mut(),
+                &self.agents,
+                &self.agents_modal_list,
+                &self.theme,
+                self.workspace_create_mode,
+                &self.workspace_create_input,
+            );
+        } else if self.show_memory_modal {
+            modals::checkpoints::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.memory_modal_list,
+                &self.selected_memory_mode,
+            );
+        } else if self.show_tools_modal {
+            modals::tools::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.tools_modal_list,
+                &self.tools,
+            );
+        } else if self.show_more_modal {
+            modals::more::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.more_modal_list,
+                &self.more_options,
+            );
+        } else if self.show_google_api_modal {
+            integrations::google_api_modal::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.google_api_input,
+                self.cursor_visible,
+            );
+        } else if self.show_elevenlabs_api_modal {
+            integrations::elevenlabs_api_modal::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &self.elevenlabs_api_input,
+                self.cursor_visible,
+            );
+        } else if self.show_effects_demo_modal {
+            demos::effects_demo::render(
+                area,
+                frame.buffer_mut(),
+                &self.theme,
+                &mut self.effects_demo,
+            );
+
+            // Render the effects demo effect
+            if self.effects_demo.active_effect.1.running() {
+                let modal_width = area.width.saturating_sub(10).min(100);
+                let modal_height = area.height.saturating_sub(6).min(30);
+                let modal_area = Rect {
+                    x: (area.width.saturating_sub(modal_width)) / 2,
+                    y: (area.height.saturating_sub(modal_height)) / 2,
+                    width: modal_width,
+                    height: modal_height,
+                };
+                let content_area = modal_area.inner(ratatui::layout::Margin::new(2, 1));
+                frame.render_effect(
+                    &mut self.effects_demo.active_effect.1,
+                    content_area,
+                    self.effects_demo.last_tick,
+                );
+            }
+        }
+
+        // Apply sweep animation effects after rendering modal content
+        let elapsed = self.last_render.elapsed();
+
+        // Render the current modal effect if active
+        if let Some(ref mut effect) = self.current_modal_effect {
+            if effect.running() {
+                if let Some(start_time) = self.modal_effect_start_time {
+                    let duration = start_time.elapsed();
+                    frame.render_effect(effect, area, duration.into());
+                }
+            } else {
+                // Effect finished, clear it
+                self.current_modal_effect = None;
+                self.modal_effect_start_time = None;
+            }
+        }
+
+        self.modal_effect_manager
+            .process_effects(elapsed.into(), frame.buffer_mut(), area);
+    }
+    */
     #[allow(dead_code)]
     fn render_shortcut_debug(&self, area: Rect, buf: &mut Buffer, shortcut: &str) {
         let max_len = area.width.saturating_sub(10).max(20) as usize;
@@ -1448,5 +1639,99 @@ impl ChatApp {
             .style(Style::default().bg(bg_color))
             .render(area, frame.buffer_mut());
     }
-    
+
+    /*
+    fn render_tachyon_effects_in_area(&mut self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::layout::{Constraint, Layout, Margin};
+        use ratatui::style::{Color, Modifier, Style};
+        use ratatui::text::{Line, Span, Text};
+        use ratatui::widgets::{Block, Clear, Paragraph, Widget};
+        use tachyonfx::{CenteredShrink, EffectRenderer};
+
+        let screen_bg = Color::Rgb(17, 17, 27);
+        let bg = Color::Rgb(30, 30, 46);
+
+        // Initialize effect if not present or if index changed
+        if self.tachyon_active_effect.is_none() {
+            let effects = self.get_tachyon_effects_repository();
+            self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+        }
+
+        // Clear and render background
+        Clear.render(area, frame.buffer_mut());
+        Block::default()
+            .style(Style::default().bg(screen_bg))
+            .render(area, frame.buffer_mut());
+
+        let content_area = area.inner_centered(80, 17);
+        Block::default()
+            .style(Style::default().bg(bg))
+            .render(content_area, frame.buffer_mut());
+
+        let layout = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(7),
+            Constraint::Length(6),
+        ])
+        .split(content_area.inner(Margin::new(1, 1)));
+
+        let anim_style = [
+            Style::default().fg(Color::Rgb(249, 226, 175)),
+            Style::default().fg(Color::Rgb(137, 180, 250)),
+        ];
+        let text_style = Style::default().fg(Color::Rgb(205, 214, 244));
+        let shortcut_style = [
+            Style::default()
+                .fg(Color::Rgb(249, 226, 175))
+                .add_modifier(Modifier::BOLD),
+            Style::default().fg(Color::Rgb(147, 153, 178)),
+        ];
+
+        // Get effects repository
+        let effects = self.get_tachyon_effects_repository();
+        let active_effect_name = effects[self.tachyon_active_effect_idx].0;
+
+        let active_animation = Line::from(vec![
+            Span::from("Active animation: ").style(anim_style[0]),
+            Span::from(active_effect_name).style(anim_style[1]),
+        ]);
+
+        let main_text = Text::from(vec![
+            Line::from("Many effects are composable, e.g. `parallel`, `sequence`, `repeating`."),
+            Line::from("Most effects have a lifetime, after which they report done()."),
+            Line::from("Effects such as `never_complete`, `temporary` influence or override this."),
+            Line::from(""),
+            Line::from("The text in this window will undergo a random transition"),
+            Line::from("when any of the following keys are pressed:"),
+        ])
+        .style(text_style);
+
+        let shortcut = |key: &'static str, desc: &'static str| {
+            Line::from(vec![
+                Span::from(key).style(shortcut_style[0]),
+                Span::from(desc).style(shortcut_style[1]),
+            ])
+        };
+
+        let shortcuts = Text::from(vec![
+            shortcut("→   ", "next transition"),
+            shortcut("←   ", "previous transition"),
+            shortcut("␣   ", "restart transition"),
+            shortcut("r   ", "random transition"),
+            shortcut("s   ", "scramble text toggle"),
+            shortcut("ESC ", "exit animation mode"),
+        ]);
+
+        frame.render_widget(Paragraph::new(active_animation), layout[0]);
+        frame.render_widget(Paragraph::new(main_text), layout[1]);
+        frame.render_widget(Paragraph::new(shortcuts), layout[2]);
+
+        // Apply effect if we have one
+        // if let Some(effect) = &mut self.tachyon_active_effect {
+        //     if effect.running() {
+        //         frame.render_effect(effect, content_area, self.tachyon_last_tick);
+        //     }
+        // }
+    }
+    */
 }
