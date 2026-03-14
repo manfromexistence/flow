@@ -46,6 +46,7 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
+    TachyonEffects,
 }
 
 impl AnimationType {
@@ -60,6 +61,7 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
+            Self::TachyonEffects,
         ]
     }
 
@@ -74,6 +76,7 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo Bounce",
+            Self::TachyonEffects => "TachyonFX Demo",
         }
     }
 }
@@ -127,6 +130,9 @@ pub struct ChatApp {
     pub animation_sequence_active: bool, // Track if '0' key animation sequence is active
     pub current_animation_index: usize,  // Index for animation carousel
     pub animation_mode: bool,            // Whether we're in animation viewing mode
+    pub tachyon_active_effect_idx: usize, // Current tachyon effect index
+    pub tachyon_last_tick: tachyonfx::Duration, // Last frame duration for tachyon effects
+    pub tachyon_active_effect: Option<tachyonfx::Effect>, // Current active tachyon effect
 
     // History
     pub prompt_history: Vec<String>,
@@ -296,6 +302,9 @@ impl ChatApp {
             animation_sequence_active: false,
             current_animation_index: 0,
             animation_mode: false,
+            tachyon_active_effect_idx: 0,
+            tachyon_last_tick: tachyonfx::Duration::ZERO,
+            tachyon_active_effect: None,
             input_area: Rect::default(),
             plan_button_area: Rect::default(),
             model_button_area: Rect::default(),
@@ -410,6 +419,107 @@ impl ChatApp {
     pub fn stop_modal_effect(&mut self) {
         self.current_modal_effect = None;
         self.modal_effect_start_time = None;
+    }
+
+    pub fn get_tachyon_effects_repository(&self) -> Vec<(&'static str, tachyonfx::Effect)> {
+        use std::time::Instant;
+        use ratatui::style::Color;
+        use tachyonfx::{CellFilter, Interpolation, IntoEffect, Motion, SimpleRng, color_from_hsl, fx};
+
+        let screen_bg = Color::Rgb(17, 17, 27);
+        let bg = Color::Rgb(30, 30, 46);
+        let text_color = Color::Rgb(205, 214, 244);
+
+        let slow = tachyonfx::Duration::from_millis(1250);
+        let medium = tachyonfx::Duration::from_millis(750);
+
+        // Custom color cycle effect
+        let custom_color_cycle = fx::effect_fn(Instant::now(), slow, |state, _ctx, cell_iter| {
+            let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
+
+            cell_iter
+                .filter(|(_, cell)| cell.symbol() != " ")
+                .enumerate()
+                .for_each(|(i, (_pos, cell))| {
+                    let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
+                    let color = color_from_hsl(hue, 100.0, 50.0);
+                    cell.set_fg(color);
+                });
+        })
+        .with_filter(CellFilter::FgColor(text_color));
+
+        vec![
+            (
+                "sweep in",
+                fx::sweep_in(Motion::LeftToRight, 30, 0, screen_bg, (slow, Interpolation::QuadOut)),
+            ),
+            (
+                "smooth expand and reversed",
+                fx::sequence(&[
+                    fx::expand(
+                        tachyonfx::fx::ExpandDirection::Vertical,
+                        ratatui::style::Style::new().fg(bg).bg(screen_bg),
+                        1200,
+                    ),
+                    fx::sleep(slow),
+                    fx::expand(
+                        tachyonfx::fx::ExpandDirection::Horizontal,
+                        ratatui::style::Style::new().fg(bg).bg(screen_bg),
+                        1200,
+                    )
+                    .reversed(),
+                ]),
+            ),
+            (
+                "irregular sweep out/sweep in",
+                fx::sequence(&[
+                    fx::sweep_out(Motion::DownToUp, 5, 20, bg, (2000, Interpolation::QuadOut)),
+                    fx::sweep_in(Motion::UpToDown, 5, 20, bg, (2000, Interpolation::QuadOut)),
+                    fx::sweep_out(Motion::UpToDown, 5, 20, bg, (2000, Interpolation::QuadOut)),
+                    fx::sweep_in(Motion::DownToUp, 5, 20, bg, (2000, Interpolation::QuadOut)),
+                ]),
+            ),
+            (
+                "coalesce",
+                fx::sequence(&[
+                    fx::coalesce((medium, Interpolation::CubicOut)),
+                    fx::sleep(medium),
+                    fx::prolong_end(
+                        medium,
+                        fx::dissolve_to(ratatui::style::Style::default().bg(screen_bg), medium),
+                    ),
+                ]),
+            ),
+            (
+                "slide in/out",
+                fx::repeating(fx::sequence(&[
+                    fx::parallel(&[
+                        fx::fade_from_fg(bg, (2000, Interpolation::ExpoInOut)),
+                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
+                    ]),
+                    fx::sleep(medium),
+                    fx::prolong_end(
+                        medium,
+                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, medium),
+                    ),
+                ])),
+            ),
+            (
+                "change hue, saturation and lightness",
+                fx::sequence(&[
+                    fx::hsl_shift_fg([360.0, 0.0, 0.0], medium),
+                    fx::hsl_shift_fg([0.0, -100.0, 0.0], medium),
+                    fx::hsl_shift_fg([0.0, -100.0, 0.0], medium).reversed(),
+                    fx::hsl_shift_fg([0.0, 100.0, 0.0], medium),
+                    fx::hsl_shift_fg([0.0, 100.0, 0.0], medium).reversed(),
+                    fx::hsl_shift_fg([0.0, 0.0, -100.0], medium),
+                    fx::hsl_shift_fg([0.0, 0.0, -100.0], medium).reversed(),
+                    fx::hsl_shift_fg([0.0, 0.0, 100.0], medium),
+                    fx::hsl_shift_fg([0.0, 0.0, 100.0], medium).reversed(),
+                ]),
+            ),
+            ("custom color cycle", fx::never_complete(custom_color_cycle)),
+        ]
     }
 
     pub fn send_message(&mut self, content: String) {

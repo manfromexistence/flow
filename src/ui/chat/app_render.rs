@@ -18,9 +18,12 @@ use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
+        // Update tachyon effects timing
+        let elapsed = self.last_render.elapsed();
+        self.tachyon_last_tick = tachyonfx::Duration::from(elapsed);
+
         // Update effects demo if it's showing
         if self.show_effects_demo_modal {
-            let elapsed = self.last_render.elapsed();
             self.effects_demo.update(elapsed);
         }
 
@@ -107,6 +110,9 @@ impl ChatApp {
                 }
                 AnimationType::DVDLogo => {
                     self.render_dvdlogo_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::TachyonEffects => {
+                    self.render_tachyon_effects_in_area(chunks[0], frame);
                 }
             }
 
@@ -1624,5 +1630,98 @@ impl ChatApp {
         Paragraph::new(lines)
             .style(Style::default().bg(bg_color))
             .render(area, frame.buffer_mut());
+    }
+
+    fn render_tachyon_effects_in_area(&mut self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::layout::{Constraint, Layout, Margin};
+        use ratatui::style::{Color, Modifier, Style};
+        use ratatui::text::{Line, Span, Text};
+        use ratatui::widgets::{Block, Clear, Paragraph, Widget};
+        use tachyonfx::{CenteredShrink, EffectRenderer};
+
+        let screen_bg = Color::Rgb(17, 17, 27);
+        let bg = Color::Rgb(30, 30, 46);
+
+        // Initialize effect if not present or if index changed
+        if self.tachyon_active_effect.is_none() {
+            let effects = self.get_tachyon_effects_repository();
+            self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+        }
+
+        // Clear and render background
+        Clear.render(area, frame.buffer_mut());
+        Block::default()
+            .style(Style::default().bg(screen_bg))
+            .render(area, frame.buffer_mut());
+
+        let content_area = area.inner_centered(80, 17);
+        Block::default()
+            .style(Style::default().bg(bg))
+            .render(content_area, frame.buffer_mut());
+
+        let layout = Layout::vertical([
+            Constraint::Length(2),
+            Constraint::Length(7),
+            Constraint::Length(6),
+        ])
+        .split(content_area.inner(Margin::new(1, 1)));
+
+        let anim_style = [
+            Style::default().fg(Color::Rgb(249, 226, 175)),
+            Style::default().fg(Color::Rgb(137, 180, 250)),
+        ];
+        let text_style = Style::default().fg(Color::Rgb(205, 214, 244));
+        let shortcut_style = [
+            Style::default()
+                .fg(Color::Rgb(249, 226, 175))
+                .add_modifier(Modifier::BOLD),
+            Style::default().fg(Color::Rgb(147, 153, 178)),
+        ];
+
+        // Get effects repository
+        let effects = self.get_tachyon_effects_repository();
+        let active_effect_name = effects[self.tachyon_active_effect_idx].0;
+
+        let active_animation = Line::from(vec![
+            Span::from("Active animation: ").style(anim_style[0]),
+            Span::from(active_effect_name).style(anim_style[1]),
+        ]);
+
+        let main_text = Text::from(vec![
+            Line::from("Many effects are composable, e.g. `parallel`, `sequence`, `repeating`."),
+            Line::from("Most effects have a lifetime, after which they report done()."),
+            Line::from("Effects such as `never_complete`, `temporary` influence or override this."),
+            Line::from(""),
+            Line::from("The text in this window will undergo a random transition"),
+            Line::from("when any of the following keys are pressed:"),
+        ])
+        .style(text_style);
+
+        let shortcut = |key: &'static str, desc: &'static str| {
+            Line::from(vec![
+                Span::from(key).style(shortcut_style[0]),
+                Span::from(desc).style(shortcut_style[1]),
+            ])
+        };
+
+        let shortcuts = Text::from(vec![
+            shortcut("→   ", "next transition"),
+            shortcut("←   ", "previous transition"),
+            shortcut("␣   ", "restart transition"),
+            shortcut("r   ", "random transition"),
+            shortcut("s   ", "scramble text toggle"),
+            shortcut("ESC ", "exit animation mode"),
+        ]);
+
+        frame.render_widget(Paragraph::new(active_animation), layout[0]);
+        frame.render_widget(Paragraph::new(main_text), layout[1]);
+        frame.render_widget(Paragraph::new(shortcuts), layout[2]);
+
+        // Apply effect if we have one
+        if let Some(effect) = &mut self.tachyon_active_effect {
+            if effect.running() {
+                frame.render_effect(effect, content_area, self.tachyon_last_tick);
+            }
+        }
     }
 }

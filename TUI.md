@@ -1,3 +1,6 @@
+Now here is the thing: the first way to integrate basic effects on our CLI TUI is not working so we will go the other way around. We will copy the code of our current chat TUI to the working Tachyon effects examples at this path "F:\cli\tachyonfx\examples\basic-effects\src" and from there we will show our chat TUI.
+Now here's the thing: in our chat TUI there are many files and code that are useful and many of them are just wasting space there. Please ask me a clarification question about what is useful. Mostly the screens and the chat input are useful but the models in there are totally useless.
+
 Please use the latest rust version 1.94.0 with 2024 edition with all latest rust crates version like tachyonfx crates as its current 0.25.0 and do web search correctly as today is 14 March 2026 and in here please use rust tui with rataui and show diff, todo sidebar, other ai chat related stuffs but don't show chat input as I already created it in my main tui now creating other tui related ui separately!!!
 
 ```rust

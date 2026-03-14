@@ -3,7 +3,7 @@
 use crossterm::event::{self, KeyCode, KeyModifiers};
 use std::time::Instant;
 
-use super::app_state::ChatApp;
+use super::app_state::{AnimationType, ChatApp};
 use super::{
     app_data::Focus,
     app_handlers, app_helpers,
@@ -207,6 +207,10 @@ impl ChatApp {
             }
             (_, _, _) if self.show_effects_demo_modal => {
                 self.handle_effects_demo_modal(key);
+            }
+            // Special handling for TachyonEffects animation mode
+            (_, _, _) if self.animation_mode && self.current_animation_index == AnimationType::all().iter().position(|&t| t == AnimationType::TachyonEffects).unwrap_or(0) => {
+                self.handle_tachyon_effects_key(key);
             }
             // Arrow keys for animation carousel (when input is empty)
             (KeyCode::Left, KeyModifiers::NONE, Focus::Input) if self.input.content.is_empty() => {
@@ -1046,6 +1050,96 @@ impl ChatApp {
             animations[self.current_animation_index].name()
         ));
         self.last_shortcut_time = Instant::now();
+    }
+
+    fn handle_tachyon_effects_key(&mut self, key: event::KeyEvent) {
+        use tachyonfx::SimpleRng;
+
+        match key.code {
+            KeyCode::Esc => {
+                // Exit animation mode
+                self.animation_mode = false;
+                self.tachyon_active_effect = None;
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some("Exited animation mode".to_string());
+                self.last_shortcut_time = Instant::now();
+            }
+            KeyCode::Right => {
+                // Next tachyon effect
+                let effects_count = 7; // Number of tachyon effects
+                self.tachyon_active_effect_idx = (self.tachyon_active_effect_idx + 1) % effects_count;
+                
+                // Load new effect
+                let effects = self.get_tachyon_effects_repository();
+                self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+                
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some(format!("▶ {}", effects[self.tachyon_active_effect_idx].0));
+                self.last_shortcut_time = Instant::now();
+            }
+            KeyCode::Left => {
+                // Previous tachyon effect
+                let effects_count = 7;
+                self.tachyon_active_effect_idx = if self.tachyon_active_effect_idx == 0 {
+                    effects_count - 1
+                } else {
+                    self.tachyon_active_effect_idx - 1
+                };
+                
+                // Load new effect
+                let effects = self.get_tachyon_effects_repository();
+                self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+                
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some(format!("◀ {}", effects[self.tachyon_active_effect_idx].0));
+                self.last_shortcut_time = Instant::now();
+            }
+            KeyCode::Char(' ') => {
+                // Restart current effect - reload it
+                let effects = self.get_tachyon_effects_repository();
+                self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+                
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some("Restarted effect".to_string());
+                self.last_shortcut_time = Instant::now();
+            }
+            KeyCode::Char('r') => {
+                // Random effect
+                let mut rng = SimpleRng::default();
+                let effects_count = 7;
+                self.tachyon_active_effect_idx = (rng.r#gen() % effects_count as u32) as usize;
+                
+                // Load new effect
+                let effects = self.get_tachyon_effects_repository();
+                self.tachyon_active_effect = Some(effects[self.tachyon_active_effect_idx].1.clone());
+                
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some(format!("Random: {}", effects[self.tachyon_active_effect_idx].0));
+                self.last_shortcut_time = Instant::now();
+            }
+            KeyCode::Char('s') => {
+                // Scramble effect - create a glitch effect
+                use tachyonfx::{IntoEffect, fx};
+                
+                let duration = tachyonfx::Duration::from_secs(7);
+                self.tachyon_active_effect = Some(
+                    fx::with_duration(
+                        duration,
+                        tachyonfx::fx::Glitch::builder()
+                            .cell_glitch_ratio(1f32)
+                            .action_start_delay_ms(0..3000)
+                            .action_ms(8000..10_000)
+                            .build()
+                            .into_effect(),
+                    ),
+                );
+                
+                app_helpers::play_sound("click");
+                self.last_shortcut_pressed = Some("Scramble effect".to_string());
+                self.last_shortcut_time = Instant::now();
+            }
+            _ => {}
+        }
     }
 
     fn handle_shortcut_1(&mut self) {
