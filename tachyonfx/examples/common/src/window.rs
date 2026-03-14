@@ -34,10 +34,10 @@ impl OpenWindow {
     }
 
     pub fn processing_content_fx(&mut self, duration: Duration, buf: &mut Buffer, area: Rect) {
-        if let Some(fx) = self.content_fx.as_mut() {
-            if fx.running() {
-                fx.process(duration, buf, area);
-            }
+        if let Some(fx) = self.content_fx.as_mut()
+            && fx.running()
+        {
+            fx.process(duration, buf, area);
         }
     }
 }
