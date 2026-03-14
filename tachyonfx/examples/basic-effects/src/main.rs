@@ -425,8 +425,107 @@ impl App {
 }
 
 // Sample data (same as you provided)
-const OLD_CODE: &str = include_str!("old_code.rs"); // or paste directly
-const NEW_CODE: &str = include_str!("new_code.rs");
+const OLD_CODE: &str = r#"use std::collections::HashMap;
+
+pub struct AuthManager {
+    tokens: HashMap<String, String>,
+    max_retries: u32,
+}
+
+impl AuthManager {
+    pub fn new() -> Self {
+        Self {
+            tokens: HashMap::new(),
+            max_retries: 3,
+        }
+    }
+
+    pub fn verify_token(&self, token: &str) -> bool {
+        self.tokens.contains_key(token)
+    }
+
+    pub fn refresh_token(&mut self, user_id: &str) -> Option<String> {
+        // TODO: implement token refresh
+        let new_token = format!("token_{}", user_id);
+        self.tokens.insert(user_id.to_string(), new_token.clone());
+        Some(new_token)
+    }
+}
+"#;
+
+const NEW_CODE: &str = r#"use std::collections::HashMap;
+use std::time::{Duration, Instant};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum AuthError {
+    #[error("token expired for user {user_id}")]
+    TokenExpired { user_id: String },
+    #[error("max retries ({max}) exceeded")]
+    MaxRetriesExceeded { max: u32 },
+    #[error("invalid token format")]
+    InvalidFormat,
+}
+
+pub struct TokenEntry {
+    pub token: String,
+    pub issued_at: Instant,
+    pub ttl: Duration,
+}
+
+pub struct AuthManager {
+    tokens: HashMap<String, TokenEntry>,
+    max_retries: u32,
+    backoff_base_ms: u64,
+}
+
+impl AuthManager {
+    pub fn new(max_retries: u32, backoff_base_ms: u64) -> Self {
+        Self {
+            tokens: HashMap::new(),
+            max_retries,
+            backoff_base_ms,
+        }
+    }
+
+    pub fn verify_token(&self, token: &str) -> Result<bool, AuthError> {
+        if token.is_empty() {
+            return Err(AuthError::InvalidFormat);
+        }
+        if let Some(entry) = self.tokens.values().find(|e| e.token == token) {
+            if entry.issued_at.elapsed() > entry.ttl {
+                return Err(AuthError::TokenExpired {
+                    user_id: token.to_string(),
+                });
+            }
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub fn refresh_token(&mut self, user_id: &str) -> Result<String, AuthError> {
+        for attempt in 0..self.max_retries {
+            let backoff = Duration::from_millis(
+                self.backoff_base_ms * 2u64.pow(attempt),
+            );
+            std::thread::sleep(backoff);
+
+            let new_token = format!("tok_{}_{}", user_id, attempt);
+            let entry = TokenEntry {
+                token: new_token.clone(),
+                issued_at: Instant::now(),
+                ttl: Duration::from_secs(3600),
+            };
+            self.tokens.insert(user_id.to_string(), entry);
+            return Ok(new_token);
+        }
+        Err(AuthError::MaxRetriesExceeded {
+            max: self.max_retries,
+        })
+    }
+}
+"#;
 const MARKDOWN_RESPONSE: &str = r#"# 🔧 Auth Module Refactoring
 
 ## Summary
