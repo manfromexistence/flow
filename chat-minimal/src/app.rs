@@ -147,9 +147,7 @@ impl ChatApp {
             rainbow_animation: RainbowEffect::new(),
             rainbow_cursor: RainbowEffect::new(),
             shimmer: ShimmerEffect::new(vec![
-                ratatui::style::Color::Rgb(255, 100, 100),
-                ratatui::style::Color::Rgb(100, 255, 100),
-                ratatui::style::Color::Rgb(100, 100, 255),
+                ratatui::style::Color::Rgb(150, 150, 150), // Base gray color
             ]),
             last_render: Instant::now(),
             tachyon_last_tick: Duration::from_secs(0),

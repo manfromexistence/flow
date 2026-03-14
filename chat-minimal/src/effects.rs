@@ -39,16 +39,36 @@ impl ShimmerEffect {
         }
     }
 
-    pub fn current_color(&self) -> Color {
+    /// Get shimmer color at a specific position (0.0 to 1.0)
+    /// This creates a moving gradient effect across the text
+    pub fn shimmer_color_at(&self, position: f32) -> Color {
         let elapsed = self.start_time.elapsed().as_millis() as f32;
         let cycle = (elapsed % self.duration.as_millis() as f32) / self.duration.as_millis() as f32;
+        
+        // Create a moving wave: the shimmer moves from -1.0 to 2.0 across the text
+        // This creates the "sweep" effect
+        let wave_position = -1.0 + (cycle * 3.0);
+        
+        // Calculate distance from the wave center
+        let distance = (position - wave_position).abs();
+        
+        // Create a gradient: bright in the center, fading to base color
+        if distance < 0.3 {
+            // In the shimmer zone - interpolate between base and highlight
+            let t = 1.0 - (distance / 0.3);
+            // Bright white/light color at the center
+            let highlight = Color::Rgb(255, 255, 255);
+            let base = self.colors[0];
+            self.interpolate_color(base, highlight, t * 0.7) // 0.7 for subtle effect
+        } else {
+            // Outside shimmer zone - use base color
+            self.colors[0]
+        }
+    }
 
-        let index = (cycle * (self.colors.len() - 1) as f32) as usize;
-        let next_index = (index + 1).min(self.colors.len() - 1);
-
-        let t = (cycle * (self.colors.len() - 1) as f32) - index as f32;
-
-        self.interpolate_color(self.colors[index], self.colors[next_index], t)
+    pub fn current_color(&self) -> Color {
+        // For backward compatibility - return color at center position
+        self.shimmer_color_at(0.5)
     }
 
     fn interpolate_color(&self, c1: Color, c2: Color, t: f32) -> Color {

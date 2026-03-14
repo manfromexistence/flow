@@ -343,13 +343,22 @@ impl Widget for MessageList<'_> {
                     let content_lines = if msg.content.is_empty() {
                         // Show shimmer loading indicator when content is empty
                         if let (Some(shimmer), Some(indicator)) = (self.shimmer, self.typing_indicator) {
-                            let shimmer_color = shimmer.current_color();
-                            vec![Line::from(vec![Span::styled(
-                                format!("Thinking{}", indicator.text(indicator.is_visible())),
-                                Style::default()
-                                    .fg(shimmer_color)
-                                    .add_modifier(Modifier::ITALIC),
-                            )])]
+                            let text = format!("Thinking{}", indicator.text(indicator.is_visible()));
+                            let mut spans = Vec::new();
+                            
+                            // Apply shimmer effect to each character
+                            for (i, ch) in text.chars().enumerate() {
+                                let position = i as f32 / text.len().max(1) as f32;
+                                let shimmer_color = shimmer.shimmer_color_at(position);
+                                spans.push(Span::styled(
+                                    ch.to_string(),
+                                    Style::default()
+                                        .fg(shimmer_color)
+                                        .add_modifier(Modifier::ITALIC),
+                                ));
+                            }
+                            
+                            vec![Line::from(spans)]
                         } else {
                             vec![Line::from("Thinking...")]
                         }

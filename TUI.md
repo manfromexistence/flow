@@ -1,2 +1,4 @@
-Now here's the thing: our chat tui are really doing only this task but as you can see our chat tui has so many files and folders which are useless. Now editing it is a huge task so that's why I want to create another thread that copies those files and then removes and comments out other useless stuff. Only create a rust thread using the crates needed to show this feature, because these are the real features that we are interested in and all other files in the TOI are just a waste of time now.
-Can you hear my word correctly? Copy these files, copy these important files. As you can see it's barely less than ten files. Copy these files and create a new crate. In that crate use all the crates that are needed to show all these features and use the latest crates of them. Create the new rust crates on this workspace. 
+Now we have to do this:
+1. Configure the chat minimal in the main SRC folder and remove the previous one to the trash folder.
+2. In our TUI we have to add a div and a task sidebar and properly finish it and then configure it again in the Codex.
+3. We have to finish the screen switcher in the website and then create a responsive chat UI in the website.
