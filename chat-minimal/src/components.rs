@@ -200,7 +200,7 @@ impl Message {
             content,
             timestamp: chrono::Local::now(),
             token_count,
-            thinking_expanded: true, // Default to expanded so we can see thinking content
+            thinking_expanded: false, // Start collapsed, will expand when <think> is detected
         }
     }
 }

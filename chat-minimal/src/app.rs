@@ -345,8 +345,21 @@ impl ChatApp {
         if let Ok(chunk) = self.llm_rx.try_recv() {
             if chunk == "\n__END__" {
                 self.is_loading = false;
+                // When streaming ends, collapse thinking accordion if </think> tag is present
+                if let Some(last_msg) = self.messages.last_mut() {
+                    if last_msg.content.contains("</think>") {
+                        last_msg.thinking_expanded = false;
+                    }
+                }
             } else if let Some(last_msg) = self.messages.last_mut() {
                 last_msg.content.push_str(&chunk);
+                
+                // Keep thinking expanded while streaming, but collapse once </think> is received
+                if last_msg.content.contains("</think>") {
+                    last_msg.thinking_expanded = false;
+                } else if last_msg.content.contains("<think>") {
+                    last_msg.thinking_expanded = true;
+                }
             }
         }
 
