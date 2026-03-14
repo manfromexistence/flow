@@ -1,12 +1,12 @@
 use anyhow::Result;
-use reqwest::Client;
-use serde_json::Value;
+// use reqwest::Client;
+// use serde_json::Value;
 
 /// Autocomplete suggestion source
 #[derive(Debug, Clone, PartialEq)]
 pub enum SuggestionSource {
     Local,
-    Remote,
+    // Remote,
 }
 
 /// A single autocomplete suggestion
@@ -311,16 +311,16 @@ const CLI_COMMANDS: &[&str] = &[
 
 /// Autocomplete manager
 pub struct Autocomplete {
-    http_client: Client,
+    // http_client: Client,
 }
 
 impl Autocomplete {
     pub fn new() -> Self {
         Self {
-            http_client: Client::builder()
-                .timeout(std::time::Duration::from_secs(3))
-                .build()
-                .unwrap_or_default(),
+            // http_client: Client::builder()
+            //     .timeout(std::time::Duration::from_secs(3))
+            //     .build()
+            //     .unwrap_or_default(),
         }
     }
 
@@ -333,12 +333,12 @@ impl Autocomplete {
         }
 
         // Get local CLI command matches with fuzzy matching
-        let mut all_suggestions = self.get_local_suggestions(query);
+        let all_suggestions = self.get_local_suggestions(query);
 
-        // Fetch remote suggestions and append them
-        if let Ok(remote_suggestions) = self.get_remote_suggestions(query).await {
-            all_suggestions.extend(remote_suggestions);
-        }
+        // Remote suggestions commented out
+        // if let Ok(remote_suggestions) = self.get_remote_suggestions(query).await {
+        //     all_suggestions.extend(remote_suggestions);
+        // }
 
         Ok(all_suggestions)
     }
@@ -374,7 +374,6 @@ impl Autocomplete {
         CLI_COMMANDS
             .iter()
             .filter(|cmd| fuzzy_match(cmd))
-            .take(3)
             .map(|cmd| {
                 let description = match *cmd {
                     "dx" => "Interactive TUI mode",
@@ -404,49 +403,49 @@ impl Autocomplete {
             .collect()
     }
 
-    /// Fetch remote suggestions from Google's Firefox autocomplete API
-    async fn get_remote_suggestions(&self, query: &str) -> Result<Vec<Suggestion>> {
-        let url = reqwest::Url::parse_with_params(
-            "https://suggestqueries.google.com/complete/search",
-            &[
-                ("output", "firefox"),
-                ("client", "firefox"),
-                ("hl", "en-US"),
-                ("q", query),
-            ],
-        )?;
+    // /// Fetch remote suggestions from Google's Firefox autocomplete API
+    // async fn get_remote_suggestions(&self, query: &str) -> Result<Vec<Suggestion>> {
+    //     let url = reqwest::Url::parse_with_params(
+    //         "https://suggestqueries.google.com/complete/search",
+    //         &[
+    //             ("output", "firefox"),
+    //             ("client", "firefox"),
+    //             ("hl", "en-US"),
+    //             ("q", query),
+    //         ],
+    //     )?;
 
-        let body = self
-            .http_client
-            .get(url)
-            .header(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
-            )
-            .send()
-            .await?
-            .text()
-            .await?;
+    //     let body = self
+    //         .http_client
+    //         .get(url)
+    //         .header(
+    //             "User-Agent",
+    //             "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+    //         )
+    //         .send()
+    //         .await?
+    //         .text()
+    //         .await?;
 
-        // Response format: ["query", ["suggestion1", "suggestion2", ...]]
-        let parsed: Vec<Value> = serde_json::from_str(&body)?;
-        let suggestions = parsed
-            .into_iter()
-            .nth(1)
-            .and_then(|v| v.as_array().cloned())
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .take(10)
-            .map(|text| Suggestion {
-                text: text.clone(),
-                source: SuggestionSource::Remote,
-                description: "Search suggestion".to_string(),
-            })
-            .collect();
+    //     // Response format: ["query", ["suggestion1", "suggestion2", ...]]
+    //     let parsed: Vec<Value> = serde_json::from_str(&body)?;
+    //     let suggestions = parsed
+    //         .into_iter()
+    //         .nth(1)
+    //         .and_then(|v| v.as_array().cloned())
+    //         .unwrap_or_default()
+    //         .into_iter()
+    //         .filter_map(|v| v.as_str().map(|s| s.to_string()))
+    //         .take(10)
+    //         .map(|text| Suggestion {
+    //             text: text.clone(),
+    //             source: SuggestionSource::Remote,
+    //             description: "Search suggestion".to_string(),
+    //         })
+    //         .collect();
 
-        Ok(suggestions)
-    }
+    //     Ok(suggestions)
+    // }
 }
 
 impl Default for Autocomplete {
