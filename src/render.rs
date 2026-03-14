@@ -656,7 +656,7 @@ impl ChatApp {
         // Render smoke above the train
         let smoke_x_offset = x_pos + 6; // position smoke above the smokestack
         for smoke_line in smoke {
-            if smoke_x_offset >= -(train_width as i32) && smoke_x_offset < area.width as i32 {
+            if smoke_x_offset >= -train_width && smoke_x_offset < area.width as i32 {
                 let mut spans = Vec::new();
                 if smoke_x_offset >= 0 {
                     let padding = " ".repeat(smoke_x_offset as usize);
@@ -683,7 +683,7 @@ impl ChatApp {
         }
 
         for (line_idx, line) in train.iter().enumerate() {
-            if x_pos >= -(train_width as i32) && x_pos < area.width as i32 {
+            if x_pos >= -train_width && x_pos < area.width as i32 {
                 if x_pos >= 0 {
                     let padding = " ".repeat(x_pos as usize);
                     let mut spans = vec![Span::raw(padding)];
@@ -728,7 +728,7 @@ impl ChatApp {
         let track_offset = (elapsed_ms / 50) as usize;
         let mut track_spans = Vec::new();
         for x in 0..area.width as usize {
-            let ch = if (x + track_offset) % 4 == 0 {
+            let ch = if (x + track_offset).is_multiple_of(4) {
                 '╫'
             } else {
                 '═'
@@ -800,12 +800,12 @@ impl ChatApp {
 
         for explosion_id in 0..num_explosions {
             // Each explosion has a different center and timing
-            let explosion_offset = explosion_id as u64 * (explosion_cycle_ms / num_explosions);
+            let explosion_offset = explosion_id * (explosion_cycle_ms / num_explosions);
             let local_time = (elapsed_ms.wrapping_add(explosion_offset)) % explosion_cycle_ms;
             let age = local_time as f64 / 1000.0; // seconds since this explosion
 
             // Explosion center - varies per explosion
-            let seed = explosion_id as u64;
+            let seed = explosion_id;
             let center_x = match explosion_id {
                 0 => w as f64 / 2.0,
                 1 => w as f64 / 4.0,
@@ -849,10 +849,8 @@ impl ChatApp {
                     if fade > 0.05 {
                         let char_idx = (particle_seed as usize + (elapsed_ms / 150) as usize)
                             % confetti_chars.len();
-                        let color_idx = (i as usize * 7
-                            + explosion_id as usize * 13
-                            + (elapsed_ms / 60) as usize)
-                            % 50;
+                        let color_idx =
+                            (i * 7 + explosion_id as usize * 13 + (elapsed_ms / 60) as usize) % 50;
                         let c = self.rainbow_animation.rgb_color_at(color_idx);
                         let color = ratatui::style::Color::Rgb(
                             (c.r as f64 * fade) as u8,
@@ -877,7 +875,7 @@ impl ChatApp {
 
         // Render sparkle effects at explosion centers during initial burst
         for explosion_id in 0..num_explosions {
-            let explosion_offset = explosion_id as u64 * (explosion_cycle_ms / num_explosions);
+            let explosion_offset = explosion_id * (explosion_cycle_ms / num_explosions);
             let local_time = (elapsed_ms.wrapping_add(explosion_offset)) % explosion_cycle_ms;
 
             if local_time < 300 {
@@ -922,11 +920,11 @@ impl ChatApp {
         }
 
         let mut lines = Vec::new();
-        for y in 0..h {
+        for row in grid.iter().take(h) {
             let mut spans = Vec::new();
-            for x in 0..w {
-                if let Some((ch, color)) = grid[y][x] {
-                    spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+            for cell in row.iter().take(w) {
+                if let Some((ch, color)) = cell {
+                    spans.push(Span::styled(ch.to_string(), Style::default().fg(*color)));
                 } else {
                     spans.push(Span::raw(" "));
                 }
@@ -969,12 +967,12 @@ impl ChatApp {
 
         // Create initial pattern based on seed_gen for variety
         let seed_hash = seed_gen.wrapping_mul(2654435761);
-        for y in 0..h {
-            for x in 0..w {
+        for (y, row) in grid.iter_mut().enumerate().take(h) {
+            for (x, cell) in row.iter_mut().enumerate().take(w) {
                 let hash = (x.wrapping_mul(374761393) ^ y.wrapping_mul(668265263) ^ seed_hash)
                     .wrapping_mul(2246822519);
                 // ~25% fill rate for interesting patterns
-                grid[y][x] = (hash % 100) < 25;
+                *cell = (hash % 100) < 25;
             }
         }
 
@@ -1038,7 +1036,7 @@ impl ChatApp {
         }
 
         // Pulsing effect based on elapsed time
-        let pulse = ((elapsed * 3.0).sin() * 0.3 + 0.7) as f32;
+        let pulse = (elapsed * 3.0).sin() * 0.3 + 0.7;
 
         let mut lines = Vec::new();
         for y in 0..h {
@@ -1065,8 +1063,8 @@ impl ChatApp {
                 } else if neighbor_count[y][x] > 0 {
                     // Dead cells near alive ones get a subtle animated glow
                     let glow_intensity = neighbor_count[y][x] as f32;
-                    let glow_pulse = ((elapsed * 4.0 + x as f32 * 0.1 + y as f32 * 0.1).sin() * 0.5
-                        + 0.5) as f32;
+                    let glow_pulse =
+                        (elapsed * 4.0 + x as f32 * 0.1 + y as f32 * 0.1).sin() * 0.5 + 0.5;
                     let color_idx = (x + y + (elapsed * 2.0) as usize) % 50;
                     let c = self.rainbow_animation.rgb_color_at(color_idx);
                     let dim = 0.12 * glow_intensity * glow_pulse;
@@ -1250,7 +1248,7 @@ impl ChatApp {
         let x_pos = ((elapsed_ms / cat_speed) as i32 % total_width) - 20;
 
         // Nyan cat ASCII art (just the cat, no rectangle)
-        let cat_art = vec![
+        let cat_art = [
             r#" /\_/\"#,
             r#"( o.o )"#,
             r#" > ^ < "#,
@@ -1362,7 +1360,7 @@ impl ChatApp {
         let elapsed_ms = (elapsed * 1000.0) as u64;
         let bg_color = self.theme_bg_color();
 
-        let logo = vec![
+        let logo = [
             " DDDD  X   X",
             " D   D  X X ",
             " D   D   X  ",
@@ -1448,5 +1446,4 @@ impl ChatApp {
             .style(Style::default().bg(bg_color))
             .render(area, frame.buffer_mut());
     }
-    
 }

@@ -203,12 +203,11 @@ impl ChatApp {
                 break;
             }
 
-            if event::poll(Duration::from_millis(50))? {
-                if let Event::Key(key) = event::read()? {
-                    if key.kind == KeyEventKind::Press {
-                        self.handle_key(key);
-                    }
-                }
+            if event::poll(Duration::from_millis(50))?
+                && let Event::Key(key) = event::read()?
+                && key.kind == KeyEventKind::Press
+            {
+                self.handle_key(key);
             }
 
             self.update();
@@ -218,19 +217,17 @@ impl ChatApp {
 
     fn handle_key(&mut self, key: event::KeyEvent) {
         // Handle thinking accordion toggle with '0' key
-        if key.code == KeyCode::Char('0') {
-            if !self.messages.is_empty() {
-                // Toggle thinking expansion for the last assistant message
-                for msg in self.messages.iter_mut().rev() {
-                    if msg.role == crate::components::MessageRole::Assistant {
-                        msg.thinking_expanded = !msg.thinking_expanded;
-                        break;
-                    }
+        if key.code == KeyCode::Char('0') && !self.messages.is_empty() {
+            // Toggle thinking expansion for the last assistant message
+            for msg in self.messages.iter_mut().rev() {
+                if msg.role == crate::components::MessageRole::Assistant {
+                    msg.thinking_expanded = !msg.thinking_expanded;
+                    break;
                 }
-                return;
             }
+            return;
         }
-        
+
         // Handle scrolling when messages exist
         if !self.messages.is_empty() && self.input.content.is_empty() {
             match key.code {
@@ -250,14 +247,14 @@ impl ChatApp {
                     let total_height = message_list.calculate_total_height();
                     let viewport_height = self.get_chat_viewport_height();
                     let max_scroll = total_height.saturating_sub(viewport_height);
-                    
+
                     self.chat_scroll_offset = (self.chat_scroll_offset + 1).min(max_scroll);
                     return;
                 }
                 _ => {}
             }
         }
-        
+
         // Handle animation navigation when input is empty and no messages
         if self.input.content.is_empty() && self.messages.is_empty() {
             match key.code {
@@ -314,7 +311,7 @@ impl ChatApp {
     fn send_message(&mut self, content: String) {
         // Exit animation mode when sending a message
         self.animation_mode = false;
-        
+
         self.messages.push(Message::user(content.clone()));
         self.is_loading = true;
         self.messages.push(Message::assistant(String::new()));
@@ -346,14 +343,14 @@ impl ChatApp {
             if chunk == "\n__END__" {
                 self.is_loading = false;
                 // When streaming ends, collapse thinking accordion if </think> tag is present
-                if let Some(last_msg) = self.messages.last_mut() {
-                    if last_msg.content.contains("</think>") {
-                        last_msg.thinking_expanded = false;
-                    }
+                if let Some(last_msg) = self.messages.last_mut()
+                    && last_msg.content.contains("</think>")
+                {
+                    last_msg.thinking_expanded = false;
                 }
             } else if let Some(last_msg) = self.messages.last_mut() {
                 last_msg.content.push_str(&chunk);
-                
+
                 // Keep thinking expanded while streaming, but collapse once </think> is received
                 if last_msg.content.contains("</think>") {
                     last_msg.thinking_expanded = false;

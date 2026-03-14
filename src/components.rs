@@ -28,7 +28,7 @@ fn count_tokens(text: &str) -> usize {
 // Simple markdown parser - just returns plain text lines for now
 #[allow(dead_code)]
 fn parse_markdown_to_lines<'a>(content: &'a str, _theme: &'a ChatTheme) -> Vec<Line<'a>> {
-    content.lines().map(|line| Line::from(line)).collect()
+    content.lines().map(Line::from).collect()
 }
 
 // Parse content and extract thinking sections
@@ -90,7 +90,9 @@ fn parse_content_with_thinking<'a>(
             for think_line in &thinking_content {
                 lines.push(Line::from(Span::styled(
                     format!("  {}", think_line),
-                    Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+                    Style::default()
+                        .fg(theme.border)
+                        .add_modifier(Modifier::ITALIC),
                 )));
             }
         } else {
@@ -134,7 +136,9 @@ fn parse_content_with_thinking<'a>(
             for think_line in &thinking_content {
                 lines.push(Line::from(Span::styled(
                     format!("  {}", think_line),
-                    Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+                    Style::default()
+                        .fg(theme.border)
+                        .add_modifier(Modifier::ITALIC),
                 )));
             }
         } else {
@@ -153,17 +157,17 @@ fn parse_content_with_thinking<'a>(
                 ),
             ]));
         }
-        
+
         // Add response content immediately after (no gap)
         for response_line in &response_content {
             lines.push(Line::from(*response_line));
         }
-        
+
         return lines;
     }
 
     // If no thinking tags were found, just return the plain lines
-    content.lines().map(|line| Line::from(line)).collect()
+    content.lines().map(Line::from).collect()
 }
 
 #[derive(Debug, Clone)]
@@ -243,7 +247,7 @@ impl<'a> MessageList<'a> {
             selected_message_index: None,
         }
     }
-    
+
     pub fn with_effects(
         messages: &'a [Message],
         theme: &'a ChatTheme,
@@ -270,13 +274,17 @@ impl<'a> MessageList<'a> {
                     1 // Shimmer "Thinking..." line
                 } else if msg.role == MessageRole::Assistant {
                     // For assistant messages, parse with thinking accordion to get actual line count
-                    let parsed_lines = parse_content_with_thinking(&msg.content, self.theme, msg.thinking_expanded);
+                    let parsed_lines = parse_content_with_thinking(
+                        &msg.content,
+                        self.theme,
+                        msg.thinking_expanded,
+                    );
                     parsed_lines.len()
                 } else {
                     // For user messages, just count lines
                     msg.content.lines().count()
                 };
-                
+
                 match msg.role {
                     MessageRole::User => {
                         // User message: content + header + borders + gap
@@ -421,10 +429,13 @@ impl Widget for MessageList<'_> {
                     // Check if content is empty and show shimmer effect
                     let content_lines = if msg.content.is_empty() {
                         // Show shimmer loading indicator when content is empty
-                        if let (Some(shimmer), Some(indicator)) = (self.shimmer, self.typing_indicator) {
-                            let text = format!("Thinking{}", indicator.text(indicator.is_visible()));
+                        if let (Some(shimmer), Some(indicator)) =
+                            (self.shimmer, self.typing_indicator)
+                        {
+                            let text =
+                                format!("Thinking{}", indicator.text(indicator.is_visible()));
                             let mut spans = Vec::new();
-                            
+
                             // Apply shimmer effect to each character
                             for (i, ch) in text.chars().enumerate() {
                                 let position = i as f32 / text.len().max(1) as f32;
@@ -436,7 +447,7 @@ impl Widget for MessageList<'_> {
                                         .add_modifier(Modifier::ITALIC),
                                 ));
                             }
-                            
+
                             vec![Line::from(spans)]
                         } else {
                             vec![Line::from("Thinking...")]

@@ -44,14 +44,14 @@ impl ShimmerEffect {
     pub fn shimmer_color_at(&self, position: f32) -> Color {
         let elapsed = self.start_time.elapsed().as_millis() as f32;
         let cycle = (elapsed % self.duration.as_millis() as f32) / self.duration.as_millis() as f32;
-        
+
         // Create a moving wave: the shimmer moves from -1.0 to 2.0 across the text
         // This creates the "sweep" effect
         let wave_position = -1.0 + (cycle * 3.0);
-        
+
         // Calculate distance from the wave center
         let distance = (position - wave_position).abs();
-        
+
         // Create a gradient: bright in the center, fading to base color
         if distance < 0.3 {
             // In the shimmer zone - interpolate between base and highlight
@@ -126,7 +126,7 @@ impl TypingIndicator {
 
     pub fn is_visible(&self) -> bool {
         // Blink every 500ms
-        (self.last_update.elapsed().as_millis() / 500) % 2 == 0
+        (self.last_update.elapsed().as_millis() / 500).is_multiple_of(2)
     }
 }
 

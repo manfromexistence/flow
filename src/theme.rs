@@ -88,7 +88,7 @@ impl ChatTheme {
     fn from_theme_sr(_variant: ThemeVariant) -> Result<Self, Box<dyn std::error::Error>> {
         // Temporarily disabled - MachineFormat constructor issue
         // Return dark fallback for now
-        return Ok(Self::dark_fallback());
+        Ok(Self::dark_fallback())
     }
 
     pub fn dark_fallback() -> Self {
