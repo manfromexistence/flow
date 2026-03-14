@@ -1491,8 +1491,8 @@ impl ChatApp {
             .map(|(i, suggestion)| {
                 let is_selected = i == self.selected_suggestion;
 
-                // Calculate available width for text and description
-                let available_width = suggestion_area.width.saturating_sub(4) as usize;
+                // Calculate available width for text and description (remove right padding)
+                let available_width = suggestion_area.width.saturating_sub(2) as usize;
                 let text_width = suggestion.text.len().min(available_width / 2);
                 let desc_width = available_width.saturating_sub(text_width).saturating_sub(2);
 

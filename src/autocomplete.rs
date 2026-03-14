@@ -1,11 +1,12 @@
 use anyhow::Result;
 use reqwest::Client;
-use serde_json::Value;
+// use serde_json::Value;
 
 /// Autocomplete suggestion source
 #[derive(Debug, Clone, PartialEq)]
 pub enum SuggestionSource {
     Local,
+    #[allow(dead_code)]
     Remote,
 }
 
@@ -310,6 +311,7 @@ const CLI_COMMANDS: &[&str] = &[
 
 /// Autocomplete manager
 pub struct Autocomplete {
+    #[allow(dead_code)]
     http_client: Client,
 }
 
@@ -331,29 +333,43 @@ impl Autocomplete {
             return Ok(Vec::new());
         }
 
-        // First, check for local CLI command matches
-        let mut local_suggestions = self.get_local_suggestions(query);
-
-        // If we have enough local matches (5+), return only local suggestions
-        if local_suggestions.len() >= 5 {
-            return Ok(local_suggestions);
-        }
-
-        // Otherwise, fetch remote suggestions and append them
-        if let Ok(remote_suggestions) = self.get_remote_suggestions(query).await {
-            local_suggestions.extend(remote_suggestions);
-        }
+        // Only return local CLI command matches with fuzzy matching
+        let local_suggestions = self.get_local_suggestions(query);
 
         Ok(local_suggestions)
     }
 
-    /// Get local CLI command suggestions
+    /// Get local CLI command suggestions with fuzzy matching
     fn get_local_suggestions(&self, query: &str) -> Vec<Suggestion> {
         let query_lower = query.to_lowercase();
 
+        // Fuzzy match: check if all characters in query appear in order in the command
+        let fuzzy_match = |cmd: &str| -> bool {
+            let cmd_lower = cmd.to_lowercase();
+            let mut query_chars = query_lower.chars();
+            let mut current_char = query_chars.next();
+
+            if current_char.is_none() {
+                return true;
+            }
+
+            for cmd_char in cmd_lower.chars() {
+                if let Some(qc) = current_char
+                    && cmd_char == qc
+                {
+                    current_char = query_chars.next();
+                    if current_char.is_none() {
+                        return true;
+                    }
+                }
+            }
+
+            current_char.is_none()
+        };
+
         CLI_COMMANDS
             .iter()
-            .filter(|cmd| cmd.to_lowercase().starts_with(&query_lower))
+            .filter(|cmd| fuzzy_match(cmd))
             .take(20)
             .map(|cmd| {
                 let description = match *cmd {
@@ -384,49 +400,49 @@ impl Autocomplete {
             .collect()
     }
 
-    /// Fetch remote suggestions from Google's Firefox autocomplete API
-    async fn get_remote_suggestions(&self, query: &str) -> Result<Vec<Suggestion>> {
-        let url = reqwest::Url::parse_with_params(
-            "https://suggestqueries.google.com/complete/search",
-            &[
-                ("output", "firefox"),
-                ("client", "firefox"),
-                ("hl", "en-US"),
-                ("q", query),
-            ],
-        )?;
+    // /// Fetch remote suggestions from Google's Firefox autocomplete API
+    // async fn get_remote_suggestions(&self, query: &str) -> Result<Vec<Suggestion>> {
+    //     let url = reqwest::Url::parse_with_params(
+    //         "https://suggestqueries.google.com/complete/search",
+    //         &[
+    //             ("output", "firefox"),
+    //             ("client", "firefox"),
+    //             ("hl", "en-US"),
+    //             ("q", query),
+    //         ],
+    //     )?;
 
-        let body = self
-            .http_client
-            .get(url)
-            .header(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
-            )
-            .send()
-            .await?
-            .text()
-            .await?;
+    //     let body = self
+    //         .http_client
+    //         .get(url)
+    //         .header(
+    //             "User-Agent",
+    //             "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+    //         )
+    //         .send()
+    //         .await?
+    //         .text()
+    //         .await?;
 
-        // Response format: ["query", ["suggestion1", "suggestion2", ...]]
-        let parsed: Vec<Value> = serde_json::from_str(&body)?;
-        let suggestions = parsed
-            .into_iter()
-            .nth(1)
-            .and_then(|v| v.as_array().cloned())
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-            .take(10)
-            .map(|text| Suggestion {
-                text: text.clone(),
-                source: SuggestionSource::Remote,
-                description: "Search suggestion".to_string(),
-            })
-            .collect();
+    //     // Response format: ["query", ["suggestion1", "suggestion2", ...]]
+    //     let parsed: Vec<Value> = serde_json::from_str(&body)?;
+    //     let suggestions = parsed
+    //         .into_iter()
+    //         .nth(1)
+    //         .and_then(|v| v.as_array().cloned())
+    //         .unwrap_or_default()
+    //         .into_iter()
+    //         .filter_map(|v| v.as_str().map(|s| s.to_string()))
+    //         .take(10)
+    //         .map(|text| Suggestion {
+    //             text: text.clone(),
+    //             source: SuggestionSource::Remote,
+    //             description: "Search suggestion".to_string(),
+    //         })
+    //         .collect();
 
-        Ok(suggestions)
-    }
+    //     Ok(suggestions)
+    // }
 }
 
 impl Default for Autocomplete {
