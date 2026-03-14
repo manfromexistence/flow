@@ -432,15 +432,8 @@ impl ChatApp {
         let inner = block.inner(area);
         block.render(area, buf);
 
-        let padded = Rect {
-            x: inner.x + 2,
-            y: inner.y,
-            width: inner.width.saturating_sub(4),
-            height: inner.height,
-        };
-
-        self.render_input_text(padded, buf);
-        self.render_input_cursor(padded, buf);
+        self.render_input_text(inner, buf);
+        self.render_input_cursor(inner, buf);
     }
 
     fn render_input_text(&self, area: Rect, buf: &mut Buffer) {
@@ -580,13 +573,6 @@ impl ChatApp {
 
         let spinner_width = if self.is_loading { 2 } else { 0 };
 
-        let padded = Rect {
-            x: area.x + 1,
-            y: area.y,
-            width: area.width.saturating_sub(2),
-            height: area.height,
-        };
-
         let mut constraints = vec![
             Constraint::Length(local_width),
             Constraint::Length(1),
@@ -607,7 +593,7 @@ impl ChatApp {
         let bottom_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(constraints)
-            .split(padded);
+            .split(area);
 
         Paragraph::new(Span::styled(
             &self.selected_local_mode,

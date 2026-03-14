@@ -41,8 +41,8 @@ impl EffectsDemoModal {
     pub fn update(&mut self, elapsed: std::time::Duration) {
         self.last_tick = elapsed.into();
 
-        // Auto-cycle through effects every 3 seconds
-        if self.auto_cycle && self.last_cycle_time.elapsed().as_secs() >= 3 {
+        // Auto-cycle through effects every 2 seconds (faster)
+        if self.auto_cycle && self.last_cycle_time.elapsed().as_secs() >= 2 {
             let fx_idx = (self.active_effect_idx + 1) % self.effects.len();
             self.active_effect = self.effects.get_effect(fx_idx);
             self.active_effect_idx = fx_idx;
@@ -159,11 +159,15 @@ pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, demo: &mut Effect
         Span::from("Active animation: ").style(anim_style[0]),
         Span::from(demo.active_effect.0).style(anim_style[1]),
         Span::from(format!(
-            " ({}/{})",
+            " [{}/{}]",
             demo.active_effect_idx + 1,
             demo.effects.len()
         ))
-        .style(text_style),
+        .style(
+            Style::default()
+                .fg(Color::Rgb(250, 189, 47))
+                .add_modifier(Modifier::BOLD),
+        ),
     ]);
 
     let main_text = Text::from(vec![
@@ -172,7 +176,7 @@ pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, demo: &mut Effect
         Line::from("Effects such as `never_complete`, `temporary` influence or override this."),
         Line::from(""),
         Line::from("The text in this window will undergo transitions automatically"),
-        Line::from("every 3 seconds, or use the following keys:"),
+        Line::from("every 2 seconds, or use the following keys:"),
     ])
     .style(text_style);
 
@@ -221,8 +225,8 @@ impl EffectsRepository {
         let screen_bg = Color::Black;
         let bg = Color::Rgb(40, 40, 40); // Dark gray (Dark0Soft equivalent)
 
-        let slow = Duration::from_millis(1250);
-        let medium = Duration::from_millis(750);
+        let slow = Duration::from_millis(600);
+        let medium = Duration::from_millis(400);
 
         // fx from lambdas
         let custom_color_cycle = fx::effect_fn(Instant::now(), slow, |state, _ctx, cell_iter| {
@@ -256,23 +260,23 @@ impl EffectsRepository {
                     fx::expand(
                         ExpandDirection::Vertical,
                         Style::new().fg(bg).bg(screen_bg),
-                        (1200, Interpolation::BounceOut),
+                        (600, Interpolation::BounceOut),
                     ),
                     fx::sleep(slow),
                     fx::expand(
                         ExpandDirection::Horizontal,
                         Style::new().fg(bg).bg(screen_bg),
-                        (1200, Interpolation::BounceOut),
+                        (600, Interpolation::BounceOut),
                     ),
                 ]),
             ),
             (
                 "irregular sweep out/sweep in",
                 sequence(&[
-                    fx::sweep_out(Motion::DownToUp, 5, 20, bg, (2000, Interpolation::QuadOut)),
-                    fx::sweep_in(Motion::UpToDown, 5, 20, bg, (2000, Interpolation::QuadOut)),
-                    fx::sweep_out(Motion::UpToDown, 5, 20, bg, (2000, Interpolation::QuadOut)),
-                    fx::sweep_in(Motion::DownToUp, 5, 20, bg, (2000, Interpolation::QuadOut)),
+                    fx::sweep_out(Motion::DownToUp, 5, 20, bg, (800, Interpolation::QuadOut)),
+                    fx::sweep_in(Motion::UpToDown, 5, 20, bg, (800, Interpolation::QuadOut)),
+                    fx::sweep_out(Motion::UpToDown, 5, 20, bg, (800, Interpolation::QuadOut)),
+                    fx::sweep_in(Motion::DownToUp, 5, 20, bg, (800, Interpolation::QuadOut)),
                 ]),
             ),
             (
@@ -290,7 +294,7 @@ impl EffectsRepository {
                 "slide in/out",
                 fx::repeating(sequence(&[
                     parallel(&[
-                        fx::fade_from_fg(bg, (2000, Interpolation::ExpoInOut)),
+                        fx::fade_from_fg(bg, (800, Interpolation::ExpoInOut)),
                         fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
                     ]),
                     fx::sleep(medium),

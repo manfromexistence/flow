@@ -1012,15 +1012,15 @@ impl ChatApp {
         use super::app_state::AnimationType;
         let animations = AnimationType::all();
 
-        if self.animation_mode {
+        if !self.animation_mode {
+            self.animation_mode = true;
+            self.current_animation_index = animations.len() - 1;
+        } else {
             if self.current_animation_index == 0 {
                 self.current_animation_index = animations.len() - 1;
             } else {
                 self.current_animation_index -= 1;
             }
-        } else {
-            self.animation_mode = true;
-            self.current_animation_index = 0;
         }
 
         self.animation_start_time = Some(Instant::now());
@@ -1036,11 +1036,12 @@ impl ChatApp {
         use super::app_state::AnimationType;
         let animations = AnimationType::all();
 
-        if self.animation_mode {
-            self.current_animation_index = (self.current_animation_index + 1) % animations.len();
-        } else {
+        if !self.animation_mode {
             self.animation_mode = true;
-            self.current_animation_index = 0;
+            // Skip Splash (index 0) if messages are empty since it's already showing
+            self.current_animation_index = if self.messages.is_empty() { 1 } else { 0 };
+        } else {
+            self.current_animation_index = (self.current_animation_index + 1) % animations.len();
         }
 
         self.animation_start_time = Some(Instant::now());
