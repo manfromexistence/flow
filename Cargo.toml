@@ -21,19 +21,15 @@ sysinfo = "0.32"
 
 # Error Handling
 anyhow = "1.0"
-thiserror = "2.0"
 
 # Time
-chrono = { version = "0.4", features = ["serde"] }
+chrono = "0.4"
 
 # FIGlet fonts
 dx-font = { path = "./font" }
 
 # Animations
 tachyonfx = { path = "./tachyonfx" }
-
-# Serialization
-serde = { version = "1.0", features = ["derive"] }
 
 # Clipboard
 cli-clipboard = "0.4"
@@ -44,8 +40,8 @@ figlet-rs = "0.1"
 # Token counting
 tiktoken-rs = "0.9"
 
-[build-dependencies]
-serializer = { package = "dx-serializer", path = "./serializer" }
+# [build-dependencies]
+# serializer = { package = "dx-serializer", path = "./serializer" }
 
 [profile.release]
 opt-level = 3
