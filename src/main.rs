@@ -6,6 +6,7 @@ mod input;
 mod llm;
 mod render;
 mod splash;
+mod tachyonfx;
 mod theme;
 
 use anyhow::Result;

@@ -21,6 +21,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
+use tachyonfx::Effect;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnimationType {
@@ -33,6 +34,14 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
+    // Tachyonfx effects
+    TachyonSweepIn,
+    TachyonExpand,
+    TachyonSweepOut,
+    TachyonCoalesce,
+    TachyonSlide,
+    TachyonHslShift,
+    TachyonColorCycle,
 }
 
 impl AnimationType {
@@ -47,6 +56,13 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
+            Self::TachyonSweepIn,
+            Self::TachyonExpand,
+            Self::TachyonSweepOut,
+            Self::TachyonCoalesce,
+            Self::TachyonSlide,
+            Self::TachyonHslShift,
+            Self::TachyonColorCycle,
         ]
     }
 
@@ -62,6 +78,13 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo",
+            Self::TachyonSweepIn => "Tachyon: Sweep In",
+            Self::TachyonExpand => "Tachyon: Expand",
+            Self::TachyonSweepOut => "Tachyon: Sweep Out/In",
+            Self::TachyonCoalesce => "Tachyon: Coalesce",
+            Self::TachyonSlide => "Tachyon: Slide In/Out",
+            Self::TachyonHslShift => "Tachyon: HSL Shift",
+            Self::TachyonColorCycle => "Tachyon: Color Cycle",
         }
     }
 }
@@ -131,13 +154,20 @@ pub struct ChatApp {
     pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
+    // Tachyonfx integration
+    pub tachyon_effects: crate::tachyonfx::TachyonEffects,
+    pub current_tachyon_effect: Option<(&'static str, Effect)>,
+    pub tachyon_effect_start: Instant,
 }
 
 impl ChatApp {
     pub fn new() -> Self {
         let (llm_tx, llm_rx) = channel();
+        let theme = ChatTheme::dark_fallback();
+        let tachyon_effects = crate::tachyonfx::TachyonEffects::new(theme.bg, theme.bg);
+        
         Self {
-            theme: ChatTheme::dark_fallback(),
+            theme,
             input: InputState::new(),
             messages: Vec::new(),
             is_loading: false,
@@ -182,6 +212,9 @@ impl ChatApp {
             show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
+            tachyon_effects,
+            current_tachyon_effect: None,
+            tachyon_effect_start: Instant::now(),
         }
     }
 
@@ -375,6 +408,7 @@ impl ChatApp {
             }
         }
         self.animation_start_time = Some(Instant::now());
+        self.init_tachyon_effect_if_needed();
     }
 
     fn handle_animation_next(&mut self) {
@@ -386,6 +420,31 @@ impl ChatApp {
             self.current_animation_index = (self.current_animation_index + 1) % animations.len();
         }
         self.animation_start_time = Some(Instant::now());
+        self.init_tachyon_effect_if_needed();
+    }
+
+    fn init_tachyon_effect_if_needed(&mut self) {
+        let animations = AnimationType::all();
+        let current_anim = animations[self.current_animation_index];
+        
+        // Get tachyon effect index (0-6 for the 7 tachyon effects)
+        let tachyon_idx = match current_anim {
+            AnimationType::TachyonSweepIn => Some(0),
+            AnimationType::TachyonExpand => Some(1),
+            AnimationType::TachyonSweepOut => Some(2),
+            AnimationType::TachyonCoalesce => Some(3),
+            AnimationType::TachyonSlide => Some(4),
+            AnimationType::TachyonHslShift => Some(5),
+            AnimationType::TachyonColorCycle => Some(6),
+            _ => None,
+        };
+
+        if let Some(idx) = tachyon_idx {
+            self.current_tachyon_effect = Some(self.tachyon_effects.get_effect(idx));
+            self.tachyon_effect_start = Instant::now();
+        } else {
+            self.current_tachyon_effect = None;
+        }
     }
 
     fn send_message(&mut self, content: String) {
