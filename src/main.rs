@@ -2,6 +2,7 @@ mod app;
 mod autocomplete;
 mod components;
 mod effects;
+mod gruvbox;
 mod input;
 mod llm;
 mod render;

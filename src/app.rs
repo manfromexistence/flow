@@ -4,6 +4,7 @@ use crate::{
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
     llm::LocalLlm,
+    tachyonfx::TachyonDemo,
     theme::ChatTheme,
 };
 use anyhow::Result;
@@ -21,7 +22,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tachyonfx::Effect;
+use tachyonfx::{Effect, SimpleRng};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnimationType {
@@ -158,6 +159,10 @@ pub struct ChatApp {
     pub tachyon_effects: crate::tachyonfx::TachyonEffects,
     pub current_tachyon_effect: Option<(&'static str, Effect)>,
     pub tachyon_effect_start: Instant,
+    // Tachyonfx demo
+    pub tachyon_demo: TachyonDemo,
+    pub tachyon_rng: SimpleRng,
+    pub last_frame_instant: Instant,
 }
 
 impl ChatApp {
@@ -215,6 +220,9 @@ impl ChatApp {
             tachyon_effects,
             current_tachyon_effect: None,
             tachyon_effect_start: Instant::now(),
+            tachyon_demo: TachyonDemo::new(),
+            tachyon_rng: SimpleRng::default(),
+            last_frame_instant: Instant::now(),
         }
     }
 
@@ -364,12 +372,24 @@ impl ChatApp {
         // Handle animation navigation when input is empty and no messages
         if self.input.content.is_empty() && self.messages.is_empty() {
             match key.code {
-                KeyCode::Left => {
-                    self.handle_animation_previous();
+                KeyCode::Left | KeyCode::Backspace => {
+                    self.tachyon_demo.prev_effect();
                     return;
                 }
-                KeyCode::Right => {
-                    self.handle_animation_next();
+                KeyCode::Right | KeyCode::Enter => {
+                    self.tachyon_demo.next_effect();
+                    return;
+                }
+                KeyCode::Char(' ') => {
+                    self.tachyon_demo.restart_effect();
+                    return;
+                }
+                KeyCode::Char('r') => {
+                    self.tachyon_demo.random_effect(&mut self.tachyon_rng);
+                    return;
+                }
+                KeyCode::Char('s') => {
+                    self.tachyon_demo.scramble_effect();
                     return;
                 }
                 _ => {}
@@ -507,6 +527,11 @@ impl ChatApp {
             self.splash_font_index = (self.splash_font_index + 1) % 382;
             self.last_font_change = Instant::now();
         }
+
+        // Update tachyon demo
+        let elapsed = self.last_frame_instant.elapsed();
+        self.tachyon_demo.update(elapsed);
+        self.last_frame_instant = Instant::now();
     }
 
     /// Get the chat viewport height (terminal height - input box - status bar)

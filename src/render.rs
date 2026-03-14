@@ -158,13 +158,8 @@ impl ChatApp {
         self.input_area = chunks[1];
 
         if self.messages.is_empty() {
-            crate::splash::render(
-                chunks[0],
-                frame.buffer_mut(),
-                &self.theme,
-                self.splash_font_index,
-                &self.rainbow_animation,
-            );
+            // Show tachyon demo instead of splash
+            self.tachyon_demo.render(frame);
         } else {
             MessageList::with_effects(
                 &self.messages,
