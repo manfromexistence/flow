@@ -1,4 +1,5 @@
 mod app;
+mod autocomplete;
 mod components;
 mod effects;
 mod input;

@@ -39,6 +39,11 @@ impl ChatApp {
             // Still render the input bar and bottom controls
             self.render_input_box(chunks[1], frame.buffer_mut());
 
+            // Render autocomplete suggestions if visible
+            if self.show_suggestions {
+                self.render_suggestions(frame, chunks[1]);
+            }
+
             let (plan_area, model_area, _token_area, local_area) =
                 self.render_bottom_controls(chunks[2], frame.buffer_mut());
 
@@ -104,6 +109,12 @@ impl ChatApp {
 
             // Render input box and bottom controls
             self.render_input_box(chunks[1], frame.buffer_mut());
+
+            // Render autocomplete suggestions if visible
+            if self.show_suggestions {
+                self.render_suggestions(frame, chunks[1]);
+            }
+
             let (plan_area, model_area, _token_area, local_area) =
                 self.render_bottom_controls(chunks[2], frame.buffer_mut());
 
@@ -156,6 +167,11 @@ impl ChatApp {
         }
 
         self.render_input_box(chunks[1], frame.buffer_mut());
+
+        // Render autocomplete suggestions if visible
+        if self.show_suggestions {
+            self.render_suggestions(frame, chunks[1]);
+        }
 
         let (plan_area, model_area, _token_area, local_area) =
             self.render_bottom_controls(chunks[2], frame.buffer_mut());
@@ -1445,5 +1461,126 @@ impl ChatApp {
         Paragraph::new(lines)
             .style(Style::default().bg(bg_color))
             .render(area, frame.buffer_mut());
+    }
+
+    /// Render autocomplete suggestions overlay
+    pub fn render_suggestions(&self, frame: &mut ratatui::Frame, input_area: Rect) {
+        use crate::autocomplete::SuggestionSource;
+        use ratatui::style::{Modifier, Style};
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
+
+        if !self.show_suggestions || self.suggestions.is_empty() {
+            return;
+        }
+
+        // Calculate suggestion box position (above input box)
+        let max_height = 10.min(self.suggestions.len() as u16 + 2);
+        let suggestion_area = Rect {
+            x: input_area.x,
+            y: input_area.y.saturating_sub(max_height),
+            width: input_area.width,
+            height: max_height,
+        };
+
+        // Create list items
+        let items: Vec<ListItem> = self
+            .suggestions
+            .iter()
+            .enumerate()
+            .map(|(i, suggestion)| {
+                let is_selected = i == self.selected_suggestion;
+
+                // Calculate available width for text and description
+                let available_width = suggestion_area.width.saturating_sub(4) as usize;
+                let text_width = suggestion.text.len().min(available_width / 2);
+                let desc_width = available_width.saturating_sub(text_width).saturating_sub(2);
+
+                // Truncate text if needed
+                let display_text = if suggestion.text.len() > text_width {
+                    format!("{}...", &suggestion.text[..text_width.saturating_sub(3)])
+                } else {
+                    suggestion.text.clone()
+                };
+
+                // Truncate description if needed
+                let display_desc = if suggestion.description.len() > desc_width {
+                    format!(
+                        "{}...",
+                        &suggestion.description[..desc_width.saturating_sub(3)]
+                    )
+                } else {
+                    suggestion.description.clone()
+                };
+
+                // Calculate padding between text and description
+                let padding_len = available_width
+                    .saturating_sub(display_text.len())
+                    .saturating_sub(display_desc.len());
+                let padding = " ".repeat(padding_len);
+
+                let (text_style, desc_style) = if is_selected {
+                    (
+                        Style::default()
+                            .fg(self.theme.bg)
+                            .bg(self.theme.accent)
+                            .add_modifier(Modifier::BOLD),
+                        Style::default().fg(self.theme.bg).bg(self.theme.accent),
+                    )
+                } else {
+                    (
+                        Style::default().fg(self.theme.fg),
+                        Style::default().fg(self.theme.muted_fg),
+                    )
+                };
+
+                let line = Line::from(vec![
+                    Span::styled(display_text, text_style),
+                    Span::styled(padding, text_style),
+                    Span::styled(display_desc, desc_style),
+                ]);
+
+                ListItem::new(line)
+            })
+            .collect();
+
+        // Create the list widget
+        let title = if let Some(first) = self.suggestions.first() {
+            match first.source {
+                SuggestionSource::Local => " CLI Commands ",
+                SuggestionSource::Remote => " Search Suggestions ",
+            }
+        } else {
+            " Suggestions "
+        };
+
+        let list = List::new(items).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(self.theme.border))
+                .title(title)
+                .style(Style::default().bg(self.theme.bg)),
+        );
+
+        frame.render_widget(list, suggestion_area);
+
+        // Render hint at the bottom with proper theme colors
+        let hint = Paragraph::new(Line::from(vec![
+            Span::styled("↑↓", Style::default().fg(self.theme.accent)),
+            Span::styled(" Navigate  ", Style::default().fg(self.theme.muted_fg)),
+            Span::styled("Enter", Style::default().fg(self.theme.accent)),
+            Span::styled(" Select  ", Style::default().fg(self.theme.muted_fg)),
+            Span::styled("Esc", Style::default().fg(self.theme.accent)),
+            Span::styled(" Close", Style::default().fg(self.theme.muted_fg)),
+        ]));
+
+        let hint_area = Rect {
+            x: suggestion_area.x + 2,
+            y: suggestion_area.y + suggestion_area.height.saturating_sub(1),
+            width: suggestion_area.width.saturating_sub(4),
+            height: 1,
+        };
+
+        frame.render_widget(hint, hint_area);
     }
 }

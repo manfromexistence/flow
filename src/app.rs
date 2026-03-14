@@ -1,4 +1,5 @@
 use crate::{
+    autocomplete::{Autocomplete, Suggestion},
     components::Message,
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
@@ -123,6 +124,13 @@ pub struct ChatApp {
     pub selected_local_mode: String,
     #[allow(dead_code)]
     pub selected_model: String,
+    // Autocomplete
+    pub autocomplete: Autocomplete,
+    pub suggestions: Vec<Suggestion>,
+    pub selected_suggestion: usize,
+    pub show_suggestions: bool,
+    pub last_input_change: Instant,
+    pub last_input_content: String,
 }
 
 impl ChatApp {
@@ -168,6 +176,12 @@ impl ChatApp {
             mode: 0,
             selected_local_mode: "Local".to_string(),
             selected_model: "Qwen3.5-0.8B".to_string(),
+            autocomplete: Autocomplete::new(),
+            suggestions: Vec::new(),
+            selected_suggestion: 0,
+            show_suggestions: false,
+            last_input_change: Instant::now(),
+            last_input_content: String::new(),
         }
     }
 
@@ -182,7 +196,7 @@ impl ChatApp {
         let backend = CrosstermBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
-        let result = self.run_loop(&mut terminal);
+        let result = self.run_loop(&mut terminal).await;
 
         disable_raw_mode()?;
         execute!(
@@ -195,12 +209,39 @@ impl ChatApp {
         result
     }
 
-    fn run_loop(&mut self, terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
+    async fn run_loop(
+        &mut self,
+        terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    ) -> Result<()> {
         loop {
             terminal.draw(|f| self.render(f))?;
 
             if self.should_quit {
                 break;
+            }
+
+            // Check if we should fetch autocomplete suggestions
+            if !self.input.content.is_empty()
+                && self.input.content != self.last_input_content
+                && self.last_input_change.elapsed() > Duration::from_millis(300)
+            {
+                // Fetch suggestions asynchronously
+                if let Ok(suggestions) =
+                    self.autocomplete.get_suggestions(&self.input.content).await
+                    && !suggestions.is_empty()
+                {
+                    self.suggestions = suggestions;
+                    self.selected_suggestion = 0;
+                    self.show_suggestions = true;
+                    self.last_input_content = self.input.content.clone();
+                }
+                // Reset timer to allow next fetch after 300ms
+                self.last_input_change = Instant::now();
+            } else if self.input.content.is_empty() {
+                // Clear suggestions when input is empty
+                self.show_suggestions = false;
+                self.suggestions.clear();
+                self.last_input_content.clear();
             }
 
             if event::poll(Duration::from_millis(50))?
@@ -216,6 +257,38 @@ impl ChatApp {
     }
 
     fn handle_key(&mut self, key: event::KeyEvent) {
+        // Handle autocomplete navigation when suggestions are visible
+        if self.show_suggestions && !self.suggestions.is_empty() {
+            match key.code {
+                KeyCode::Up => {
+                    self.selected_suggestion = self.selected_suggestion.saturating_sub(1);
+                    return;
+                }
+                KeyCode::Down => {
+                    self.selected_suggestion =
+                        (self.selected_suggestion + 1).min(self.suggestions.len() - 1);
+                    return;
+                }
+                KeyCode::Enter => {
+                    // Apply selected suggestion
+                    if let Some(suggestion) = self.suggestions.get(self.selected_suggestion) {
+                        self.input.content = suggestion.text.clone();
+                        self.input.cursor_position = suggestion.text.len();
+                        self.show_suggestions = false;
+                        self.suggestions.clear();
+                    }
+                    return;
+                }
+                KeyCode::Esc => {
+                    // Hide suggestions
+                    self.show_suggestions = false;
+                    self.suggestions.clear();
+                    return;
+                }
+                _ => {}
+            }
+        }
+
         // Handle thinking accordion toggle with '0' key
         if key.code == KeyCode::Char('0') && !self.messages.is_empty() {
             // Toggle thinking expansion for the last assistant message
@@ -274,9 +347,16 @@ impl ChatApp {
         match action {
             InputAction::Submit(msg) => {
                 self.send_message(msg);
+                self.show_suggestions = false;
+                self.suggestions.clear();
             }
             InputAction::Exit => {
                 self.should_quit = true;
+            }
+            InputAction::Changed => {
+                // Input changed, trigger autocomplete
+                self.last_input_change = Instant::now();
+                self.selected_suggestion = 0;
             }
             _ => {}
         }

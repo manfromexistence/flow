@@ -84,7 +84,7 @@ impl InputState {
                         self.insert_char(c);
                     }
                 }
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Backspace, KeyModifiers::CONTROL) => {
                 // Clear all text
@@ -92,7 +92,7 @@ impl InputState {
                 self.cursor_position = 0;
                 self.scroll_offset = 0;
                 self.clear_selection();
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Enter, KeyModifiers::NONE) if !self.content.trim().is_empty() => {
                 let msg = self.content.clone();
@@ -115,7 +115,7 @@ impl InputState {
                 } else {
                     self.delete_char();
                 }
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Delete, _) => {
                 if self.has_selection() {
@@ -123,7 +123,7 @@ impl InputState {
                 } else {
                     self.delete_char_forward();
                 }
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Left, KeyModifiers::SHIFT) => {
                 if self.selection_start.is_none() {
@@ -172,24 +172,24 @@ impl InputState {
                 self.content.drain(..self.cursor_position);
                 self.cursor_position = 0;
                 self.clear_selection();
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Char('k'), KeyModifiers::CONTROL) => {
                 self.content.truncate(self.cursor_position);
                 self.clear_selection();
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Char('w'), KeyModifiers::CONTROL) => {
                 self.delete_word();
                 self.clear_selection();
-                InputAction::None
+                InputAction::Changed
             }
             (KeyCode::Char(c), KeyModifiers::NONE) | (KeyCode::Char(c), KeyModifiers::SHIFT) => {
                 if self.has_selection() {
                     self.delete_selection();
                 }
                 self.insert_char(c);
-                InputAction::None
+                InputAction::Changed
             }
             _ => InputAction::None,
         }
@@ -294,4 +294,5 @@ pub enum InputAction {
     Exit,
     PreviousHistory,
     NextHistory,
+    Changed,
 }

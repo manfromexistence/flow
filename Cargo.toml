@@ -15,6 +15,12 @@ crossterm = "0.28"
 # Async Runtime
 tokio = { version = "1.42", features = ["full"] }
 
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "gzip", "brotli", "deflate"] }
+
+# Serialization
+serde_json = "1.0"
+
 # LLM
 llama-cpp-2 = "0.1"
 sysinfo = "0.32"
