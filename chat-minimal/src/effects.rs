@@ -1,6 +1,7 @@
 use ratatui::style::Color;
 use std::time::{Duration, Instant};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ShimmerEffect {
     colors: Vec<Color>,
@@ -8,6 +9,7 @@ pub struct ShimmerEffect {
     duration: Duration,
 }
 
+#[allow(dead_code)]
 impl ShimmerEffect {
     pub fn new(colors: Vec<Color>) -> Self {
         Self {
@@ -94,12 +96,14 @@ impl Default for TypingIndicator {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct PulseEffect {
     start_time: Instant,
     duration: Duration,
 }
 
+#[allow(dead_code)]
 impl PulseEffect {
     pub fn new() -> Self {
         Self {
@@ -141,10 +145,17 @@ impl RainbowEffect {
         }
     }
 
+    #[allow(dead_code)]
     pub fn current_color(&self) -> Color {
         let elapsed = self.start_time.elapsed().as_secs_f32();
         let hue = (elapsed * self.speed * 360.0) % 360.0;
 
+        Self::hsl_to_rgb(hue, 0.8, 0.6)
+    }
+
+    pub fn color_at(&self, index: usize) -> Color {
+        let elapsed = self.start_time.elapsed().as_secs_f32();
+        let hue = ((elapsed * self.speed * 360.0) + (index as f32 * 10.0)) % 360.0;
         Self::hsl_to_rgb(hue, 0.8, 0.6)
     }
 

@@ -1,6 +1,6 @@
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Rect},
     style::{Modifier, Style},
     text::{Line, Span, Text},
     widgets::{
@@ -9,12 +9,17 @@ use ratatui::{
     },
 };
 
+#[allow(unused_imports)]
 use super::{
     effects::{ShimmerEffect, TypingIndicator},
     input::InputState,
-    modes::ChatMode,
     theme::ChatTheme,
 };
+
+// Simple markdown parser - just returns plain text lines for now
+fn parse_markdown_to_lines<'a>(content: &'a str, _theme: &'a ChatTheme) -> Vec<Line<'a>> {
+    content.lines().map(|line| Line::from(line)).collect()
+}
 
 #[derive(Debug, Clone)]
 pub struct Message {
@@ -62,6 +67,7 @@ impl<'a> MessageList<'a> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_scroll(
         messages: &'a [Message],
         theme: &'a ChatTheme,
@@ -289,6 +295,8 @@ impl Widget for MessageList<'_> {
     }
 }
 
+// Commented out - not needed for minimal version
+/*
 pub struct ModeSelector<'a> {
     current_mode: ChatMode,
     theme: &'a ChatTheme,
@@ -351,7 +359,9 @@ impl Widget for ModeSelector<'_> {
         }
     }
 }
+*/
 
+#[allow(dead_code)]
 pub struct InputBox<'a> {
     content: &'a str,
     cursor_pos: usize,
@@ -360,6 +370,7 @@ pub struct InputBox<'a> {
     placeholder: &'a str,
 }
 
+#[allow(dead_code)]
 impl<'a> InputBox<'a> {
     pub fn new(content: &'a str, cursor_pos: usize, theme: &'a ChatTheme, focused: bool) -> Self {
         Self {
@@ -414,12 +425,14 @@ impl Widget for InputBox<'_> {
     }
 }
 
+#[allow(dead_code)]
 pub struct LoadingIndicator<'a> {
     indicator: &'a TypingIndicator,
     shimmer: &'a ShimmerEffect,
     theme: &'a ChatTheme,
 }
 
+#[allow(dead_code)]
 impl<'a> LoadingIndicator<'a> {
     pub fn new(
         indicator: &'a TypingIndicator,
@@ -453,6 +466,8 @@ impl Widget for LoadingIndicator<'_> {
     }
 }
 
+// Commented out - not needed for minimal version
+/*
 pub struct CombinedInputBar<'a> {
     input: &'a InputState,
     theme: &'a ChatTheme,
@@ -660,7 +675,10 @@ impl Widget for CombinedInputBar<'_> {
         .render(bottom_chunks[6], buf);
     }
 }
+*/
 
+// Commented out - not needed for minimal version
+/*
 pub struct HeaderBar<'a> {
     theme: &'a ChatTheme,
     mode: ChatMode,
@@ -690,7 +708,10 @@ impl Widget for HeaderBar<'_> {
             .render(area, buf);
     }
 }
+*/
 
+// Commented out - not needed for minimal version
+/*
 pub struct BottomBar<'a> {
     theme: &'a ChatTheme,
     mode: ChatMode,
@@ -802,7 +823,10 @@ impl Widget for BottomBar<'_> {
             .render(chunks[6], buf);
     }
 }
+*/
 
+// Commented out - not needed for minimal version
+/*
 pub struct SecondaryBar<'a> {
     theme: &'a ChatTheme,
     shortcut_index: usize,
@@ -1150,3 +1174,4 @@ fn parse_inline_markdown(text: &str, theme: &ChatTheme) -> Vec<Span<'static>> {
 
     spans
 }
+*/

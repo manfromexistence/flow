@@ -5,49 +5,76 @@ use ratatui::style::{Color, Modifier, Style};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ThemeVariant {
     Dark,
+    #[allow(dead_code)]
     Light,
 }
 
 #[derive(Debug, Clone)]
 pub struct ChatTheme {
+    #[allow(dead_code)]
     pub variant: ThemeVariant,
     // Core shadcn-ui/Vercel design system colors
     pub bg: Color,
     pub fg: Color,
+    #[allow(dead_code)]
     pub card: Color,
+    #[allow(dead_code)]
     pub card_fg: Color,
+    #[allow(dead_code)]
     pub popover: Color,
+    #[allow(dead_code)]
     pub popover_fg: Color,
+    #[allow(dead_code)]
     pub primary: Color,
+    #[allow(dead_code)]
     pub primary_fg: Color,
+    #[allow(dead_code)]
     pub secondary: Color,
+    #[allow(dead_code)]
     pub secondary_fg: Color,
+    #[allow(dead_code)]
     pub muted: Color,
+    #[allow(dead_code)]
     pub muted_fg: Color,
     pub accent: Color,
+    #[allow(dead_code)]
     pub accent_fg: Color,
+    #[allow(dead_code)]
     pub destructive: Color,
+    #[allow(dead_code)]
     pub destructive_fg: Color,
     pub border: Color,
+    #[allow(dead_code)]
     pub border_focused: Color,
+    #[allow(dead_code)]
     pub input: Color,
+    #[allow(dead_code)]
     pub ring: Color,
     // Legacy compatibility
+    #[allow(dead_code)]
     pub user_msg_bg: Color,
+    #[allow(dead_code)]
     pub ai_msg_bg: Color,
+    #[allow(dead_code)]
     pub accent_secondary: Color,
+    #[allow(dead_code)]
     pub shimmer_colors: Vec<Color>,
+    #[allow(dead_code)]
     pub mode_colors: ModeColors,
 }
 
 #[derive(Debug, Clone)]
 pub struct ModeColors {
+    #[allow(dead_code)]
     pub agent: Color,
+    #[allow(dead_code)]
     pub plan: Color,
+    #[allow(dead_code)]
     pub ask: Color,
 }
 
 impl ChatTheme {
+    #[allow(dead_code)]
     pub fn new(variant: ThemeVariant) -> Self {
         // Try to load from theme.sr, fallback to hardcoded if it fails
         Self::from_theme_sr(variant).unwrap_or_else(|_| match variant {
@@ -57,6 +84,7 @@ impl ChatTheme {
     }
 
     /// Load theme from embedded theme.machine file
+    #[allow(dead_code)]
     fn from_theme_sr(_variant: ThemeVariant) -> Result<Self, Box<dyn std::error::Error>> {
         // Temporarily disabled - MachineFormat constructor issue
         // Return dark fallback for now
@@ -193,7 +221,7 @@ impl ChatTheme {
         */
     }
 
-    fn dark_fallback() -> Self {
+    pub fn dark_fallback() -> Self {
         // Dark mode from your CSS theme - oklch values converted to RGB
         // Using --primary (green) as the main accent throughout the UI
         Self {
@@ -237,6 +265,7 @@ impl ChatTheme {
         }
     }
 
+    #[allow(dead_code)]
     fn light_fallback() -> Self {
         // Light mode from theme.css - shadcn-ui/Vercel design system
         Self {
@@ -280,10 +309,12 @@ impl ChatTheme {
         }
     }
 
+    #[allow(dead_code)]
     pub fn title_style(&self) -> Style {
         Style::default().fg(self.fg).add_modifier(Modifier::BOLD)
     }
 
+    #[allow(dead_code)]
     pub fn border_style(&self, focused: bool) -> Style {
         Style::default().fg(if focused {
             self.border_focused
@@ -292,18 +323,10 @@ impl ChatTheme {
         })
     }
 
+    #[allow(dead_code)]
     pub fn accent_style(&self) -> Style {
         Style::default()
             .fg(self.primary)
             .add_modifier(Modifier::BOLD)
-    }
-
-    pub fn mode_style(&self, mode: &crate::ui::chat::modes::ChatMode) -> Style {
-        let color = match mode {
-            crate::ui::chat::modes::ChatMode::Agent => self.mode_colors.agent,
-            crate::ui::chat::modes::ChatMode::Plan => self.mode_colors.plan,
-            crate::ui::chat::modes::ChatMode::Ask => self.mode_colors.ask,
-        };
-        Style::default().fg(color).add_modifier(Modifier::BOLD)
     }
 }

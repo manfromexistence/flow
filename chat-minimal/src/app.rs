@@ -1,14 +1,23 @@
-use crate::{components::Message, effects::TypingIndicator, input::{InputAction, InputState}, llm::LocalLlm, theme::ChatTheme};
+use crate::{
+    components::Message,
+    effects::TypingIndicator,
+    input::{InputAction, InputState},
+    llm::LocalLlm,
+    theme::ChatTheme,
+};
 use anyhow::Result;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::{backend::CrosstermBackend, Terminal};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use std::{
     io,
-    sync::{mpsc::{channel, Receiver, Sender}, Arc},
+    sync::{
+        Arc,
+        mpsc::{Receiver, Sender, channel},
+    },
     time::{Duration, Instant},
 };
 
@@ -24,6 +33,7 @@ impl AnimationType {
         vec![Self::Splash, Self::Matrix, Self::Train]
     }
 
+    #[allow(dead_code)]
     pub fn name(&self) -> &'static str {
         match self {
             Self::Splash => "Splash Screen",
@@ -40,6 +50,7 @@ pub struct ChatApp {
     pub is_loading: bool,
     pub typing_indicator: TypingIndicator,
     pub should_quit: bool,
+    #[allow(dead_code)]
     pub cursor_visible: bool,
     pub splash_font_index: usize,
     pub last_font_change: Instant,
@@ -181,9 +192,12 @@ impl ChatApp {
 
         tokio::spawn(async move {
             let tx_clone = tx.clone();
-            match llm.generate_stream(&content, move |chunk| {
-                let _ = tx_clone.send(chunk);
-            }).await {
+            match llm
+                .generate_stream(&content, move |chunk| {
+                    let _ = tx_clone.send(chunk);
+                })
+                .await
+            {
                 Ok(_) => {
                     let _ = tx.send("\n__END__".to_string());
                 }

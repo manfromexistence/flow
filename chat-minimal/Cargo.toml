@@ -1,7 +1,7 @@
 [package]
 name = "chat-minimal"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "chat"
@@ -37,6 +37,9 @@ serde = { version = "1.0", features = ["derive"] }
 
 # Clipboard
 cli-clipboard = "0.4"
+
+# FIGlet rendering
+figlet-rs = "0.1"
 
 [profile.release]
 opt-level = 3

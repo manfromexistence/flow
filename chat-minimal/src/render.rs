@@ -1,21 +1,102 @@
 //! Rendering logic for chat application
 
 use ratatui::{
-    buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Widget, Wrap},
+    text::{Line, Span},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
-use std::time::Duration;
 
-use super::app_state::ModalType;
+use crate::app::ChatApp;
+use crate::components::MessageList;
 
-use super::app_state::ChatApp;
-use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-use crate::ui::{demos, integrations};
-use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
+// Minimal render function for chat-minimal
+pub fn render(app: &mut ChatApp, frame: &mut ratatui::Frame) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Min(10),
+            Constraint::Length(3),
+            Constraint::Length(1),
+        ])
+        .split(frame.area());
 
+    if app.messages.is_empty() {
+        crate::splash::render(
+            chunks[0],
+            frame.buffer_mut(),
+            &app.theme,
+            app.splash_font_index,
+        );
+    } else {
+        MessageList::new(&app.messages, &app.theme).render(chunks[0], frame.buffer_mut());
+    }
+
+    render_input(app, chunks[1], frame);
+    render_status(app, chunks[2], frame);
+}
+
+fn render_input(app: &ChatApp, area: Rect, frame: &mut ratatui::Frame) {
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(app.theme.border))
+        .border_type(ratatui::widgets::BorderType::Rounded)
+        .style(Style::default().bg(app.theme.bg));
+
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+
+    let placeholder = "Type a message... (Ctrl+C to quit)";
+    let text = if app.input.content.is_empty() {
+        placeholder
+    } else {
+        &app.input.content
+    };
+
+    let paragraph =
+        Paragraph::new(text).style(Style::default().fg(if app.input.content.is_empty() {
+            app.theme.border
+        } else {
+            app.theme.fg
+        }));
+
+    frame.render_widget(paragraph, inner);
+}
+
+fn render_status(app: &ChatApp, area: Rect, frame: &mut ratatui::Frame) {
+    let model_name = "Qwen3.5-0.8B";
+    let status = if app.is_loading {
+        format!(
+            "{} {}",
+            model_name,
+            app.typing_indicator.text(app.typing_indicator.is_visible())
+        )
+    } else {
+        model_name.to_string()
+    };
+
+    let shortcuts = "Arrows: Animations | Enter: Send | Ctrl+C: Quit";
+
+    let line = Line::from(vec![
+        Span::styled(
+            status,
+            Style::default()
+                .fg(app.theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw("  "),
+        Span::styled(shortcuts, Style::default().fg(app.theme.border)),
+    ]);
+
+    let paragraph = Paragraph::new(line).style(Style::default().bg(app.theme.bg));
+
+    frame.render_widget(paragraph, area);
+}
+
+// ============================================================================
+// ORIGINAL COMPLEX RENDER CODE - COMMENTED OUT
+// ============================================================================
+/*
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
         // Update tachyon effects timing
@@ -1711,3 +1792,4 @@ impl ChatApp {
         }
     }
 }
+*/

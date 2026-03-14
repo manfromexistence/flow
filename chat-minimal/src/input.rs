@@ -37,6 +37,7 @@ impl InputState {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_selected_text(&self) -> Option<String> {
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
             let (start, end) = if start < end {
@@ -264,11 +265,13 @@ impl InputState {
         pos.min(self.content.len())
     }
 
+    #[allow(dead_code)]
     pub fn visible_content(&self, width: usize) -> &str {
         let end = (self.scroll_offset + width).min(self.content.len());
         &self.content[self.scroll_offset..end]
     }
 
+    #[allow(dead_code)]
     pub fn update_scroll(&mut self, width: usize) {
         if self.cursor_position < self.scroll_offset {
             self.scroll_offset = self.cursor_position;

@@ -1,7 +1,7 @@
 //! Splash screen rendering with figlet fonts
 
 use super::theme::ChatTheme;
-use crate::ui::theme::animation::RainbowAnimation;
+use crate::effects::RainbowEffect;
 use figlet_rs::FIGfont;
 use ratatui::{
     buffer::Buffer,
@@ -11,15 +11,11 @@ use ratatui::{
     widgets::{Block, Paragraph, Widget},
 };
 
-pub fn render(
-    area: Rect,
-    buf: &mut Buffer,
-    theme: &ChatTheme,
-    font_index: usize,
-    rainbow: &RainbowAnimation,
-) {
+pub fn render(area: Rect, buf: &mut Buffer, theme: &ChatTheme, font_index: usize) {
     let all_fonts = get_valid_fonts();
     let current_font = all_fonts[font_index % all_fonts.len()];
+
+    let rainbow = RainbowEffect::new();
 
     let figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(current_font)
         && let Ok(font_str) = String::from_utf8(font_data)
@@ -39,11 +35,7 @@ pub fn render(
             let mut spans = Vec::new();
             for (i, ch) in line.chars().enumerate() {
                 let color = rainbow.color_at(i);
-                let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
-                spans.push(Span::styled(
-                    ch.to_string(),
-                    Style::default().fg(ratatui_color),
-                ));
+                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
             }
             splash_lines.push(Line::from(spans));
         }
@@ -53,11 +45,7 @@ pub fn render(
         let mut spans = vec![Span::styled("▸ ", Style::default().fg(theme.accent))];
         for (i, ch) in text.chars().enumerate() {
             let color = rainbow.color_at(i);
-            let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
-            spans.push(Span::styled(
-                ch.to_string(),
-                Style::default().fg(ratatui_color),
-            ));
+            spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
         }
         splash_lines.push(Line::from(spans));
     }

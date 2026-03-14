@@ -12,7 +12,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 use sysinfo::System;
 
-const MODEL_PATH: &str = r"F:\edith\models\llm\Qwen3.5-0.8B-Q4_K_M.gguf";
+const MODEL_PATH: &str = r"F:\cli\models\llm\Qwen3.5-0.8B-Q4_K_M.gguf";
+#[allow(dead_code)]
 const MODEL_NAME: &str = "Qwen-3.5-0.8B-Q4_K_M";
 
 const SYSTEM_PROMPT: &str = "\
@@ -89,6 +90,7 @@ impl LocalLlm {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn generate(&self, prompt: &str) -> Result<String> {
         let mut inner_guard = self
             .inner
@@ -317,6 +319,7 @@ impl LocalLlm {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn is_initialized(&self) -> bool {
         self.inner
             .lock()
@@ -324,6 +327,7 @@ impl LocalLlm {
             .unwrap_or(false)
     }
 
+    #[allow(dead_code)]
     pub fn get_model_name(&self) -> String {
         format!("Local:{}", MODEL_NAME)
     }
