@@ -87,57 +87,81 @@
 //! ```
 
 /// Cache management for API responses and font metadata.
+#[cfg(feature = "full")]
 pub mod cache;
 
 /// ZIP extraction utilities
+#[cfg(feature = "full")]
 pub mod extract;
 
 /// Figlet fonts for ASCII art text rendering in CLI applications.
 pub mod figlet;
 
 /// CDN URL generation for font preview and usage.
+#[cfg(feature = "full")]
 pub mod cdn;
 
 /// Command-line interface implementation.
+#[cfg(feature = "full")]
 pub mod cli;
 
 /// Configuration and validation.
+#[cfg(feature = "full")]
 pub mod config;
 
 /// Font download functionality with progress indication.
+#[cfg(feature = "full")]
 pub mod download;
 
 /// Error types and result aliases.
+#[cfg(feature = "full")]
 pub mod error;
 
 /// HTTP client with retry logic and rate limiting.
+#[cfg(feature = "full")]
 pub mod http;
 
 /// Data models for fonts, providers, and search results.
+#[cfg(feature = "full")]
 pub mod models;
 
 /// Prelude module for convenient imports.
+#[cfg(feature = "full")]
 pub mod prelude;
 
 /// Font provider implementations.
+#[cfg(feature = "full")]
 pub mod providers;
 
 /// Rate limiting for API requests.
+#[cfg(feature = "full")]
 pub mod rate_limit;
 
 /// Font search functionality.
+#[cfg(feature = "full")]
 pub mod search;
 
 /// File verification for downloaded fonts.
+#[cfg(feature = "full")]
 pub mod verify;
 
+#[cfg(feature = "full")]
 pub use cache::CacheManager;
+#[cfg(feature = "full")]
 pub use cdn::{CdnProvider, CdnUrlGenerator, FontCdnUrls};
+#[cfg(feature = "full")]
 pub use config::{Config, ConfigBuilder};
+#[cfg(feature = "full")]
 pub use download::FontDownloader;
+#[cfg(feature = "full")]
 pub use error::{FontError, FontResult};
+#[cfg(feature = "full")]
 pub use http::RetryClient;
+#[cfg(feature = "full")]
 pub use models::{Font, FontFamily, FontProvider, FontStyle, FontWeight};
+#[cfg(feature = "full")]
 pub use rate_limit::RateLimiter;
+#[cfg(feature = "full")]
 pub use search::FontSearch;
+#[cfg(feature = "full")]
 pub use verify::FileVerifier;
