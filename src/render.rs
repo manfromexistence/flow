@@ -1465,10 +1465,9 @@ impl ChatApp {
 
     /// Render autocomplete suggestions overlay
     pub fn render_suggestions(&self, frame: &mut ratatui::Frame, input_area: Rect) {
-        use crate::autocomplete::SuggestionSource;
         use ratatui::style::{Modifier, Style};
         use ratatui::text::{Line, Span};
-        use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
+        use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
 
         if !self.show_suggestions || self.suggestions.is_empty() {
             return;
@@ -1483,7 +1482,7 @@ impl ChatApp {
             height: max_height,
         };
 
-        // Create list items
+        // Create list items with horizontal padding
         let items: Vec<ListItem> = self
             .suggestions
             .iter()
@@ -1491,8 +1490,8 @@ impl ChatApp {
             .map(|(i, suggestion)| {
                 let is_selected = i == self.selected_suggestion;
 
-                // Calculate available width for text and description (remove right padding)
-                let available_width = suggestion_area.width.saturating_sub(2) as usize;
+                // Calculate available width with horizontal padding (1 char on each side)
+                let available_width = suggestion_area.width.saturating_sub(4) as usize;
                 let text_width = suggestion.text.len().min(available_width / 2);
                 let desc_width = available_width.saturating_sub(text_width).saturating_sub(2);
 
@@ -1534,7 +1533,9 @@ impl ChatApp {
                     )
                 };
 
+                // Add horizontal padding (1 space on left)
                 let line = Line::from(vec![
+                    Span::raw(" "),
                     Span::styled(display_text, text_style),
                     Span::styled(padding, text_style),
                     Span::styled(display_desc, desc_style),
@@ -1544,15 +1545,8 @@ impl ChatApp {
             })
             .collect();
 
-        // Create the list widget
-        let title = if let Some(first) = self.suggestions.first() {
-            match first.source {
-                SuggestionSource::Local => " CLI Commands ",
-                SuggestionSource::Remote => " Search Suggestions ",
-            }
-        } else {
-            " Suggestions "
-        };
+        // Create the list widget with fixed title
+        let title = " Suggestions ";
 
         let list = List::new(items).block(
             Block::default()
@@ -1562,10 +1556,14 @@ impl ChatApp {
                 .style(Style::default().bg(self.theme.bg)),
         );
 
-        frame.render_widget(list, suggestion_area);
+        // Create list state with selected item for auto-scrolling
+        let mut list_state = ListState::default();
+        list_state.select(Some(self.selected_suggestion));
+
+        frame.render_stateful_widget(list, suggestion_area, &mut list_state);
 
         // Render hint at the bottom with proper theme colors
-        let hint = Paragraph::new(Line::from(vec![
+        let hint = ratatui::widgets::Paragraph::new(Line::from(vec![
             Span::styled("↑↓", Style::default().fg(self.theme.accent)),
             Span::styled(" Navigate  ", Style::default().fg(self.theme.muted_fg)),
             Span::styled("Enter", Style::default().fg(self.theme.accent)),
