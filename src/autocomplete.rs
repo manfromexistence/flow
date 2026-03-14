@@ -374,7 +374,7 @@ impl Autocomplete {
         CLI_COMMANDS
             .iter()
             .filter(|cmd| fuzzy_match(cmd))
-            .take(20)
+            .take(3)
             .map(|cmd| {
                 let description = match *cmd {
                     "dx" => "Interactive TUI mode",
