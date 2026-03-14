@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use crate::gruvbox::Gruvbox::{self, Light3, Orange, OrangeBright};
+use crate::theme::ChatTheme;
 use ratatui::{
     layout::{Constraint, Layout, Margin},
     style::{Color, Modifier, Style},
@@ -19,11 +19,12 @@ pub struct TachyonDemo {
     pub active_effect_idx: usize,
     pub last_tick: Duration,
     effects: EffectsRepository,
+    theme: ChatTheme,
 }
 
 impl TachyonDemo {
-    pub fn new() -> Self {
-        let effects = EffectsRepository::new();
+    pub fn new(theme: ChatTheme) -> Self {
+        let effects = EffectsRepository::new(theme.clone());
         let active_effect = effects.get_effect(0);
 
         Self {
@@ -31,6 +32,7 @@ impl TachyonDemo {
             active_effect_idx: 0,
             last_tick: Duration::ZERO,
             effects,
+            theme,
         }
     }
 
@@ -81,8 +83,10 @@ impl TachyonDemo {
     }
 
     pub fn render(&mut self, f: &mut Frame) {
-        let screen_bg: Color = Gruvbox::Dark0Hard.into();
-        let bg: Color = Gruvbox::Dark0Soft.into();
+        // Vercel Geist + ShadCN UI inspired modern palette
+        let screen_bg: Color = Color::Rgb(0, 0, 0); // Pure black - Vercel style
+        let content_bg: Color = Color::Rgb(10, 10, 10); // Near black - subtle depth
+        let border_color: Color = Color::Rgb(38, 38, 38); // Geist border
 
         Clear.render(f.area(), f.buffer_mut());
         Block::default()
@@ -91,19 +95,30 @@ impl TachyonDemo {
 
         let content_area = f.area().inner_centered(80, 17);
         Block::default()
-            .style(Style::default().bg(bg))
+            .style(Style::default().bg(content_bg))
+            .border_style(Style::default().fg(border_color))
             .render(content_area, f.buffer_mut());
 
+        // Modern vibrant palette - ShadCN chart colors + favorites
+        let accent_blue = Color::Rgb(59, 130, 246); // #3B82F6 - ShadCN blue (chart-2)
+        let accent_cyan = Color::Rgb(6, 182, 212); // #06B6D4 - Tailwind cyan
+        let text_fg = Color::Rgb(250, 250, 250); // #FAFAFA - High contrast white
+        let text_muted = Color::Rgb(115, 115, 115); // #737373 - Geist gray
+        let success_green = Color::Rgb(34, 197, 94); // #22C55E - Vibrant green (chart-1)
+        let warning_yellow = Color::Rgb(234, 179, 8); // #EAB308 - Bold yellow
+        let error_red = Color::Rgb(239, 68, 68); // #EF4444 - Bright red
+        let info_purple = Color::Rgb(168, 85, 247); // #A855F7 - Rich purple (chart-5)
+
         let anim_style = [
-            Style::default().fg(Orange.into()),
-            Style::default().fg(OrangeBright.into()),
+            Style::default().fg(accent_cyan).add_modifier(Modifier::BOLD),
+            Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD),
         ];
-        let text_style = Style::default().fg(Light3.into());
+        let text_style = Style::default().fg(text_fg);
         let shortcut_style = [
             Style::default()
-                .fg(Gruvbox::YellowBright.into())
+                .fg(accent_blue)
                 .add_modifier(Modifier::BOLD),
-            Style::default().fg(Gruvbox::Light4.into()),
+            Style::default().fg(text_muted),
         ];
 
         let layout = Layout::vertical([
@@ -119,14 +134,44 @@ impl TachyonDemo {
         ]);
 
         let main_text = Text::from(vec![
-            Line::from("Many effects are composable, e.g. `parallel`, `sequence`, `repeating`."),
-            Line::from("Most effects have a lifetime, after which they report done()."),
-            Line::from("Effects such as `never_complete`, `temporary` influence or override this."),
+            Line::from(vec![
+                Span::styled("Many effects are ", text_style),
+                Span::styled("composable", Style::default().fg(success_green).add_modifier(Modifier::BOLD)),
+                Span::styled(", e.g. ", text_style),
+                Span::styled("`parallel`", Style::default().fg(accent_cyan)),
+                Span::styled(", ", text_style),
+                Span::styled("`sequence`", Style::default().fg(accent_blue)),
+                Span::styled(", ", text_style),
+                Span::styled("`repeating`", Style::default().fg(info_purple)),
+                Span::styled(".", text_style),
+            ]),
+            Line::from(vec![
+                Span::styled("Most effects have a ", text_style),
+                Span::styled("lifetime", Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(", after which they report ", text_style),
+                Span::styled("done()", Style::default().fg(success_green)),
+                Span::styled(".", text_style),
+            ]),
+            Line::from(vec![
+                Span::styled("Effects such as ", text_style),
+                Span::styled("`never_complete`", Style::default().fg(error_red).add_modifier(Modifier::BOLD)),
+                Span::styled(", ", text_style),
+                Span::styled("`temporary`", Style::default().fg(info_purple).add_modifier(Modifier::BOLD)),
+                Span::styled(" influence or override this.", text_style),
+            ]),
             Line::from(""),
-            Line::from("The text in this window will undergo a random transition"),
-            Line::from("when any of the following keys are pressed:"),
-        ])
-        .style(text_style);
+            Line::from(vec![
+                Span::styled("The ", text_style),
+                Span::styled("text in this window", Style::default().fg(accent_cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(" will undergo a ", text_style),
+                Span::styled("random transition", Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD)),
+            ]),
+            Line::from(vec![
+                Span::styled("when any of the following ", text_style),
+                Span::styled("keys", Style::default().fg(success_green).add_modifier(Modifier::BOLD)),
+                Span::styled(" are pressed:", text_style),
+            ]),
+        ]);
 
         let shortcut = |key: &'static str, desc: &'static str| {
             Line::from(vec![
@@ -160,9 +205,21 @@ struct EffectsRepository {
 }
 
 impl EffectsRepository {
-    fn new() -> Self {
-        let screen_bg = Gruvbox::Dark0Hard.into();
-        let bg = Gruvbox::Dark0Soft.into();
+    fn new(_theme: ChatTheme) -> Self {
+        // Vercel Geist + ShadCN UI modern color palette
+        let screen_bg = Color::Rgb(0, 0, 0); // Pure black - Vercel style
+        let _content_bg = Color::Rgb(10, 10, 10); // Near black
+        
+        // Vibrant modern palette - ShadCN charts + favorites
+        let blue = Color::Rgb(59, 130, 246); // #3B82F6 - ShadCN blue
+        let cyan = Color::Rgb(6, 182, 212); // #06B6D4 - Tailwind cyan
+        let green = Color::Rgb(34, 197, 94); // #22C55E - Vibrant green
+        let yellow = Color::Rgb(234, 179, 8); // #EAB308 - Bold yellow
+        let red = Color::Rgb(239, 68, 68); // #EF4444 - Bright red
+        let purple = Color::Rgb(168, 85, 247); // #A855F7 - Rich purple
+        let orange = Color::Rgb(249, 115, 22); // #F97316 - Vibrant orange
+        let pink = Color::Rgb(236, 72, 153); // #EC4899 - Hot pink
+        let text_fg = Color::Rgb(250, 250, 250); // #FAFAFA - High contrast
 
         let slow = Duration::from_millis(1250);
         let medium = Duration::from_millis(750);
@@ -175,7 +232,7 @@ impl EffectsRepository {
             .build()
             .into_effect();
 
-        // fx from lambdas
+        // Custom color cycle using Tokyo Night palette
         let custom_color_cycle = fx::effect_fn(Instant::now(), slow, |state, _ctx, cell_iter| {
             let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
 
@@ -184,11 +241,11 @@ impl EffectsRepository {
                 .enumerate()
                 .for_each(|(i, (_pos, cell))| {
                     let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
-                    let color = color_from_hsl(hue, 100.0, 50.0);
+                    let color = color_from_hsl(hue, 80.0, 65.0); // Professional saturation and lightness
                     cell.set_fg(color);
                 });
         })
-        .with_filter(CellFilter::FgColor(Light3.into()));
+        .with_filter(CellFilter::FgColor(text_fg));
 
         let effects = vec![
             (
@@ -200,13 +257,13 @@ impl EffectsRepository {
                 sequence(&[
                     fx::expand(
                         ExpandDirection::Vertical,
-                        Style::new().fg(bg).bg(screen_bg),
+                        Style::new().fg(pink).bg(screen_bg),
                         1200,
                     ),
                     fx::sleep(slow),
                     fx::expand(
                         ExpandDirection::Horizontal,
-                        Style::new().fg(bg).bg(screen_bg),
+                        Style::new().fg(cyan).bg(screen_bg),
                         1200,
                     )
                     .reversed(),
@@ -215,10 +272,10 @@ impl EffectsRepository {
             (
                 "irregular sweep out/sweep in",
                 sequence(&[
-                    fx::sweep_out(Motion::DownToUp, 5, 20, bg, (2000, QuadOut)),
-                    fx::sweep_in(Motion::UpToDown, 5, 20, bg, (2000, QuadOut)),
-                    fx::sweep_out(Motion::UpToDown, 5, 20, bg, (2000, QuadOut)),
-                    fx::sweep_in(Motion::DownToUp, 5, 20, bg, (2000, QuadOut)),
+                    fx::sweep_out(Motion::DownToUp, 5, 20, orange, (2000, QuadOut)),
+                    fx::sweep_in(Motion::UpToDown, 5, 20, blue, (2000, QuadOut)),
+                    fx::sweep_out(Motion::UpToDown, 5, 20, green, (2000, QuadOut)),
+                    fx::sweep_in(Motion::DownToUp, 5, 20, purple, (2000, QuadOut)),
                 ]),
             ),
             (
@@ -228,7 +285,7 @@ impl EffectsRepository {
                     fx::sleep(medium),
                     fx::prolong_end(
                         medium,
-                        fx::dissolve_to(Style::default().bg(screen_bg), medium),
+                        fx::dissolve_to(Style::default().bg(screen_bg).fg(cyan), medium),
                     ),
                 ]),
             ),
@@ -236,13 +293,13 @@ impl EffectsRepository {
                 "slide in/out",
                 fx::repeating(sequence(&[
                     parallel(&[
-                        fx::fade_from_fg(bg, (2000, ExpoInOut)),
-                        fx::slide_in(Motion::UpToDown, 20, 0, Gruvbox::Dark0Hard, medium),
+                        fx::fade_from_fg(yellow, (2000, ExpoInOut)),
+                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
                     ]),
                     fx::sleep(medium),
                     fx::prolong_end(
                         medium,
-                        fx::slide_out(Motion::LeftToRight, 80, 0, Gruvbox::Dark0Hard, medium),
+                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, medium),
                     ),
                 ])),
             ),

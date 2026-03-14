@@ -106,14 +106,8 @@ impl ChatApp {
                 AnimationType::DVDLogo => {
                     self.render_dvdlogo_animation_in_area(chunks[0], frame);
                 }
-                AnimationType::TachyonSweepIn
-                | AnimationType::TachyonExpand
-                | AnimationType::TachyonSweepOut
-                | AnimationType::TachyonCoalesce
-                | AnimationType::TachyonSlide
-                | AnimationType::TachyonHslShift
-                | AnimationType::TachyonColorCycle => {
-                    self.render_tachyon_effect_in_area(chunks[0], frame);
+                AnimationType::TachyonDemo => {
+                    self.tachyon_demo.render(frame);
                 }
             }
 
@@ -158,8 +152,13 @@ impl ChatApp {
         self.input_area = chunks[1];
 
         if self.messages.is_empty() {
-            // Show tachyon demo instead of splash
-            self.tachyon_demo.render(frame);
+            crate::splash::render(
+                chunks[0],
+                frame.buffer_mut(),
+                &self.theme,
+                self.splash_font_index,
+                &self.rainbow_animation,
+            );
         } else {
             MessageList::with_effects(
                 &self.messages,
@@ -1587,87 +1586,4 @@ impl ChatApp {
         frame.render_widget(hint, hint_area);
     }
 
-    fn render_tachyon_effect_in_area(&mut self, area: Rect, frame: &mut ratatui::Frame) {
-        use ratatui::style::Style;
-        use ratatui::text::{Line, Span};
-        use ratatui::widgets::Paragraph;
-
-        let bg_color = self.theme_bg_color();
-
-        // Render a simple text content that the effect will transform
-        let text_lines = vec![
-            "╔═══════════════════════════════════════════════════════════════╗",
-            "║                                                               ║",
-            "║                    TACHYONFX EFFECTS DEMO                     ║",
-            "║                                                               ║",
-            "║   These are composable visual effects powered by tachyonfx   ║",
-            "║                                                               ║",
-            "║   • Sweep In - Smooth reveal animation                       ║",
-            "║   • Expand - Vertical and horizontal expansion               ║",
-            "║   • Sweep Out/In - Irregular sweep patterns                  ║",
-            "║   • Coalesce - Particles coming together                     ║",
-            "║   • Slide In/Out - Sliding transitions                       ║",
-            "║   • HSL Shift - Color transformations                        ║",
-            "║   • Color Cycle - Continuous color animation                 ║",
-            "║                                                               ║",
-            "║   Press Left/Right arrows to switch between effects          ║",
-            "║                                                               ║",
-            "╚═══════════════════════════════════════════════════════════════╝",
-        ];
-
-        let mut lines = vec![];
-        
-        // Center the text vertically
-        let text_height = text_lines.len() as u16;
-        let y_offset = (area.height.saturating_sub(text_height)) / 2;
-        
-        for _ in 0..y_offset {
-            lines.push(Line::from(""));
-        }
-
-        for line in text_lines {
-            let mut spans = vec![];
-            for (i, ch) in line.chars().enumerate() {
-                let color_idx = i % 50;
-                let color = self.rainbow_color(color_idx);
-                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
-            }
-            lines.push(Line::from(spans));
-        }
-
-        Paragraph::new(lines)
-            .style(Style::default().bg(bg_color))
-            .alignment(ratatui::layout::Alignment::Center)
-            .render(area, frame.buffer_mut());
-
-        // Apply tachyon effect if available
-        if let Some((_, ref mut effect)) = self.current_tachyon_effect {
-            let elapsed = self.tachyon_effect_start.elapsed();
-            let duration = tachyonfx::Duration::from_millis(elapsed.as_millis() as u32);
-            
-            if effect.running() {
-                frame.render_effect(effect, area, duration);
-            } else {
-                // Restart the effect when it completes
-                let animations = AnimationType::all();
-                let current_anim = animations[self.current_animation_index];
-                
-                let tachyon_idx = match current_anim {
-                    AnimationType::TachyonSweepIn => Some(0),
-                    AnimationType::TachyonExpand => Some(1),
-                    AnimationType::TachyonSweepOut => Some(2),
-                    AnimationType::TachyonCoalesce => Some(3),
-                    AnimationType::TachyonSlide => Some(4),
-                    AnimationType::TachyonHslShift => Some(5),
-                    AnimationType::TachyonColorCycle => Some(6),
-                    _ => None,
-                };
-
-                if let Some(idx) = tachyon_idx {
-                    self.current_tachyon_effect = Some(self.tachyon_effects.get_effect(idx));
-                    self.tachyon_effect_start = std::time::Instant::now();
-                }
-            }
-        }
-    }
 }

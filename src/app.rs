@@ -35,14 +35,7 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
-    // Tachyonfx effects
-    TachyonSweepIn,
-    TachyonExpand,
-    TachyonSweepOut,
-    TachyonCoalesce,
-    TachyonSlide,
-    TachyonHslShift,
-    TachyonColorCycle,
+    TachyonDemo,
 }
 
 impl AnimationType {
@@ -57,13 +50,7 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
-            Self::TachyonSweepIn,
-            Self::TachyonExpand,
-            Self::TachyonSweepOut,
-            Self::TachyonCoalesce,
-            Self::TachyonSlide,
-            Self::TachyonHslShift,
-            Self::TachyonColorCycle,
+            Self::TachyonDemo,
         ]
     }
 
@@ -79,13 +66,7 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo",
-            Self::TachyonSweepIn => "Tachyon: Sweep In",
-            Self::TachyonExpand => "Tachyon: Expand",
-            Self::TachyonSweepOut => "Tachyon: Sweep Out/In",
-            Self::TachyonCoalesce => "Tachyon: Coalesce",
-            Self::TachyonSlide => "Tachyon: Slide In/Out",
-            Self::TachyonHslShift => "Tachyon: HSL Shift",
-            Self::TachyonColorCycle => "Tachyon: Color Cycle",
+            Self::TachyonDemo => "Tachyon FX Demo",
         }
     }
 }
@@ -172,7 +153,7 @@ impl ChatApp {
         let tachyon_effects = crate::tachyonfx::TachyonEffects::new(theme.bg, theme.bg);
         
         Self {
-            theme,
+            theme: theme.clone(),
             input: InputState::new(),
             messages: Vec::new(),
             is_loading: false,
@@ -220,7 +201,7 @@ impl ChatApp {
             tachyon_effects,
             current_tachyon_effect: None,
             tachyon_effect_start: Instant::now(),
-            tachyon_demo: TachyonDemo::new(),
+            tachyon_demo: TachyonDemo::new(theme),
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
         }
@@ -372,25 +353,64 @@ impl ChatApp {
         // Handle animation navigation when input is empty and no messages
         if self.input.content.is_empty() && self.messages.is_empty() {
             match key.code {
-                KeyCode::Left | KeyCode::Backspace => {
-                    self.tachyon_demo.prev_effect();
+                KeyCode::Left => {
+                    self.handle_animation_previous();
                     return;
                 }
-                KeyCode::Right | KeyCode::Enter => {
-                    self.tachyon_demo.next_effect();
+                KeyCode::Right => {
+                    self.handle_animation_next();
+                    return;
+                }
+                KeyCode::Backspace => {
+                    // In TachyonDemo mode, handle prev effect
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.prev_effect();
+                            return;
+                        }
+                    }
+                    self.handle_animation_previous();
+                    return;
+                }
+                KeyCode::Enter => {
+                    // In TachyonDemo mode, handle next effect
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.next_effect();
+                            return;
+                        }
+                    }
+                    self.handle_animation_next();
                     return;
                 }
                 KeyCode::Char(' ') => {
-                    self.tachyon_demo.restart_effect();
-                    return;
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.restart_effect();
+                            return;
+                        }
+                    }
                 }
                 KeyCode::Char('r') => {
-                    self.tachyon_demo.random_effect(&mut self.tachyon_rng);
-                    return;
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.random_effect(&mut self.tachyon_rng);
+                            return;
+                        }
+                    }
                 }
                 KeyCode::Char('s') => {
-                    self.tachyon_demo.scramble_effect();
-                    return;
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.scramble_effect();
+                            return;
+                        }
+                    }
                 }
                 _ => {}
             }
@@ -444,27 +464,7 @@ impl ChatApp {
     }
 
     fn init_tachyon_effect_if_needed(&mut self) {
-        let animations = AnimationType::all();
-        let current_anim = animations[self.current_animation_index];
-        
-        // Get tachyon effect index (0-6 for the 7 tachyon effects)
-        let tachyon_idx = match current_anim {
-            AnimationType::TachyonSweepIn => Some(0),
-            AnimationType::TachyonExpand => Some(1),
-            AnimationType::TachyonSweepOut => Some(2),
-            AnimationType::TachyonCoalesce => Some(3),
-            AnimationType::TachyonSlide => Some(4),
-            AnimationType::TachyonHslShift => Some(5),
-            AnimationType::TachyonColorCycle => Some(6),
-            _ => None,
-        };
-
-        if let Some(idx) = tachyon_idx {
-            self.current_tachyon_effect = Some(self.tachyon_effects.get_effect(idx));
-            self.tachyon_effect_start = Instant::now();
-        } else {
-            self.current_tachyon_effect = None;
-        }
+        // No longer needed - TachyonDemo is now a single animation
     }
 
     fn send_message(&mut self, content: String) {
