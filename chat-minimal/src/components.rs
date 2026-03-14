@@ -45,11 +45,12 @@ fn parse_content_with_thinking<'a>(
     let mut response_content = Vec::new();
 
     for line in content.lines() {
-        if line.trim() == "<think>" {
+        let trimmed = line.trim();
+        if trimmed == "<think>" {
             in_thinking = true;
             has_thinking = true;
             continue;
-        } else if line.trim() == "</think>" {
+        } else if trimmed == "</think>" {
             in_thinking = false;
             just_closed_thinking = true;
             continue;
@@ -199,7 +200,7 @@ impl Message {
             content,
             timestamp: chrono::Local::now(),
             token_count,
-            thinking_expanded: false,
+            thinking_expanded: true, // Default to expanded so we can see thinking content
         }
     }
 }
@@ -260,13 +261,32 @@ impl<'a> MessageList<'a> {
         }
     }
 
-    /// Calculate total height of all messages
+    /// Calculate total height of all messages based on actual rendered content
     pub fn calculate_total_height(&self) -> usize {
         self.messages
             .iter()
             .map(|msg| {
-                let content_lines = msg.content.lines().count();
-                content_lines + 3 + 1 // content + header + borders + gap
+                let content_lines = if msg.content.is_empty() {
+                    1 // Shimmer "Thinking..." line
+                } else if msg.role == MessageRole::Assistant {
+                    // For assistant messages, parse with thinking accordion to get actual line count
+                    let parsed_lines = parse_content_with_thinking(&msg.content, self.theme, msg.thinking_expanded);
+                    parsed_lines.len()
+                } else {
+                    // For user messages, just count lines
+                    msg.content.lines().count()
+                };
+                
+                match msg.role {
+                    MessageRole::User => {
+                        // User message: content + header + borders + gap
+                        content_lines + 3 + 1
+                    }
+                    MessageRole::Assistant => {
+                        // Assistant message: content + header + gap (no borders)
+                        content_lines + 1 + 1
+                    }
+                }
             })
             .sum()
     }
@@ -285,7 +305,7 @@ impl Widget for MessageList<'_> {
             match msg.role {
                 MessageRole::User => {
                     // User message: minimal padding, right-aligned, rounded border
-                    let token_text = format!("{}tokens", msg.token_count);
+                    let token_text = format!("({} tokens)", msg.token_count);
                     let header = Line::from(vec![
                         Span::styled(
                             "Sumon",
@@ -293,7 +313,7 @@ impl Widget for MessageList<'_> {
                                 .fg(self.theme.accent)
                                 .add_modifier(Modifier::BOLD),
                         ),
-                        Span::raw("  "),
+                        Span::raw(""),
                         Span::styled(token_text, Style::default().fg(self.theme.border)),
                     ]);
 
@@ -318,7 +338,7 @@ impl Widget for MessageList<'_> {
                     // Width: fit content tightly with minimal padding
                     // Add only 4 for borders (2) + minimal spacing (2)
                     // Minimum width to show "Sumon X tokens" properly
-                    let header_width = format!("Sumon  {}tokens", msg.token_count).len();
+                    let header_width = format!("Sumon({} tokens)", msg.token_count).len();
                     let needed_width = max_content_width.max(header_width) + 4;
                     let max_width = (area.width * 60 / 100) as usize;
                     let msg_width = (needed_width.min(max_width).max(12)) as u16;
