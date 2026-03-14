@@ -1,10 +1,2 @@
-Please look at the src/chat-tui folder and there are many things we don't need but don't delete any files. Just gently remove their support and move those files into the root trash folder and here at the top we have to remove:
-
-All model selection modals
-LLM integration code
-API key modals (Google, ElevenLabs)
-Audio recording/transcription
-Git changes/tasks/agents/memory modals
-Workspace management
-
-From our tui just gently unlink those code and move those files in root /trash folder!!!
+ Now here's the thing: our chat tui are really doing only this task but as you can see our chat tui has so many files and folders which are useless. Now editing it is a huge task so that's why I want to create another thread that copies those files and then removes and comments out other useless stuff. Only create a rust thread using the crates needed to show this feature, because these are the real features that we are interested in and all other files in the TOI are just a waste of time now.
+Can you hear my word correctly? Copy these files, copy these important files. As you can see it's barely less than ten files. Copy these files and create a new crate. In that crate use all the crates that are needed to show all these features and use the latest crates of them. Create the new rust crates on this workspace. 
