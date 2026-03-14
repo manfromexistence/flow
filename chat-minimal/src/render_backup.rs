@@ -7,25 +7,25 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
+use std::time::Duration;
 
-// use super::app_state::ModalType;
+use super::app_state::ModalType;
 
-use crate::app::{AnimationType, ChatApp};
-use crate::components::MessageList;
-// use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
-// use crate::ui::{demos, integrations};
-// use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
+use super::app_state::ChatApp;
+use super::{app_data::Focus, app_splash, components::MessageList, modals, modes::ChatMode};
+use crate::ui::{demos, integrations};
+use tachyonfx::{CellFilter, Effect, EffectRenderer, Interpolation, Shader, fx};
 
 impl ChatApp {
     pub fn render(&mut self, frame: &mut ratatui::Frame) {
         // Update tachyon effects timing
-        let _elapsed = self.last_render.elapsed();
-        // self.tachyon_last_tick = tachyonfx::Duration::from(elapsed);
+        let elapsed = self.last_render.elapsed();
+        self.tachyon_last_tick = tachyonfx::Duration::from(elapsed);
 
         // Update effects demo if it's showing
-        // if self.show_effects_demo_modal {
-        //     self.effects_demo.update(elapsed);
-        // }
+        if self.show_effects_demo_modal {
+            self.effects_demo.update(elapsed);
+        }
 
         // Both animations show in chat area only, keeping input visible
         if self.show_train_animation || self.show_matrix_animation {
@@ -61,7 +61,7 @@ impl ChatApp {
 
         // Animation carousel mode
         if self.animation_mode {
-            // use super::app_state::AnimationType;
+            use super::app_state::AnimationType;
             let animations = AnimationType::all();
             let current_anim = animations[self.current_animation_index];
 
@@ -79,11 +79,12 @@ impl ChatApp {
             // Render the current animation in the chat area
             match current_anim {
                 AnimationType::Splash => {
-                    crate::splash::render(
+                    app_splash::render(
                         chunks[0],
                         frame.buffer_mut(),
                         &self.theme,
                         self.splash_font_index,
+                        &self.rainbow_animation,
                     );
                 }
                 AnimationType::Matrix => {
@@ -91,6 +92,27 @@ impl ChatApp {
                 }
                 AnimationType::Train => {
                     self.render_train_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Confetti => {
+                    self.render_confetti_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::GameOfLife => {
+                    self.render_gameoflife_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Starfield => {
+                    self.render_starfield_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Rain => {
+                    self.render_rain_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::NyanCat => {
+                    self.render_nyancat_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::DVDLogo => {
+                    self.render_dvdlogo_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::TachyonEffects => {
+                    self.render_tachyon_effects_in_area(chunks[0], frame);
                 }
             }
 
@@ -107,11 +129,12 @@ impl ChatApp {
 
         if self.show_dx_splash {
             // Show DX splash screen
-            crate::splash::render(
+            app_splash::render(
                 frame.area(),
                 frame.buffer_mut(),
                 &self.theme,
                 self.splash_font_index,
+                &self.rainbow_animation,
             );
             return;
         }
@@ -128,14 +151,16 @@ impl ChatApp {
         self.input_area = chunks[1];
 
         if self.messages.is_empty() {
-            crate::splash::render(
+            app_splash::render(
                 chunks[0],
                 frame.buffer_mut(),
                 &self.theme,
                 self.splash_font_index,
+                &self.rainbow_animation,
             );
         } else {
-            MessageList::new(&self.messages, &self.theme).render(chunks[0], frame.buffer_mut());
+            MessageList::with_scroll(&self.messages, &self.theme, self.chat_scroll_offset)
+                .render(chunks[0], frame.buffer_mut());
         }
 
         self.render_input_box(chunks[1], frame.buffer_mut());
@@ -148,22 +173,21 @@ impl ChatApp {
         self.local_button_area = local_area;
 
         // Update modal animations before rendering
-        // self.update_modal_animations();
-        // self.render_modals(frame);
+        self.update_modal_animations();
+        self.render_modals(frame);
 
         // Render audio recording indicator in top right
-        // if self.audio_processing {
-        //     self.render_audio_recording_indicator(frame.area(), frame.buffer_mut());
-        // }
+        if self.audio_processing {
+            self.render_audio_recording_indicator(frame.area(), frame.buffer_mut());
+        }
 
-        // if let Some(ref shortcut) = self.last_shortcut_pressed
-        //     && self.last_shortcut_time.elapsed() < Duration::from_secs(2)
-        // {
-        //     self.render_shortcut_debug(frame.area(), frame.buffer_mut(), shortcut);
-        // }
+        if let Some(ref shortcut) = self.last_shortcut_pressed
+            && self.last_shortcut_time.elapsed() < Duration::from_secs(2)
+        {
+            self.render_shortcut_debug(frame.area(), frame.buffer_mut(), shortcut);
+        }
     }
 
-    /*
     fn render_modals(&mut self, frame: &mut ratatui::Frame) {
         let area = frame.area();
 
@@ -327,7 +351,6 @@ impl ChatApp {
         self.modal_effect_manager
             .process_effects(elapsed.into(), frame.buffer_mut(), area);
     }
-    */
     fn render_shortcut_debug(&self, area: Rect, buf: &mut Buffer, shortcut: &str) {
         let max_len = area.width.saturating_sub(10).max(20) as usize;
         let display_text = if shortcut.len() > max_len {
@@ -474,8 +497,7 @@ impl ChatApp {
     }
 
     fn render_input_cursor(&self, area: Rect, buf: &mut Buffer) {
-        // if self.focus == Focus::Input && self.cursor_visible {
-        if self.cursor_visible {
+        if self.focus == Focus::Input && self.cursor_visible {
             let cursor_x = area.x + (self.input.cursor_position as u16 % area.width);
             let cursor_y = area.y + (self.input.cursor_position as u16 / area.width);
 
@@ -506,12 +528,11 @@ impl ChatApp {
 
         let current_shortcut = shortcuts[self.shortcut_index % shortcuts.len()];
 
-        let mode_text = "Agent"; // Simplified for minimal version
-        // match self.mode {
-        //     ChatMode::Agent => "Agent",
-        //     ChatMode::Plan => "Plan",
-        //     ChatMode::Ask => "Ask",
-        // };
+        let mode_text = match self.mode {
+            ChatMode::Agent => "Agent",
+            ChatMode::Plan => "Plan",
+            ChatMode::Ask => "Ask",
+        };
 
         let local_width = self.selected_local_mode.len() as u16;
         let mode_width = mode_text.len() as u16;
@@ -626,7 +647,7 @@ impl ChatApp {
             let frame_idx = ((elapsed_ms / 80) as usize) % spinner_frames.len();
             let spinner_char = spinner_frames[frame_idx];
 
-            let color = self.rainbow_animation.rgb_color_at(frame_idx);
+            let color = self.rainbow_animation.color_at(frame_idx);
             let ratatui_color = ratatui::style::Color::Rgb(color.r, color.g, color.b);
 
             Paragraph::new(Span::styled(
@@ -649,7 +670,7 @@ impl ChatApp {
 
     /// Helper: get a rainbow color as ratatui Color
     fn rainbow_color(&self, index: usize) -> ratatui::style::Color {
-        let c = self.rainbow_animation.rgb_color_at(index);
+        let c = self.rainbow_animation.color_at(index);
         ratatui::style::Color::Rgb(c.r, c.g, c.b)
     }
 
@@ -1001,7 +1022,7 @@ impl ChatApp {
                             + explosion_id as usize * 13
                             + (elapsed_ms / 60) as usize)
                             % 50;
-                        let c = self.rainbow_animation.rgb_color_at(color_idx);
+                        let c = self.rainbow_animation.color_at(color_idx);
                         let color = ratatui::style::Color::Rgb(
                             (c.r as f64 * fade) as u8,
                             (c.g as f64 * fade) as u8,
@@ -1053,7 +1074,7 @@ impl ChatApp {
                                 % flash_chars.len();
                             let brightness = 1.0 - (local_time as f64 / 300.0);
                             let color_idx = (fx + fy + (elapsed_ms / 40) as usize) % 50;
-                            let c = self.rainbow_animation.rgb_color_at(color_idx);
+                            let c = self.rainbow_animation.color_at(color_idx);
                             let color = ratatui::style::Color::Rgb(
                                 (c.r as f64 * brightness + 255.0 * (1.0 - brightness) * brightness)
                                     as u8,
@@ -1195,7 +1216,7 @@ impl ChatApp {
                 if grid[y][x] {
                     // Alive cells get rainbow colors based on position + time
                     let color_idx = (x * 3 + y * 7 + (elapsed * 5.0) as usize) % 50;
-                    let c = self.rainbow_animation.rgb_color_at(color_idx);
+                    let c = self.rainbow_animation.color_at(color_idx);
                     let color = ratatui::style::Color::Rgb(
                         (c.r as f32 * pulse) as u8,
                         (c.g as f32 * pulse) as u8,
@@ -1216,7 +1237,7 @@ impl ChatApp {
                     let glow_pulse = ((elapsed * 4.0 + x as f32 * 0.1 + y as f32 * 0.1).sin() * 0.5
                         + 0.5) as f32;
                     let color_idx = (x + y + (elapsed * 2.0) as usize) % 50;
-                    let c = self.rainbow_animation.rgb_color_at(color_idx);
+                    let c = self.rainbow_animation.color_at(color_idx);
                     let dim = 0.12 * glow_intensity * glow_pulse;
                     let glow_color = ratatui::style::Color::Rgb(
                         (c.r as f32 * dim) as u8,
@@ -1287,7 +1308,7 @@ impl ChatApp {
                             '·'
                         };
                         let color_idx = (idx * 3 + (elapsed * 2.0) as usize) % 50;
-                        let c = self.rainbow_animation.rgb_color_at(color_idx);
+                        let c = self.rainbow_animation.color_at(color_idx);
                         let r = (c.r as f32 * brightness as f32) as u8;
                         let g = (c.g as f32 * brightness as f32) as u8;
                         let b = (c.b as f32 * brightness as f32) as u8;
@@ -1344,7 +1365,7 @@ impl ChatApp {
                             + drop_id as usize * 11
                             + (elapsed_ms / 100) as usize)
                             % 50;
-                        let c = self.rainbow_animation.rgb_color_at(color_idx);
+                        let c = self.rainbow_animation.color_at(color_idx);
                         let r = (c.r as f32 * brightness) as u8;
                         let g = (c.g as f32 * brightness) as u8;
                         let b = (c.b as f32 * brightness) as u8;
@@ -1361,7 +1382,7 @@ impl ChatApp {
             if splash_time < 200 && h > 0 {
                 let bottom = h - 1;
                 let color_idx = (col as usize * 5 + (elapsed_ms / 80) as usize) % 50;
-                let c = self.rainbow_animation.rgb_color_at(color_idx);
+                let c = self.rainbow_animation.color_at(color_idx);
                 screen[bottom][col as usize] =
                     Some(('~', ratatui::style::Color::Rgb(c.r, c.g, c.b)));
             }
@@ -1480,7 +1501,7 @@ impl ChatApp {
                         let twinkle = (elapsed_ms / 300 + x as u64 + y as u64) % 2;
                         let ch = if twinkle == 0 { '.' } else { '*' };
                         let star_color_idx = (x as usize + y as usize) % 50;
-                        let c = self.rainbow_animation.rgb_color_at(star_color_idx);
+                        let c = self.rainbow_animation.color_at(star_color_idx);
                         spans.push(Span::styled(
                             ch.to_string(),
                             Style::default().fg(ratatui::style::Color::Rgb(
@@ -1597,7 +1618,6 @@ impl ChatApp {
             .render(area, frame.buffer_mut());
     }
 
-    /*
     fn render_tachyon_effects_in_area(&mut self, area: Rect, frame: &mut ratatui::Frame) {
         use ratatui::layout::{Constraint, Layout, Margin};
         use ratatui::style::{Color, Modifier, Style};
@@ -1684,11 +1704,10 @@ impl ChatApp {
         frame.render_widget(Paragraph::new(shortcuts), layout[2]);
 
         // Apply effect if we have one
-        // if let Some(effect) = &mut self.tachyon_active_effect {
-        //     if effect.running() {
-        //         frame.render_effect(effect, content_area, self.tachyon_last_tick);
-        //     }
-        // }
+        if let Some(effect) = &mut self.tachyon_active_effect {
+            if effect.running() {
+                frame.render_effect(effect, content_area, self.tachyon_last_tick);
+            }
+        }
     }
-    */
 }

@@ -1,6 +1,6 @@
 use crate::{
     components::Message,
-    effects::TypingIndicator,
+    effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
     llm::LocalLlm,
     theme::ChatTheme,
@@ -50,7 +50,6 @@ pub struct ChatApp {
     pub is_loading: bool,
     pub typing_indicator: TypingIndicator,
     pub should_quit: bool,
-    #[allow(dead_code)]
     pub cursor_visible: bool,
     pub splash_font_index: usize,
     pub last_font_change: Instant,
@@ -60,6 +59,48 @@ pub struct ChatApp {
     pub llm: Arc<LocalLlm>,
     pub llm_tx: Sender<String>,
     pub llm_rx: Receiver<String>,
+    // Additional fields needed for render.rs
+    pub rainbow_animation: RainbowEffect,
+    pub rainbow_cursor: RainbowEffect,
+    pub shimmer: ShimmerEffect,
+    pub last_render: Instant,
+    // Stub fields for compatibility (not used in minimal version)
+    #[allow(dead_code)]
+    pub tachyon_last_tick: Duration,
+    #[allow(dead_code)]
+    pub show_effects_demo_modal: bool,
+    #[allow(dead_code)]
+    pub show_train_animation: bool,
+    #[allow(dead_code)]
+    pub show_matrix_animation: bool,
+    #[allow(dead_code)]
+    pub input_area: ratatui::layout::Rect,
+    #[allow(dead_code)]
+    pub plan_button_area: ratatui::layout::Rect,
+    #[allow(dead_code)]
+    pub model_button_area: ratatui::layout::Rect,
+    #[allow(dead_code)]
+    pub local_button_area: ratatui::layout::Rect,
+    #[allow(dead_code)]
+    pub show_dx_splash: bool,
+    #[allow(dead_code)]
+    pub chat_scroll_offset: usize,
+    #[allow(dead_code)]
+    pub audio_processing: bool,
+    #[allow(dead_code)]
+    pub last_shortcut_pressed: Option<String>,
+    #[allow(dead_code)]
+    pub last_shortcut_time: Instant,
+    #[allow(dead_code)]
+    pub focus: u8, // Stub for Focus enum
+    #[allow(dead_code)]
+    pub shortcut_index: usize,
+    #[allow(dead_code)]
+    pub mode: u8, // Stub for ChatMode enum
+    #[allow(dead_code)]
+    pub selected_local_mode: String,
+    #[allow(dead_code)]
+    pub selected_model: String,
 }
 
 impl ChatApp {
@@ -81,6 +122,32 @@ impl ChatApp {
             llm: Arc::new(LocalLlm::new()),
             llm_tx,
             llm_rx,
+            rainbow_animation: RainbowEffect::new(),
+            rainbow_cursor: RainbowEffect::new(),
+            shimmer: ShimmerEffect::new(vec![
+                ratatui::style::Color::Rgb(255, 100, 100),
+                ratatui::style::Color::Rgb(100, 255, 100),
+                ratatui::style::Color::Rgb(100, 100, 255),
+            ]),
+            last_render: Instant::now(),
+            tachyon_last_tick: Duration::from_secs(0),
+            show_effects_demo_modal: false,
+            show_train_animation: false,
+            show_matrix_animation: false,
+            input_area: ratatui::layout::Rect::default(),
+            plan_button_area: ratatui::layout::Rect::default(),
+            model_button_area: ratatui::layout::Rect::default(),
+            local_button_area: ratatui::layout::Rect::default(),
+            show_dx_splash: false,
+            chat_scroll_offset: 0,
+            audio_processing: false,
+            last_shortcut_pressed: None,
+            last_shortcut_time: Instant::now(),
+            focus: 0,
+            shortcut_index: 0,
+            mode: 0,
+            selected_local_mode: "Local".to_string(),
+            selected_model: "Qwen3.5-0.8B".to_string(),
         }
     }
 
@@ -110,7 +177,7 @@ impl ChatApp {
 
     fn run_loop(&mut self, terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<()> {
         loop {
-            terminal.draw(|f| crate::render::render(self, f))?;
+            terminal.draw(|f| self.render(f))?;
 
             if self.should_quit {
                 break;
