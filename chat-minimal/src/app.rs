@@ -217,8 +217,8 @@ impl ChatApp {
     }
 
     fn handle_key(&mut self, key: event::KeyEvent) {
-        // Handle thinking accordion toggle with 'Ctrl+T' key
-        if key.code == KeyCode::Char('t') && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+        // Handle thinking accordion toggle with '0' key
+        if key.code == KeyCode::Char('0') {
             if !self.messages.is_empty() {
                 // Toggle thinking expansion for the last assistant message
                 for msg in self.messages.iter_mut().rev() {
@@ -239,7 +239,19 @@ impl ChatApp {
                     return;
                 }
                 KeyCode::Down => {
-                    self.chat_scroll_offset = self.chat_scroll_offset.saturating_add(1);
+                    // Calculate max scroll based on content height using MessageList's calculation
+                    let message_list = crate::components::MessageList::with_effects(
+                        &self.messages,
+                        &self.theme,
+                        0,
+                        &self.shimmer,
+                        &self.typing_indicator,
+                    );
+                    let total_height = message_list.calculate_total_height();
+                    let viewport_height = self.get_chat_viewport_height();
+                    let max_scroll = total_height.saturating_sub(viewport_height);
+                    
+                    self.chat_scroll_offset = (self.chat_scroll_offset + 1).min(max_scroll);
                     return;
                 }
                 _ => {}
@@ -346,5 +358,13 @@ impl ChatApp {
             self.splash_font_index = (self.splash_font_index + 1) % 382;
             self.last_font_change = Instant::now();
         }
+    }
+
+    /// Get the chat viewport height (terminal height - input box - status bar)
+    fn get_chat_viewport_height(&self) -> usize {
+        // Approximate: terminal height - input box (3 lines) - status bar (1 line)
+        // This is a rough estimate; actual value comes from layout
+        let term_height = crossterm::terminal::size().map(|(_, h)| h).unwrap_or(24);
+        (term_height as usize).saturating_sub(4)
     }
 }

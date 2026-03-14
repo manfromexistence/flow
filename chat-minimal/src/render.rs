@@ -439,8 +439,16 @@ impl ChatApp {
         let inner = block.inner(area);
         block.render(area, buf);
 
-        self.render_input_text(inner, buf);
-        self.render_input_cursor(inner, buf);
+        // Add horizontal padding inside the input box
+        let padded_inner = Rect {
+            x: inner.x + 1,
+            y: inner.y,
+            width: inner.width.saturating_sub(2),
+            height: inner.height,
+        };
+
+        self.render_input_text(padded_inner, buf);
+        self.render_input_cursor(padded_inner, buf);
     }
 
     fn render_input_text(&self, area: Rect, buf: &mut Buffer) {
@@ -531,7 +539,7 @@ impl ChatApp {
             "Enter: Send | Shift+Enter: New Line",
             "Ctrl+A/E: Start/End | Ctrl+U/K: Clear",
             "Ctrl+W: Delete Word | Ctrl+D: Exit",
-            "Up/Down: Scroll | Ctrl+T: Toggle Thinking",
+            "Up/Down: Scroll | 0: Toggle Thinking",
         ];
 
         let current_shortcut = shortcuts[self.shortcut_index % shortcuts.len()];

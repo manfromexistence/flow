@@ -41,6 +41,8 @@ fn parse_content_with_thinking<'a>(
     let mut in_thinking = false;
     let mut thinking_content = Vec::new();
     let mut has_thinking = false;
+    let mut just_closed_thinking = false;
+    let mut response_content = Vec::new();
 
     for line in content.lines() {
         if line.trim() == "<think>" {
@@ -49,62 +51,118 @@ fn parse_content_with_thinking<'a>(
             continue;
         } else if line.trim() == "</think>" {
             in_thinking = false;
-            // Add thinking accordion header only if we found thinking tags
-            if show_thinking {
-                lines.push(Line::from(vec![
-                    Span::styled(
-                        "▼ ",
-                        Style::default()
-                            .fg(theme.accent)
-                            .add_modifier(Modifier::BOLD),
-                    ),
-                    Span::styled(
-                        "Thinking",
-                        Style::default()
-                            .fg(theme.accent)
-                            .add_modifier(Modifier::ITALIC),
-                    ),
-                ]));
-                // Add thinking content
-                for think_line in &thinking_content {
-                    lines.push(Line::from(Span::styled(
-                        format!("  {}", think_line),
-                        Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
-                    )));
-                }
-            } else {
-                lines.push(Line::from(vec![
-                    Span::styled(
-                        "▶ ",
-                        Style::default()
-                            .fg(theme.accent)
-                            .add_modifier(Modifier::BOLD),
-                    ),
-                    Span::styled(
-                        "Thinking",
-                        Style::default()
-                            .fg(theme.accent)
-                            .add_modifier(Modifier::ITALIC),
-                    ),
-                ]));
-            }
-            thinking_content.clear();
+            just_closed_thinking = true;
             continue;
         }
 
         if in_thinking {
             thinking_content.push(line);
         } else {
-            lines.push(Line::from(line));
+            // Skip the first empty line after closing thinking tag
+            if just_closed_thinking && line.trim().is_empty() {
+                just_closed_thinking = false;
+                continue;
+            }
+            just_closed_thinking = false;
+            response_content.push(line);
         }
     }
 
-    // If no thinking tags were found, just return the plain lines
-    if !has_thinking {
-        return content.lines().map(|line| Line::from(line)).collect();
+    // If we're still in thinking (streaming), show the accordion with current content
+    if in_thinking && has_thinking {
+        if show_thinking {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▼ ",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    "Thinking",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::ITALIC),
+                ),
+            ]));
+            // Add thinking content being streamed (with indentation)
+            for think_line in &thinking_content {
+                lines.push(Line::from(Span::styled(
+                    format!("  {}", think_line),
+                    Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+                )));
+            }
+        } else {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▶ ",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    "Thinking",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::ITALIC),
+                ),
+            ]));
+        }
+        return lines;
     }
 
-    lines
+    // If thinking is complete (has </think>), show accordion followed by response
+    if has_thinking {
+        // Add thinking accordion header
+        if show_thinking {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▼ ",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    "Thinking",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::ITALIC),
+                ),
+            ]));
+            // Add thinking content (with indentation) - show all lines including empty ones
+            for think_line in &thinking_content {
+                lines.push(Line::from(Span::styled(
+                    format!("  {}", think_line),
+                    Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+                )));
+            }
+        } else {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▶ ",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    "Thinking",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::ITALIC),
+                ),
+            ]));
+        }
+        
+        // Add response content immediately after (no gap)
+        for response_line in &response_content {
+            lines.push(Line::from(*response_line));
+        }
+        
+        return lines;
+    }
+
+    // If no thinking tags were found, just return the plain lines
+    content.lines().map(|line| Line::from(line)).collect()
 }
 
 #[derive(Debug, Clone)]
@@ -227,10 +285,10 @@ impl Widget for MessageList<'_> {
             match msg.role {
                 MessageRole::User => {
                     // User message: minimal padding, right-aligned, rounded border
-                    let token_text = format!("{} tokens", msg.token_count);
+                    let token_text = format!("{}tokens", msg.token_count);
                     let header = Line::from(vec![
                         Span::styled(
-                            "You",
+                            "Sumon",
                             Style::default()
                                 .fg(self.theme.accent)
                                 .add_modifier(Modifier::BOLD),
@@ -259,7 +317,8 @@ impl Widget for MessageList<'_> {
 
                     // Width: fit content tightly with minimal padding
                     // Add only 4 for borders (2) + minimal spacing (2)
-                    let header_width = format!("You  {} tokens", msg.token_count).len();
+                    // Minimum width to show "Sumon X tokens" properly
+                    let header_width = format!("Sumon  {}tokens", msg.token_count).len();
                     let needed_width = max_content_width.max(header_width) + 4;
                     let max_width = (area.width * 60 / 100) as usize;
                     let msg_width = (needed_width.min(max_width).max(12)) as u16;
