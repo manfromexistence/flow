@@ -26,11 +26,27 @@ pub enum AnimationType {
     Splash,
     Matrix,
     Train,
+    Confetti,
+    GameOfLife,
+    Starfield,
+    Rain,
+    NyanCat,
+    DVDLogo,
 }
 
 impl AnimationType {
     pub fn all() -> Vec<Self> {
-        vec![Self::Splash, Self::Matrix, Self::Train]
+        vec![
+            Self::Splash,
+            Self::Matrix,
+            Self::Train,
+            Self::Confetti,
+            Self::GameOfLife,
+            Self::Starfield,
+            Self::Rain,
+            Self::NyanCat,
+            Self::DVDLogo,
+        ]
     }
 
     #[allow(dead_code)]
@@ -39,6 +55,12 @@ impl AnimationType {
             Self::Splash => "Splash Screen",
             Self::Matrix => "Matrix Rain",
             Self::Train => "ASCII Train",
+            Self::Confetti => "Confetti",
+            Self::GameOfLife => "Game of Life",
+            Self::Starfield => "Starfield",
+            Self::Rain => "Rain",
+            Self::NyanCat => "Nyan Cat",
+            Self::DVDLogo => "DVD Logo",
         }
     }
 }
@@ -197,7 +219,37 @@ impl ChatApp {
     }
 
     fn handle_key(&mut self, key: event::KeyEvent) {
-        if self.input.content.is_empty() {
+        // Handle thinking accordion toggle with 'Ctrl+T' key
+        if key.code == KeyCode::Char('t') && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+            if !self.messages.is_empty() {
+                // Toggle thinking expansion for the last assistant message
+                for msg in self.messages.iter_mut().rev() {
+                    if msg.role == crate::components::MessageRole::Assistant {
+                        msg.thinking_expanded = !msg.thinking_expanded;
+                        break;
+                    }
+                }
+                return;
+            }
+        }
+        
+        // Handle scrolling when messages exist
+        if !self.messages.is_empty() && self.input.content.is_empty() {
+            match key.code {
+                KeyCode::Up => {
+                    self.chat_scroll_offset = self.chat_scroll_offset.saturating_sub(1);
+                    return;
+                }
+                KeyCode::Down => {
+                    self.chat_scroll_offset = self.chat_scroll_offset.saturating_add(1);
+                    return;
+                }
+                _ => {}
+            }
+        }
+        
+        // Handle animation navigation when input is empty and no messages
+        if self.input.content.is_empty() && self.messages.is_empty() {
             match key.code {
                 KeyCode::Left => {
                     self.handle_animation_previous();
@@ -250,6 +302,9 @@ impl ChatApp {
     }
 
     fn send_message(&mut self, content: String) {
+        // Exit animation mode when sending a message
+        self.animation_mode = false;
+        
         self.messages.push(Message::user(content.clone()));
         self.is_loading = true;
         self.messages.push(Message::assistant(String::new()));

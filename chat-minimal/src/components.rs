@@ -8,6 +8,7 @@ use ratatui::{
         Widget, Wrap,
     },
 };
+use tiktoken_rs::cl100k_base;
 
 #[allow(unused_imports)]
 use super::{
@@ -16,9 +17,94 @@ use super::{
     theme::ChatTheme,
 };
 
+// Helper function to count tokens accurately
+fn count_tokens(text: &str) -> usize {
+    match cl100k_base() {
+        Ok(bpe) => bpe.encode_with_special_tokens(text).len(),
+        Err(_) => text.len() / 4, // Fallback to rough estimate
+    }
+}
+
 // Simple markdown parser - just returns plain text lines for now
+#[allow(dead_code)]
 fn parse_markdown_to_lines<'a>(content: &'a str, _theme: &'a ChatTheme) -> Vec<Line<'a>> {
     content.lines().map(|line| Line::from(line)).collect()
+}
+
+// Parse content and extract thinking sections
+fn parse_content_with_thinking<'a>(
+    content: &'a str,
+    theme: &'a ChatTheme,
+    show_thinking: bool,
+) -> Vec<Line<'a>> {
+    let mut lines = Vec::new();
+    let mut in_thinking = false;
+    let mut thinking_content = Vec::new();
+    let mut has_thinking = false;
+
+    for line in content.lines() {
+        if line.trim() == "<think>" {
+            in_thinking = true;
+            has_thinking = true;
+            continue;
+        } else if line.trim() == "</think>" {
+            in_thinking = false;
+            // Add thinking accordion header only if we found thinking tags
+            if show_thinking {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        "▼ ",
+                        Style::default()
+                            .fg(theme.accent)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "Thinking",
+                        Style::default()
+                            .fg(theme.accent)
+                            .add_modifier(Modifier::ITALIC),
+                    ),
+                ]));
+                // Add thinking content
+                for think_line in &thinking_content {
+                    lines.push(Line::from(Span::styled(
+                        format!("  {}", think_line),
+                        Style::default().fg(theme.border).add_modifier(Modifier::ITALIC),
+                    )));
+                }
+            } else {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        "▶ ",
+                        Style::default()
+                            .fg(theme.accent)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        "Thinking",
+                        Style::default()
+                            .fg(theme.accent)
+                            .add_modifier(Modifier::ITALIC),
+                    ),
+                ]));
+            }
+            thinking_content.clear();
+            continue;
+        }
+
+        if in_thinking {
+            thinking_content.push(line);
+        } else {
+            lines.push(Line::from(line));
+        }
+    }
+
+    // If no thinking tags were found, just return the plain lines
+    if !has_thinking {
+        return content.lines().map(|line| Line::from(line)).collect();
+    }
+
+    lines
 }
 
 #[derive(Debug, Clone)]
@@ -26,6 +112,8 @@ pub struct Message {
     pub role: MessageRole,
     pub content: String,
     pub timestamp: chrono::DateTime<chrono::Local>,
+    pub token_count: usize,
+    pub thinking_expanded: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -36,18 +124,24 @@ pub enum MessageRole {
 
 impl Message {
     pub fn user(content: String) -> Self {
+        let token_count = count_tokens(&content);
         Self {
             role: MessageRole::User,
             content,
             timestamp: chrono::Local::now(),
+            token_count,
+            thinking_expanded: false,
         }
     }
 
     pub fn assistant(content: String) -> Self {
+        let token_count = count_tokens(&content);
         Self {
             role: MessageRole::Assistant,
             content,
             timestamp: chrono::Local::now(),
+            token_count,
+            thinking_expanded: false,
         }
     }
 }
@@ -56,14 +150,22 @@ pub struct MessageList<'a> {
     messages: &'a [Message],
     theme: &'a ChatTheme,
     scroll_offset: usize,
+    shimmer: Option<&'a ShimmerEffect>,
+    typing_indicator: Option<&'a TypingIndicator>,
+    #[allow(dead_code)]
+    selected_message_index: Option<usize>,
 }
 
 impl<'a> MessageList<'a> {
+    #[allow(dead_code)]
     pub fn new(messages: &'a [Message], theme: &'a ChatTheme) -> Self {
         Self {
             messages,
             theme,
             scroll_offset: 0,
+            shimmer: None,
+            typing_indicator: None,
+            selected_message_index: None,
         }
     }
 
@@ -77,6 +179,26 @@ impl<'a> MessageList<'a> {
             messages,
             theme,
             scroll_offset,
+            shimmer: None,
+            typing_indicator: None,
+            selected_message_index: None,
+        }
+    }
+    
+    pub fn with_effects(
+        messages: &'a [Message],
+        theme: &'a ChatTheme,
+        scroll_offset: usize,
+        shimmer: &'a ShimmerEffect,
+        typing_indicator: &'a TypingIndicator,
+    ) -> Self {
+        Self {
+            messages,
+            theme,
+            scroll_offset,
+            shimmer: Some(shimmer),
+            typing_indicator: Some(typing_indicator),
+            selected_message_index: None,
         }
     }
 
@@ -105,7 +227,7 @@ impl Widget for MessageList<'_> {
             match msg.role {
                 MessageRole::User => {
                     // User message: minimal padding, right-aligned, rounded border
-                    let time = msg.timestamp.format("%I:%M %p").to_string();
+                    let token_text = format!("{} tokens", msg.token_count);
                     let header = Line::from(vec![
                         Span::styled(
                             "You",
@@ -114,7 +236,7 @@ impl Widget for MessageList<'_> {
                                 .add_modifier(Modifier::BOLD),
                         ),
                         Span::raw("  "),
-                        Span::styled(time, Style::default().fg(self.theme.border)),
+                        Span::styled(token_text, Style::default().fg(self.theme.border)),
                     ]);
 
                     let content_lines: Vec<Line> = msg
@@ -137,7 +259,7 @@ impl Widget for MessageList<'_> {
 
                     // Width: fit content tightly with minimal padding
                     // Add only 4 for borders (2) + minimal spacing (2)
-                    let header_width = "You  00:00".len();
+                    let header_width = format!("You  {} tokens", msg.token_count).len();
                     let needed_width = max_content_width.max(header_width) + 4;
                     let max_width = (area.width * 60 / 100) as usize;
                     let msg_width = (needed_width.min(max_width).max(12)) as u16;
@@ -217,8 +339,24 @@ impl Widget for MessageList<'_> {
                         Style::default().fg(self.theme.border),
                     )]);
 
-                    // Parse markdown and convert to styled lines
-                    let content_lines = parse_markdown_to_lines(&msg.content, self.theme);
+                    // Check if content is empty and show shimmer effect
+                    let content_lines = if msg.content.is_empty() {
+                        // Show shimmer loading indicator when content is empty
+                        if let (Some(shimmer), Some(indicator)) = (self.shimmer, self.typing_indicator) {
+                            let shimmer_color = shimmer.current_color();
+                            vec![Line::from(vec![Span::styled(
+                                format!("Thinking{}", indicator.text(indicator.is_visible())),
+                                Style::default()
+                                    .fg(shimmer_color)
+                                    .add_modifier(Modifier::ITALIC),
+                            )])]
+                        } else {
+                            vec![Line::from("Thinking...")]
+                        }
+                    } else {
+                        // Parse content with thinking accordion using message's expansion state
+                        parse_content_with_thinking(&msg.content, self.theme, msg.thinking_expanded)
+                    };
 
                     // Calculate message height based on content
                     let msg_height = (content_lines.len() + 2).min((area.bottom() - y) as usize);

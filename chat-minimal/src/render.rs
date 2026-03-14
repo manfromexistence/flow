@@ -84,6 +84,7 @@ impl ChatApp {
                         frame.buffer_mut(),
                         &self.theme,
                         self.splash_font_index,
+                        &self.rainbow_animation,
                     );
                 }
                 AnimationType::Matrix => {
@@ -91,6 +92,24 @@ impl ChatApp {
                 }
                 AnimationType::Train => {
                     self.render_train_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Confetti => {
+                    self.render_confetti_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::GameOfLife => {
+                    self.render_gameoflife_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Starfield => {
+                    self.render_starfield_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Rain => {
+                    self.render_rain_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::NyanCat => {
+                    self.render_nyancat_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::DVDLogo => {
+                    self.render_dvdlogo_animation_in_area(chunks[0], frame);
                 }
             }
 
@@ -112,6 +131,7 @@ impl ChatApp {
                 frame.buffer_mut(),
                 &self.theme,
                 self.splash_font_index,
+                &self.rainbow_animation,
             );
             return;
         }
@@ -133,9 +153,17 @@ impl ChatApp {
                 frame.buffer_mut(),
                 &self.theme,
                 self.splash_font_index,
+                &self.rainbow_animation,
             );
         } else {
-            MessageList::new(&self.messages, &self.theme).render(chunks[0], frame.buffer_mut());
+            MessageList::with_effects(
+                &self.messages,
+                &self.theme,
+                self.chat_scroll_offset,
+                &self.shimmer,
+                &self.typing_indicator,
+            )
+            .render(chunks[0], frame.buffer_mut());
         }
 
         self.render_input_box(chunks[1], frame.buffer_mut());
@@ -328,6 +356,7 @@ impl ChatApp {
             .process_effects(elapsed.into(), frame.buffer_mut(), area);
     }
     */
+    #[allow(dead_code)]
     fn render_shortcut_debug(&self, area: Rect, buf: &mut Buffer, shortcut: &str) {
         let max_len = area.width.saturating_sub(10).max(20) as usize;
         let display_text = if shortcut.len() > max_len {
@@ -366,6 +395,7 @@ impl ChatApp {
             .render(debug_area, buf);
     }
 
+    #[allow(dead_code)]
     fn render_audio_recording_indicator(&self, area: Rect, buf: &mut Buffer) {
         let indicator_text = "[REC] Recording...";
         let width = indicator_text.len() as u16 + 4;
@@ -501,7 +531,7 @@ impl ChatApp {
             "Enter: Send | Shift+Enter: New Line",
             "Ctrl+A/E: Start/End | Ctrl+U/K: Clear",
             "Ctrl+W: Delete Word | Ctrl+D: Exit",
-            "Tab: Switch Focus | Arrows: Navigate",
+            "Up/Down: Scroll | Ctrl+T: Toggle Thinking",
         ];
 
         let current_shortcut = shortcuts[self.shortcut_index % shortcuts.len()];
@@ -654,11 +684,13 @@ impl ChatApp {
     }
 
     /// Helper: get theme accent as ratatui Color
+    #[allow(dead_code)]
     fn theme_accent_color(&self) -> ratatui::style::Color {
         self.theme.accent
     }
 
     /// Helper: get theme fg as ratatui Color
+    #[allow(dead_code)]
     fn theme_fg_color(&self) -> ratatui::style::Color {
         self.theme.fg
     }
@@ -668,6 +700,7 @@ impl ChatApp {
         self.theme.bg
     }
 
+    #[allow(dead_code)]
     fn render_matrix_animation(&self, frame: &mut ratatui::Frame) {
         let area = frame.area();
         self.render_matrix_animation_in_area(area, frame);
@@ -747,6 +780,7 @@ impl ChatApp {
             .render(area, frame.buffer_mut());
     }
 
+    #[allow(dead_code)]
     fn render_train_animation(&self, frame: &mut ratatui::Frame) {
         let area = frame.area();
         self.render_train_animation_in_area(area, frame);
@@ -893,6 +927,7 @@ impl ChatApp {
             .render(area, frame.buffer_mut());
     }
 
+    #[allow(dead_code)]
     fn render_animation_placeholder(&self, area: Rect, frame: &mut ratatui::Frame, title: &str) {
         use ratatui::style::{Modifier, Style};
         use ratatui::text::{Line, Span};

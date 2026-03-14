@@ -41,6 +41,9 @@ cli-clipboard = "0.4"
 # FIGlet rendering
 figlet-rs = "0.1"
 
+# Token counting
+tiktoken-rs = "0.9"
+
 [profile.release]
 opt-level = 3
 lto = "fat"
