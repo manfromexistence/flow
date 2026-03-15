@@ -2,16 +2,17 @@ use std::time::Instant;
 
 use crate::theme::ChatTheme;
 use ratatui::{
+    Frame,
     layout::{Constraint, Layout, Margin},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span, Text},
     widgets::{Block, Clear, Widget},
-    Frame,
 };
 use tachyonfx::{
-    fx::{self, never_complete, parallel, sequence, ExpandDirection, Glitch},
-    CellFilter, CenteredShrink, Duration, Effect, EffectRenderer, IntoEffect, Interpolation::*,
-    Motion, SimpleRng, color_from_hsl,
+    CellFilter, CenteredShrink, Duration, Effect, EffectRenderer,
+    Interpolation::*,
+    IntoEffect, Motion, SimpleRng, color_from_hsl,
+    fx::{self, ExpandDirection, Glitch, never_complete, parallel, sequence},
 };
 
 pub struct TachyonDemo {
@@ -83,40 +84,45 @@ impl TachyonDemo {
     }
 
     pub fn render(&mut self, f: &mut Frame) {
-        // Vercel Geist + ShadCN UI inspired modern palette
-        let screen_bg: Color = Color::Rgb(0, 0, 0); // Pure black - Vercel style
-        let content_bg: Color = Color::Rgb(10, 10, 10); // Near black - subtle depth
-        let border_color: Color = Color::Rgb(38, 38, 38); // Geist border
+        // Use theme colors for consistency
+        let screen_bg = self.theme.bg; // Main background
+        let content_bg = self.theme.card; // Use card background for modal
 
         Clear.render(f.area(), f.buffer_mut());
         Block::default()
             .style(Style::default().bg(screen_bg))
             .render(f.area(), f.buffer_mut());
 
-        let content_area = f.area().inner_centered(80, 17);
+        // Create content area without border
+        let content_area = f.area().inner_centered(82, 19);
+        
+        // Render block with card background, no border
         Block::default()
             .style(Style::default().bg(content_bg))
-            .border_style(Style::default().fg(border_color))
             .render(content_area, f.buffer_mut());
 
-        // Modern vibrant palette - ShadCN chart colors + favorites
-        let accent_blue = Color::Rgb(59, 130, 246); // #3B82F6 - ShadCN blue (chart-2)
-        let accent_cyan = Color::Rgb(6, 182, 212); // #06B6D4 - Tailwind cyan
-        let text_fg = Color::Rgb(250, 250, 250); // #FAFAFA - High contrast white
-        let text_muted = Color::Rgb(115, 115, 115); // #737373 - Geist gray
-        let success_green = Color::Rgb(34, 197, 94); // #22C55E - Vibrant green (chart-1)
-        let warning_yellow = Color::Rgb(234, 179, 8); // #EAB308 - Bold yellow
-        let error_red = Color::Rgb(239, 68, 68); // #EF4444 - Bright red
-        let info_purple = Color::Rgb(168, 85, 247); // #A855F7 - Rich purple (chart-5)
+        // Add padding only for text layout, not for animations
+        let padded_area = content_area.inner(Margin::new(2, 1));
+
+        // Use theme colors throughout
+        let text_fg = self.theme.fg;
+        let text_muted = self.theme.muted_fg;
+        let accent_primary = self.theme.accent; // Green
+        let accent_secondary = self.theme.mode_colors.plan; // Yellow
+        let accent_tertiary = self.theme.mode_colors.ask; // Blue
 
         let anim_style = [
-            Style::default().fg(accent_cyan).add_modifier(Modifier::BOLD),
-            Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(accent_primary)
+                .add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(accent_secondary)
+                .add_modifier(Modifier::BOLD),
         ];
         let text_style = Style::default().fg(text_fg);
         let shortcut_style = [
             Style::default()
-                .fg(accent_blue)
+                .fg(accent_tertiary)
                 .add_modifier(Modifier::BOLD),
             Style::default().fg(text_muted),
         ];
@@ -126,7 +132,7 @@ impl TachyonDemo {
             Constraint::Length(7),
             Constraint::Length(6),
         ])
-        .split(content_area.inner(Margin::new(1, 1)));
+        .split(padded_area);
 
         let active_animation: Line = Line::from(vec![
             Span::from("Active animation: ").style(anim_style[0]),
@@ -136,39 +142,74 @@ impl TachyonDemo {
         let main_text = Text::from(vec![
             Line::from(vec![
                 Span::styled("Many effects are ", text_style),
-                Span::styled("composable", Style::default().fg(success_green).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "composable",
+                    Style::default()
+                        .fg(accent_primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(", e.g. ", text_style),
-                Span::styled("`parallel`", Style::default().fg(accent_cyan)),
+                Span::styled("`parallel`", Style::default().fg(accent_tertiary)),
                 Span::styled(", ", text_style),
-                Span::styled("`sequence`", Style::default().fg(accent_blue)),
+                Span::styled("`sequence`", Style::default().fg(accent_secondary)),
                 Span::styled(", ", text_style),
-                Span::styled("`repeating`", Style::default().fg(info_purple)),
+                Span::styled("`repeating`", Style::default().fg(accent_primary)),
                 Span::styled(".", text_style),
             ]),
             Line::from(vec![
                 Span::styled("Most effects have a ", text_style),
-                Span::styled("lifetime", Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "lifetime",
+                    Style::default()
+                        .fg(accent_secondary)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(", after which they report ", text_style),
-                Span::styled("done()", Style::default().fg(success_green)),
+                Span::styled("done()", Style::default().fg(accent_primary)),
                 Span::styled(".", text_style),
             ]),
             Line::from(vec![
                 Span::styled("Effects such as ", text_style),
-                Span::styled("`never_complete`", Style::default().fg(error_red).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "`never_complete`",
+                    Style::default()
+                        .fg(self.theme.destructive)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(", ", text_style),
-                Span::styled("`temporary`", Style::default().fg(info_purple).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "`temporary`",
+                    Style::default()
+                        .fg(accent_tertiary)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(" influence or override this.", text_style),
             ]),
             Line::from(""),
             Line::from(vec![
                 Span::styled("The ", text_style),
-                Span::styled("text in this window", Style::default().fg(accent_cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "text in this window",
+                    Style::default()
+                        .fg(accent_primary)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(" will undergo a ", text_style),
-                Span::styled("random transition", Style::default().fg(warning_yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "random transition",
+                    Style::default()
+                        .fg(accent_secondary)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]),
             Line::from(vec![
                 Span::styled("when any of the following ", text_style),
-                Span::styled("keys", Style::default().fg(success_green).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "keys",
+                    Style::default()
+                        .fg(accent_tertiary)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(" are pressed:", text_style),
             ]),
         ]);
@@ -193,6 +234,7 @@ impl TachyonDemo {
         f.render_widget(main_text, layout[1]);
         f.render_widget(shortcuts, layout[2]);
 
+        // Apply effect to the entire content area (animations cover full area)
         let duration = self.last_tick;
         if self.active_effect.1.running() {
             f.render_effect(&mut self.active_effect.1, content_area, duration);
@@ -205,47 +247,35 @@ struct EffectsRepository {
 }
 
 impl EffectsRepository {
-    fn new(_theme: ChatTheme) -> Self {
-        // Vercel Geist + ShadCN UI modern color palette
-        let screen_bg = Color::Rgb(0, 0, 0); // Pure black - Vercel style
-        let _content_bg = Color::Rgb(10, 10, 10); // Near black
-        
-        // Vibrant modern palette - ShadCN charts + favorites
-        let blue = Color::Rgb(59, 130, 246); // #3B82F6 - ShadCN blue
-        let cyan = Color::Rgb(6, 182, 212); // #06B6D4 - Tailwind cyan
-        let green = Color::Rgb(34, 197, 94); // #22C55E - Vibrant green
-        let yellow = Color::Rgb(234, 179, 8); // #EAB308 - Bold yellow
-        let red = Color::Rgb(239, 68, 68); // #EF4444 - Bright red
-        let purple = Color::Rgb(168, 85, 247); // #A855F7 - Rich purple
-        let orange = Color::Rgb(249, 115, 22); // #F97316 - Vibrant orange
-        let pink = Color::Rgb(236, 72, 153); // #EC4899 - Hot pink
-        let text_fg = Color::Rgb(250, 250, 250); // #FAFAFA - High contrast
+    fn new(theme: ChatTheme) -> Self {
+        // Use theme colors for effects
+        let screen_bg = theme.bg;
+
+        // Theme accent colors
+        let primary = theme.accent; // Green
+        let secondary = theme.mode_colors.plan; // Yellow
+        let tertiary = theme.mode_colors.ask; // Blue
+        let destructive = theme.destructive; // Red
+        let text_fg = theme.fg;
 
         let slow = Duration::from_millis(1250);
         let medium = Duration::from_millis(750);
 
-        let _glitch: Effect = Glitch::builder()
-            .rng(SimpleRng::default())
-            .action_ms(200..400)
-            .action_start_delay_ms(0..1)
-            .cell_glitch_ratio(1.0)
-            .build()
-            .into_effect();
+        // Custom color cycle using theme colors
+        let custom_color_cycle =
+            fx::effect_fn(Instant::now(), slow, move |state, _ctx, cell_iter| {
+                let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
 
-        // Custom color cycle using Tokyo Night palette
-        let custom_color_cycle = fx::effect_fn(Instant::now(), slow, |state, _ctx, cell_iter| {
-            let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
-
-            cell_iter
-                .filter(|(_, cell)| cell.symbol() != " ")
-                .enumerate()
-                .for_each(|(i, (_pos, cell))| {
-                    let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
-                    let color = color_from_hsl(hue, 80.0, 65.0); // Professional saturation and lightness
-                    cell.set_fg(color);
-                });
-        })
-        .with_filter(CellFilter::FgColor(text_fg));
+                cell_iter
+                    .filter(|(_, cell)| cell.symbol() != " ")
+                    .enumerate()
+                    .for_each(|(i, (_pos, cell))| {
+                        let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
+                        let color = color_from_hsl(hue, 80.0, 65.0);
+                        cell.set_fg(color);
+                    });
+            })
+            .with_filter(CellFilter::FgColor(text_fg));
 
         let effects = vec![
             (
@@ -257,13 +287,13 @@ impl EffectsRepository {
                 sequence(&[
                     fx::expand(
                         ExpandDirection::Vertical,
-                        Style::new().fg(pink).bg(screen_bg),
+                        Style::new().fg(destructive).bg(screen_bg),
                         1200,
                     ),
                     fx::sleep(slow),
                     fx::expand(
                         ExpandDirection::Horizontal,
-                        Style::new().fg(cyan).bg(screen_bg),
+                        Style::new().fg(primary).bg(screen_bg),
                         1200,
                     )
                     .reversed(),
@@ -272,10 +302,10 @@ impl EffectsRepository {
             (
                 "irregular sweep out/sweep in",
                 sequence(&[
-                    fx::sweep_out(Motion::DownToUp, 5, 20, orange, (2000, QuadOut)),
-                    fx::sweep_in(Motion::UpToDown, 5, 20, blue, (2000, QuadOut)),
-                    fx::sweep_out(Motion::UpToDown, 5, 20, green, (2000, QuadOut)),
-                    fx::sweep_in(Motion::DownToUp, 5, 20, purple, (2000, QuadOut)),
+                    fx::sweep_out(Motion::DownToUp, 5, 20, secondary, (2000, QuadOut)),
+                    fx::sweep_in(Motion::UpToDown, 5, 20, tertiary, (2000, QuadOut)),
+                    fx::sweep_out(Motion::UpToDown, 5, 20, primary, (2000, QuadOut)),
+                    fx::sweep_in(Motion::DownToUp, 5, 20, destructive, (2000, QuadOut)),
                 ]),
             ),
             (
@@ -285,7 +315,7 @@ impl EffectsRepository {
                     fx::sleep(medium),
                     fx::prolong_end(
                         medium,
-                        fx::dissolve_to(Style::default().bg(screen_bg).fg(cyan), medium),
+                        fx::dissolve_to(Style::default().bg(screen_bg).fg(tertiary), medium),
                     ),
                 ]),
             ),
@@ -293,7 +323,7 @@ impl EffectsRepository {
                 "slide in/out",
                 fx::repeating(sequence(&[
                     parallel(&[
-                        fx::fade_from_fg(yellow, (2000, ExpoInOut)),
+                        fx::fade_from_fg(secondary, (2000, ExpoInOut)),
                         fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
                     ]),
                     fx::sleep(medium),
@@ -329,112 +359,5 @@ impl EffectsRepository {
 
     fn len(&self) -> usize {
         self.effects.len()
-    }
-}
-
-
-// Public API for integrating tachyonfx effects into the chat app
-pub struct TachyonEffects {
-    effects: Vec<(&'static str, Effect)>,
-}
-
-impl TachyonEffects {
-    pub fn new(bg_color: Color, screen_bg: Color) -> Self {
-        let slow = Duration::from_millis(1250);
-        let medium = Duration::from_millis(750);
-
-        // Custom color cycle effect
-        let custom_color_cycle = fx::effect_fn(Instant::now(), slow, |state, _ctx, cell_iter| {
-            let cycle: f32 = (state.elapsed().as_millis() % 3600) as f32;
-
-            cell_iter
-                .filter(|(_, cell)| cell.symbol() != " ")
-                .enumerate()
-                .for_each(|(i, (_pos, cell))| {
-                    let hue = (2.0 * i as f32 + cycle * 0.2) % 360.0;
-                    let color = color_from_hsl(hue, 100.0, 50.0);
-                    cell.set_fg(color);
-                });
-        })
-        .with_filter(CellFilter::FgColor(Color::Rgb(200, 200, 200)));
-
-        let effects = vec![
-            (
-                "sweep in",
-                fx::sweep_in(Motion::LeftToRight, 30, 0, screen_bg, (slow, QuadOut)),
-            ),
-            (
-                "smooth expand",
-                sequence(&[
-                    fx::expand(
-                        ExpandDirection::Vertical,
-                        Style::new().fg(bg_color).bg(screen_bg),
-                        1200,
-                    ),
-                    fx::sleep(slow),
-                    fx::expand(
-                        ExpandDirection::Horizontal,
-                        Style::new().fg(bg_color).bg(screen_bg),
-                        1200,
-                    )
-                    .reversed(),
-                ]),
-            ),
-            (
-                "sweep out/in",
-                sequence(&[
-                    fx::sweep_out(Motion::DownToUp, 5, 20, bg_color, (2000, QuadOut)),
-                    fx::sweep_in(Motion::UpToDown, 5, 20, bg_color, (2000, QuadOut)),
-                    fx::sweep_out(Motion::UpToDown, 5, 20, bg_color, (2000, QuadOut)),
-                    fx::sweep_in(Motion::DownToUp, 5, 20, bg_color, (2000, QuadOut)),
-                ]),
-            ),
-            (
-                "coalesce",
-                fx::sequence(&[
-                    fx::coalesce((medium, CubicOut)),
-                    fx::sleep(medium),
-                    fx::prolong_end(
-                        medium,
-                        fx::dissolve_to(Style::default().bg(screen_bg), medium),
-                    ),
-                ]),
-            ),
-            (
-                "slide in/out",
-                fx::repeating(sequence(&[
-                    parallel(&[
-                        fx::fade_from_fg(bg_color, (2000, ExpoInOut)),
-                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
-                    ]),
-                    fx::sleep(medium),
-                    fx::prolong_end(
-                        medium,
-                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, medium),
-                    ),
-                ])),
-            ),
-            (
-                "hsl shift",
-                sequence(&[
-                    fx::hsl_shift_fg([360.0, 0.0, 0.0], medium),
-                    fx::hsl_shift_fg([0.0, -100.0, 0.0], medium),
-                    fx::hsl_shift_fg([0.0, -100.0, 0.0], medium).reversed(),
-                    fx::hsl_shift_fg([0.0, 100.0, 0.0], medium),
-                    fx::hsl_shift_fg([0.0, 100.0, 0.0], medium).reversed(),
-                    fx::hsl_shift_fg([0.0, 0.0, -100.0], medium),
-                    fx::hsl_shift_fg([0.0, 0.0, -100.0], medium).reversed(),
-                    fx::hsl_shift_fg([0.0, 0.0, 100.0], medium),
-                    fx::hsl_shift_fg([0.0, 0.0, 100.0], medium).reversed(),
-                ]),
-            ),
-            ("color cycle", never_complete(custom_color_cycle)),
-        ];
-
-        Self { effects }
-    }
-
-    pub fn get_effect(&self, idx: usize) -> (&'static str, Effect) {
-        self.effects[idx % self.effects.len()].clone()
     }
 }

@@ -7,7 +7,6 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
-use tachyonfx::EffectRenderer;
 
 use crate::app::{AnimationType, ChatApp};
 use crate::components::MessageList;
@@ -263,7 +262,7 @@ impl ChatApp {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(self.theme.border))
             .border_type(ratatui::widgets::BorderType::Rounded)
-            .style(Style::default().bg(self.theme.bg));
+            .style(Style::default()); // Transparent background - no bg color set
 
         let inner = block.inner(area);
         block.render(area, buf);
@@ -296,7 +295,7 @@ impl ChatApp {
         } else {
             Paragraph::new(text)
                 .wrap(Wrap { trim: false })
-                .style(Style::default().bg(self.theme.bg).fg(self.theme.fg))
+                .style(Style::default().fg(self.theme.fg)) // No bg - transparent
                 .render(area, buf);
         }
     }
@@ -1585,5 +1584,4 @@ impl ChatApp {
 
         frame.render_widget(hint, hint_area);
     }
-
 }

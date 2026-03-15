@@ -22,7 +22,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use tachyonfx::{Effect, SimpleRng};
+use tachyonfx::SimpleRng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnimationType {
@@ -136,10 +136,6 @@ pub struct ChatApp {
     pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
-    // Tachyonfx integration
-    pub tachyon_effects: crate::tachyonfx::TachyonEffects,
-    pub current_tachyon_effect: Option<(&'static str, Effect)>,
-    pub tachyon_effect_start: Instant,
     // Tachyonfx demo
     pub tachyon_demo: TachyonDemo,
     pub tachyon_rng: SimpleRng,
@@ -150,8 +146,7 @@ impl ChatApp {
     pub fn new() -> Self {
         let (llm_tx, llm_rx) = channel();
         let theme = ChatTheme::dark_fallback();
-        let tachyon_effects = crate::tachyonfx::TachyonEffects::new(theme.bg, theme.bg);
-        
+
         Self {
             theme: theme.clone(),
             input: InputState::new(),
@@ -198,9 +193,6 @@ impl ChatApp {
             show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
-            tachyon_effects,
-            current_tachyon_effect: None,
-            tachyon_effect_start: Instant::now(),
             tachyon_demo: TachyonDemo::new(theme),
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
@@ -448,7 +440,6 @@ impl ChatApp {
             }
         }
         self.animation_start_time = Some(Instant::now());
-        self.init_tachyon_effect_if_needed();
     }
 
     fn handle_animation_next(&mut self) {
@@ -460,11 +451,6 @@ impl ChatApp {
             self.current_animation_index = (self.current_animation_index + 1) % animations.len();
         }
         self.animation_start_time = Some(Instant::now());
-        self.init_tachyon_effect_if_needed();
-    }
-
-    fn init_tachyon_effect_if_needed(&mut self) {
-        // No longer needed - TachyonDemo is now a single animation
     }
 
     fn send_message(&mut self, content: String) {
