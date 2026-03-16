@@ -195,7 +195,7 @@ impl ChatApp {
             tachyon_demo: TachyonDemo::new(theme), // Uncommented
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
-            show_tachyon_modal: true, // Show TachyonFX modal on splash by default
+            show_tachyon_modal: false, // Don't show TachyonFX modal by default
         }
     }
 
