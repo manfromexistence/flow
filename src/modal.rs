@@ -29,7 +29,7 @@ pub struct Modal {
     theme: ChatTheme,
     animation: Option<Effect>,
     animation_start: Instant,
-    show_animation: bool,
+    pub show_animation: bool,
 }
 
 impl Modal {
@@ -121,6 +121,7 @@ pub struct AnimatedSuggestionList {
     selected_index: usize,
     shimmer_effect: Option<Effect>,
     shimmer_start: Instant,
+    is_sliding_out: bool,
 }
 
 impl AnimatedSuggestionList {
@@ -136,19 +137,30 @@ impl AnimatedSuggestionList {
             selected_index: 0,
             shimmer_effect: None,
             shimmer_start: Instant::now(),
+            is_sliding_out: false,
         }
     }
 
     /// Update suggestions and show modal
     pub fn update_suggestions(&mut self, items: Vec<String>, descriptions: Vec<String>) {
+        // Check if modal was visible BEFORE updating items
+        let was_visible = self.modal.is_visible() && !self.items.is_empty();
+        
+        // Update items
         self.items = items;
         self.descriptions = descriptions;
         self.selected_index = 0;
         self.list_state.select(Some(0));
+        self.is_sliding_out = false;
         
         if !self.items.is_empty() {
-            self.modal.show(ModalAnimation::SlideIn);
-            self.start_shimmer_effect();
+            // Only trigger slide-in animation if modal was not already visible
+            if !was_visible {
+                self.modal.show(ModalAnimation::SlideIn);
+                self.start_shimmer_effect();
+            }
+            // If already visible, keep showing without re-animating
+            // (show_animation is already true, no need to set it again)
         } else {
             self.slide_out_and_hide();
         }
@@ -156,12 +168,14 @@ impl AnimatedSuggestionList {
 
     /// Hide suggestions with slide out animation
     pub fn slide_out_and_hide(&mut self) {
-        if self.modal.is_visible() {
+        if self.modal.is_visible() && !self.items.is_empty() && !self.is_sliding_out {
+            // Trigger slide out animation but keep items visible during animation
+            self.is_sliding_out = true;
             self.modal.show(ModalAnimation::SlideOut);
-            // Clear items after a delay to allow animation to complete
-            // For now, we'll clear immediately - could be improved with a timer
-            self.items.clear();
-            self.descriptions.clear();
+        } else if self.items.is_empty() && !self.is_sliding_out {
+            // If no items, just hide immediately
+            self.is_sliding_out = false;
+            self.modal.hide();
         }
     }
 
@@ -172,7 +186,7 @@ impl AnimatedSuggestionList {
 
     /// Check if suggestions are visible
     pub fn is_visible(&self) -> bool {
-        self.modal.is_visible() && !self.items.is_empty()
+        self.modal.is_visible() && (!self.items.is_empty() || self.is_sliding_out)
     }
 
     /// Move selection up
@@ -230,6 +244,20 @@ impl AnimatedSuggestionList {
 
     /// Render suggestions list
     pub fn render(&mut self, f: &mut Frame, area: Rect) {
+        // Check if we're sliding out and animation is complete
+        if self.is_sliding_out {
+            if let Some(ref effect) = self.modal.animation {
+                if !effect.running() {
+                    // Animation complete, now actually hide
+                    self.items.clear();
+                    self.descriptions.clear();
+                    self.is_sliding_out = false;
+                    self.modal.hide();
+                    return;
+                }
+            }
+        }
+        
         if !self.is_visible() {
             return;
         }
@@ -279,11 +307,13 @@ impl AnimatedSuggestionList {
 
             f.render_stateful_widget(list, content_area, &mut self.list_state);
 
-            // Apply shimmer effect if active
-            if let Some(ref mut effect) = self.shimmer_effect {
-                let elapsed = self.shimmer_start.elapsed().into();
-                if effect.running() {
-                    f.render_effect(effect, content_area, elapsed);
+            // Apply shimmer effect if active and not sliding out
+            if !self.is_sliding_out {
+                if let Some(ref mut effect) = self.shimmer_effect {
+                    let elapsed = self.shimmer_start.elapsed().into();
+                    if effect.running() {
+                        f.render_effect(effect, content_area, elapsed);
+                    }
                 }
             }
         });

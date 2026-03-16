@@ -27,10 +27,10 @@ thiserror = "2.0"
 chrono = { version = "0.4", features = ["serde"] }
 
 # FIGlet fonts
-dx-font = { path = "../font" }
+dx-font = { path = "../../font" }
 
 # Animations
-tachyonfx = { path = "../tachyonfx" }
+tachyonfx = { path = "../../tachyonfx" }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }

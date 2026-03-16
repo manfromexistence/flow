@@ -414,8 +414,7 @@ impl Autocomplete {
                     description: description.to_string(),
                 }
             })
-            .take(3) // Limit to 3 suggestions as requested
-            .collect()
+            .collect() // Show all matching suggestions
     }
 
     // /// Fetch remote suggestions from Google's Firefox autocomplete API

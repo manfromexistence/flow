@@ -4,7 +4,7 @@ use crate::{
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
     llm::LocalLlm,
-    // tachyonfx::TachyonDemo, // Commented out
+    tachyonfx::TachyonDemo, // Uncommented
     theme::ChatTheme,
 };
 use anyhow::Result;
@@ -35,7 +35,7 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
-    // TachyonDemo, // Commented out - using effects in autocomplete instead
+    TachyonDemo, // Uncommented - show tachyonfx effects
 }
 
 impl AnimationType {
@@ -50,7 +50,7 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
-            // Self::TachyonDemo, // Commented out
+            Self::TachyonDemo, // Uncommented
         ]
     }
 
@@ -66,7 +66,7 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo",
-            // Self::TachyonDemo => "Tachyon FX Demo", // Commented out
+            Self::TachyonDemo => "Tachyon FX Demo", // Uncommented
         }
     }
 }
@@ -135,8 +135,8 @@ pub struct ChatApp {
     pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
-    // Tachyonfx demo - commented out
-    // pub tachyon_demo: TachyonDemo,
+    // Tachyonfx demo - uncommented
+    pub tachyon_demo: TachyonDemo,
     pub tachyon_rng: SimpleRng,
     pub last_frame_instant: Instant,
 }
@@ -156,9 +156,9 @@ impl ChatApp {
             cursor_visible: true,
             splash_font_index: 0,
             last_font_change: Instant::now(),
-            animation_mode: false,
-            current_animation_index: 0,
-            animation_start_time: None,
+            animation_mode: true, // Start in animation mode
+            current_animation_index: 9, // Start with TachyonDemo (last in the list)
+            animation_start_time: Some(Instant::now()),
             llm: Arc::new(LocalLlm::new()),
             llm_tx,
             llm_rx,
@@ -186,12 +186,37 @@ impl ChatApp {
             mode: 0,
             selected_local_mode: "Local".to_string(),
             selected_model: "Qwen3.5-0.8B".to_string(),
-            autocomplete: Autocomplete::new(theme.clone()),
+            autocomplete: {
+                let mut ac = Autocomplete::new(theme.clone());
+                // Show sample suggestions by default to test animations
+                let sample_items = vec![
+                    "dx exec".to_string(),
+                    "dx resume".to_string(),
+                    "dx fork".to_string(),
+                    "dx review".to_string(),
+                    "dx apply".to_string(),
+                    "dx cloud".to_string(),
+                    "dx login".to_string(),
+                    "dx models list".to_string(),
+                ];
+                let sample_descriptions = vec![
+                    "Execute a task".to_string(),
+                    "Resume previous session".to_string(),
+                    "Fork current session".to_string(),
+                    "Review code changes".to_string(),
+                    "Apply changes".to_string(),
+                    "Cloud operations".to_string(),
+                    "Authenticate with provider".to_string(),
+                    "List available models".to_string(),
+                ];
+                ac.suggestion_list_mut().update_suggestions(sample_items, sample_descriptions);
+                ac
+            },
             suggestions: Vec::new(),
             show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
-            // tachyon_demo: TachyonDemo::new(theme), // Commented out
+            tachyon_demo: TachyonDemo::new(theme), // Uncommented
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
         }
@@ -235,13 +260,10 @@ impl ChatApp {
             // Check if we should fetch autocomplete suggestions
             if !self.input.content.is_empty()
                 && self.input.content != self.last_input_content
-                && self.last_input_change.elapsed() > Duration::from_millis(300)
             {
-                // Update suggestions using the new animated modal system
+                // Update suggestions immediately when input changes
                 self.update_suggestions().await;
                 self.last_input_content = self.input.content.clone();
-                // Reset timer to allow next fetch after 300ms
-                self.last_input_change = Instant::now();
             } else if self.input.content.is_empty() {
                 // Clear suggestions when input is empty
                 self.autocomplete.suggestion_list_mut().slide_out_and_hide();
@@ -317,55 +339,55 @@ impl ChatApp {
                     return;
                 }
                 KeyCode::Backspace => {
-                    // In TachyonDemo mode, handle prev effect - commented out
-                    // if self.animation_mode {
-                    //     let animations = AnimationType::all();
-                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                    //         self.tachyon_demo.prev_effect();
-                    //         return;
-                    //     }
-                    // }
+                    // In TachyonDemo mode, handle prev effect
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.prev_effect();
+                            return;
+                        }
+                    }
                     self.handle_animation_previous();
                     return;
                 }
                 KeyCode::Enter => {
-                    // In TachyonDemo mode, handle next effect - commented out
-                    // if self.animation_mode {
-                    //     let animations = AnimationType::all();
-                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                    //         self.tachyon_demo.next_effect();
-                    //         return;
-                    //     }
-                    // }
+                    // In TachyonDemo mode, handle next effect
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.next_effect();
+                            return;
+                        }
+                    }
                     self.handle_animation_next();
                     return;
                 }
                 KeyCode::Char(' ') => {
-                    // if self.animation_mode {
-                    //     let animations = AnimationType::all();
-                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                    //         self.tachyon_demo.restart_effect();
-                    //         return;
-                    //     }
-                    // }
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.restart_effect();
+                            return;
+                        }
+                    }
                 }
                 KeyCode::Char('r') => {
-                    // if self.animation_mode {
-                    //     let animations = AnimationType::all();
-                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                    //         self.tachyon_demo.random_effect(&mut self.tachyon_rng);
-                    //         return;
-                    //     }
-                    // }
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.random_effect(&mut self.tachyon_rng);
+                            return;
+                        }
+                    }
                 }
                 KeyCode::Char('s') => {
-                    // if self.animation_mode {
-                    //     let animations = AnimationType::all();
-                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                    //         self.tachyon_demo.scramble_effect();
-                    //         return;
-                    //     }
-                    // }
+                    if self.animation_mode {
+                        let animations = AnimationType::all();
+                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                            self.tachyon_demo.scramble_effect();
+                            return;
+                        }
+                    }
                 }
                 _ => {}
             }
@@ -475,9 +497,9 @@ impl ChatApp {
             self.last_font_change = Instant::now();
         }
 
-        // Update tachyon demo - commented out
+        // Update tachyon demo - uncommented
         let elapsed = self.last_frame_instant.elapsed();
-        // self.tachyon_demo.update(elapsed); // Commented out
+        self.tachyon_demo.update(elapsed);
         self.last_frame_instant = Instant::now();
     }
 
