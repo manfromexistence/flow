@@ -88,7 +88,7 @@ impl Modal {
 
     /// Check if modal is visible
     pub fn is_visible(&self) -> bool {
-        true // Always visible - never hide
+        self.show_animation
     }
 
     /// Render modal with content
@@ -96,16 +96,8 @@ impl Modal {
     where
         F: FnOnce(&mut Frame, Rect, &ChatTheme),
     {
-        // Always render - never hide
+        // Don't render background - only content and effects
         
-        // Clear background
-        Clear.render(area, f.buffer_mut());
-        
-        // Render modal background
-        Block::default()
-            .style(Style::default().bg(self.theme.card))
-            .render(area, f.buffer_mut());
-
         // Render content with padding
         let content_area = area.inner(Margin::new(2, 1));
         render_content(f, content_area, &self.theme);
@@ -136,12 +128,8 @@ impl AnimatedSuggestionList {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
-        let mut modal = Modal::new(theme);
-        // Start the animation immediately
-        modal.show(ModalAnimation::SlideInOut);
-
         Self {
-            modal,
+            modal: Modal::new(theme),
             list_state,
             items: Vec::new(),
             descriptions: Vec::new(),
@@ -159,7 +147,17 @@ impl AnimatedSuggestionList {
         self.descriptions = descriptions;
         self.selected_index = 0;
         self.list_state.select(Some(0));
-        // Animation is already running infinitely from initialization
+        
+        if !self.items.is_empty() {
+            // Show modal with animation when there are items
+            if !self.modal.show_animation {
+                self.modal.show(ModalAnimation::SlideInOut);
+                self.start_shimmer_effect();
+            }
+        } else {
+            // Hide when no items
+            self.modal.hide();
+        }
     }
 
     /// Hide suggestions with slide out animation
@@ -177,7 +175,7 @@ impl AnimatedSuggestionList {
 
     /// Check if suggestions are visible
     pub fn is_visible(&self) -> bool {
-        true // Always visible - animation runs infinitely
+        self.modal.is_visible() && !self.items.is_empty()
     }
 
     /// Move selection up
@@ -235,7 +233,9 @@ impl AnimatedSuggestionList {
 
     /// Render suggestions list
     pub fn render(&mut self, f: &mut Frame, area: Rect) {
-        // Always render - never hide
+        if !self.is_visible() {
+            return;
+        }
         
         self.modal.render(f, area, |f, content_area, theme| {
             // Create list items with descriptions

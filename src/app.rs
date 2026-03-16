@@ -139,6 +139,7 @@ pub struct ChatApp {
     pub tachyon_demo: TachyonDemo,
     pub tachyon_rng: SimpleRng,
     pub last_frame_instant: Instant,
+    pub show_tachyon_modal: bool, // Show TachyonFX modal on top of splash
 }
 
 impl ChatApp {
@@ -186,32 +187,7 @@ impl ChatApp {
             mode: 0,
             selected_local_mode: "Local".to_string(),
             selected_model: "Qwen3.5-0.8B".to_string(),
-            autocomplete: {
-                let mut ac = Autocomplete::new(theme.clone());
-                // Show sample suggestions by default to test animations
-                let sample_items = vec![
-                    "dx exec".to_string(),
-                    "dx resume".to_string(),
-                    "dx fork".to_string(),
-                    "dx review".to_string(),
-                    "dx apply".to_string(),
-                    "dx cloud".to_string(),
-                    "dx login".to_string(),
-                    "dx models list".to_string(),
-                ];
-                let sample_descriptions = vec![
-                    "Execute a task".to_string(),
-                    "Resume previous session".to_string(),
-                    "Fork current session".to_string(),
-                    "Review code changes".to_string(),
-                    "Apply changes".to_string(),
-                    "Cloud operations".to_string(),
-                    "Authenticate with provider".to_string(),
-                    "List available models".to_string(),
-                ];
-                ac.suggestion_list_mut().update_suggestions(sample_items, sample_descriptions);
-                ac
-            },
+            autocomplete: Autocomplete::new(theme.clone()),
             suggestions: Vec::new(),
             show_suggestions: false,
             last_input_change: Instant::now(),
@@ -219,6 +195,7 @@ impl ChatApp {
             tachyon_demo: TachyonDemo::new(theme), // Uncommented
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
+            show_tachyon_modal: true, // Show TachyonFX modal on splash by default
         }
     }
 

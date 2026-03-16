@@ -158,6 +158,11 @@ impl ChatApp {
                 self.splash_font_index,
                 &self.rainbow_animation,
             );
+            
+            // Show TachyonFX modal on top of splash screen
+            if self.show_tachyon_modal {
+                self.tachyon_demo.render(frame);
+            }
         } else {
             MessageList::with_effects(
                 &self.messages,
