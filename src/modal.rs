@@ -18,7 +18,8 @@ use tachyonfx::{
 #[derive(Debug, Clone, Copy)]
 pub enum ModalAnimation {
     FadeIn,
-    SlideDown,
+    SlideIn,
+    SlideOut,
     Expand,
     None,
 }
@@ -52,8 +53,11 @@ impl Modal {
             ModalAnimation::FadeIn => {
                 fx::fade_from_fg(self.theme.bg, (duration.as_millis() as u32, QuadOut))
             }
-            ModalAnimation::SlideDown => {
+            ModalAnimation::SlideIn => {
                 fx::slide_in(Motion::UpToDown, 20, 0, self.theme.bg, (duration.as_millis() as u32, QuadOut))
+            }
+            ModalAnimation::SlideOut => {
+                fx::slide_out(Motion::DownToUp, 20, 0, self.theme.bg, (duration.as_millis() as u32, QuadOut))
             }
             ModalAnimation::Expand => {
                 fx::expand(
@@ -143,18 +147,27 @@ impl AnimatedSuggestionList {
         self.list_state.select(Some(0));
         
         if !self.items.is_empty() {
-            self.modal.show(ModalAnimation::SlideDown);
+            self.modal.show(ModalAnimation::SlideIn);
             self.start_shimmer_effect();
         } else {
-            self.modal.hide();
+            self.slide_out_and_hide();
+        }
+    }
+
+    /// Hide suggestions with slide out animation
+    pub fn slide_out_and_hide(&mut self) {
+        if self.modal.is_visible() {
+            self.modal.show(ModalAnimation::SlideOut);
+            // Clear items after a delay to allow animation to complete
+            // For now, we'll clear immediately - could be improved with a timer
+            self.items.clear();
+            self.descriptions.clear();
         }
     }
 
     /// Hide suggestions
     pub fn hide(&mut self) {
-        self.modal.hide();
-        self.items.clear();
-        self.descriptions.clear();
+        self.slide_out_and_hide();
     }
 
     /// Check if suggestions are visible

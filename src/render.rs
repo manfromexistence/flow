@@ -105,9 +105,9 @@ impl ChatApp {
                 AnimationType::DVDLogo => {
                     self.render_dvdlogo_animation_in_area(chunks[0], frame);
                 }
-                AnimationType::TachyonDemo => {
-                    self.tachyon_demo.render(frame);
-                }
+                // AnimationType::TachyonDemo => {
+                //     self.tachyon_demo.render(frame);
+                // }
             }
 
             // Render input box and bottom controls

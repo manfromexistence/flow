@@ -4,7 +4,7 @@ use crate::{
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
     llm::LocalLlm,
-    tachyonfx::TachyonDemo,
+    // tachyonfx::TachyonDemo, // Commented out
     theme::ChatTheme,
 };
 use anyhow::Result;
@@ -35,7 +35,7 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
-    TachyonDemo,
+    // TachyonDemo, // Commented out - using effects in autocomplete instead
 }
 
 impl AnimationType {
@@ -50,7 +50,7 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
-            Self::TachyonDemo,
+            // Self::TachyonDemo, // Commented out
         ]
     }
 
@@ -66,7 +66,7 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo",
-            Self::TachyonDemo => "Tachyon FX Demo",
+            // Self::TachyonDemo => "Tachyon FX Demo", // Commented out
         }
     }
 }
@@ -135,8 +135,8 @@ pub struct ChatApp {
     pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
-    // Tachyonfx demo
-    pub tachyon_demo: TachyonDemo,
+    // Tachyonfx demo - commented out
+    // pub tachyon_demo: TachyonDemo,
     pub tachyon_rng: SimpleRng,
     pub last_frame_instant: Instant,
 }
@@ -191,7 +191,7 @@ impl ChatApp {
             show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
-            tachyon_demo: TachyonDemo::new(theme),
+            // tachyon_demo: TachyonDemo::new(theme), // Commented out
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
         }
@@ -244,7 +244,7 @@ impl ChatApp {
                 self.last_input_change = Instant::now();
             } else if self.input.content.is_empty() {
                 // Clear suggestions when input is empty
-                self.autocomplete.suggestion_list_mut().hide();
+                self.autocomplete.suggestion_list_mut().slide_out_and_hide();
                 self.last_input_content.clear();
             }
 
@@ -317,55 +317,55 @@ impl ChatApp {
                     return;
                 }
                 KeyCode::Backspace => {
-                    // In TachyonDemo mode, handle prev effect
-                    if self.animation_mode {
-                        let animations = AnimationType::all();
-                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                            self.tachyon_demo.prev_effect();
-                            return;
-                        }
-                    }
+                    // In TachyonDemo mode, handle prev effect - commented out
+                    // if self.animation_mode {
+                    //     let animations = AnimationType::all();
+                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                    //         self.tachyon_demo.prev_effect();
+                    //         return;
+                    //     }
+                    // }
                     self.handle_animation_previous();
                     return;
                 }
                 KeyCode::Enter => {
-                    // In TachyonDemo mode, handle next effect
-                    if self.animation_mode {
-                        let animations = AnimationType::all();
-                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                            self.tachyon_demo.next_effect();
-                            return;
-                        }
-                    }
+                    // In TachyonDemo mode, handle next effect - commented out
+                    // if self.animation_mode {
+                    //     let animations = AnimationType::all();
+                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                    //         self.tachyon_demo.next_effect();
+                    //         return;
+                    //     }
+                    // }
                     self.handle_animation_next();
                     return;
                 }
                 KeyCode::Char(' ') => {
-                    if self.animation_mode {
-                        let animations = AnimationType::all();
-                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                            self.tachyon_demo.restart_effect();
-                            return;
-                        }
-                    }
+                    // if self.animation_mode {
+                    //     let animations = AnimationType::all();
+                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                    //         self.tachyon_demo.restart_effect();
+                    //         return;
+                    //     }
+                    // }
                 }
                 KeyCode::Char('r') => {
-                    if self.animation_mode {
-                        let animations = AnimationType::all();
-                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                            self.tachyon_demo.random_effect(&mut self.tachyon_rng);
-                            return;
-                        }
-                    }
+                    // if self.animation_mode {
+                    //     let animations = AnimationType::all();
+                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                    //         self.tachyon_demo.random_effect(&mut self.tachyon_rng);
+                    //         return;
+                    //     }
+                    // }
                 }
                 KeyCode::Char('s') => {
-                    if self.animation_mode {
-                        let animations = AnimationType::all();
-                        if animations[self.current_animation_index] == AnimationType::TachyonDemo {
-                            self.tachyon_demo.scramble_effect();
-                            return;
-                        }
-                    }
+                    // if self.animation_mode {
+                    //     let animations = AnimationType::all();
+                    //     if animations[self.current_animation_index] == AnimationType::TachyonDemo {
+                    //         self.tachyon_demo.scramble_effect();
+                    //         return;
+                    //     }
+                    // }
                 }
                 _ => {}
             }
@@ -475,9 +475,9 @@ impl ChatApp {
             self.last_font_change = Instant::now();
         }
 
-        // Update tachyon demo
+        // Update tachyon demo - commented out
         let elapsed = self.last_frame_instant.elapsed();
-        self.tachyon_demo.update(elapsed);
+        // self.tachyon_demo.update(elapsed); // Commented out
         self.last_frame_instant = Instant::now();
     }
 
@@ -501,11 +501,12 @@ impl ChatApp {
                 let descriptions: Vec<String> = suggestions.iter().map(|s| s.description.clone()).collect();
                 self.autocomplete.suggestion_list_mut().update_suggestions(items, descriptions);
             } else {
-                // If suggestion update fails, hide suggestions
-                self.autocomplete.suggestion_list_mut().hide();
+                // If suggestion update fails, slide out and hide suggestions
+                self.autocomplete.suggestion_list_mut().slide_out_and_hide();
             }
         } else {
-            self.autocomplete.suggestion_list_mut().hide();
+            // Input empty or loading, slide out and hide suggestions
+            self.autocomplete.suggestion_list_mut().slide_out_and_hide();
         }
     }
 
