@@ -40,7 +40,7 @@ impl ChatApp {
             self.render_input_box(chunks[1], frame.buffer_mut());
 
             // Render autocomplete suggestions if visible
-            if self.show_suggestions {
+            if self.autocomplete.suggestion_list().is_visible() {
                 self.render_suggestions(frame, chunks[1]);
             }
 
@@ -114,7 +114,7 @@ impl ChatApp {
             self.render_input_box(chunks[1], frame.buffer_mut());
 
             // Render autocomplete suggestions if visible
-            if self.show_suggestions {
+            if self.autocomplete.suggestion_list().is_visible() {
                 self.render_suggestions(frame, chunks[1]);
             }
 
@@ -172,7 +172,7 @@ impl ChatApp {
         self.render_input_box(chunks[1], frame.buffer_mut());
 
         // Render autocomplete suggestions if visible
-        if self.show_suggestions {
+        if self.autocomplete.suggestion_list().is_visible() {
             self.render_suggestions(frame, chunks[1]);
         }
 
@@ -1467,17 +1467,16 @@ impl ChatApp {
     }
 
     /// Render autocomplete suggestions overlay
-    pub fn render_suggestions(&self, frame: &mut ratatui::Frame, input_area: Rect) {
-        use ratatui::style::{Modifier, Style};
-        use ratatui::text::{Line, Span};
-        use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
-
-        if !self.show_suggestions || self.suggestions.is_empty() {
+    /// Render autocomplete suggestions overlay using animated modal
+    pub fn render_suggestions(&mut self, frame: &mut ratatui::Frame, input_area: Rect) {
+        // Only render if suggestions are visible
+        if !self.autocomplete.suggestion_list().is_visible() {
             return;
         }
 
         // Calculate suggestion box position (above input box)
-        let max_height = 10.min(self.suggestions.len() as u16 + 2);
+        // Use a fixed reasonable height for the modal
+        let max_height = 8; // Fixed height for better visibility
         let suggestion_area = Rect {
             x: input_area.x,
             y: input_area.y.saturating_sub(max_height),
@@ -1485,103 +1484,8 @@ impl ChatApp {
             height: max_height,
         };
 
-        // Create list items with horizontal padding
-        let items: Vec<ListItem> = self
-            .suggestions
-            .iter()
-            .enumerate()
-            .map(|(i, suggestion)| {
-                let is_selected = i == self.selected_suggestion;
-
-                // Calculate available width with horizontal padding (1 char on each side)
-                let available_width = suggestion_area.width.saturating_sub(4) as usize;
-                let text_width = suggestion.text.len().min(available_width / 2);
-                let desc_width = available_width.saturating_sub(text_width).saturating_sub(2);
-
-                // Truncate text if needed
-                let display_text = if suggestion.text.len() > text_width {
-                    format!("{}...", &suggestion.text[..text_width.saturating_sub(3)])
-                } else {
-                    suggestion.text.clone()
-                };
-
-                // Truncate description if needed
-                let display_desc = if suggestion.description.len() > desc_width {
-                    format!(
-                        "{}...",
-                        &suggestion.description[..desc_width.saturating_sub(3)]
-                    )
-                } else {
-                    suggestion.description.clone()
-                };
-
-                // Calculate padding between text and description
-                let padding_len = available_width
-                    .saturating_sub(display_text.len())
-                    .saturating_sub(display_desc.len());
-                let padding = " ".repeat(padding_len);
-
-                let (text_style, desc_style) = if is_selected {
-                    (
-                        Style::default()
-                            .fg(self.theme.bg)
-                            .bg(self.theme.accent)
-                            .add_modifier(Modifier::BOLD),
-                        Style::default().fg(self.theme.bg).bg(self.theme.accent),
-                    )
-                } else {
-                    (
-                        Style::default().fg(self.theme.fg),
-                        Style::default().fg(self.theme.muted_fg),
-                    )
-                };
-
-                // Add horizontal padding (1 space on left)
-                let line = Line::from(vec![
-                    Span::raw(" "),
-                    Span::styled(display_text, text_style),
-                    Span::styled(padding, text_style),
-                    Span::styled(display_desc, desc_style),
-                ]);
-
-                ListItem::new(line)
-            })
-            .collect();
-
-        // Create the list widget with fixed title
-        let title = " Suggestions ";
-
-        let list = List::new(items).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(self.theme.border))
-                .title(title)
-                .style(Style::default().bg(self.theme.bg)),
-        );
-
-        // Create list state with selected item for auto-scrolling
-        let mut list_state = ListState::default();
-        list_state.select(Some(self.selected_suggestion));
-
-        frame.render_stateful_widget(list, suggestion_area, &mut list_state);
-
-        // Render hint at the bottom with proper theme colors
-        let hint = ratatui::widgets::Paragraph::new(Line::from(vec![
-            Span::styled("↑↓", Style::default().fg(self.theme.accent)),
-            Span::styled(" Navigate  ", Style::default().fg(self.theme.muted_fg)),
-            Span::styled("Enter", Style::default().fg(self.theme.accent)),
-            Span::styled(" Select  ", Style::default().fg(self.theme.muted_fg)),
-            Span::styled("Esc", Style::default().fg(self.theme.accent)),
-            Span::styled(" Close", Style::default().fg(self.theme.muted_fg)),
-        ]));
-
-        let hint_area = Rect {
-            x: suggestion_area.x + 2,
-            y: suggestion_area.y + suggestion_area.height.saturating_sub(1),
-            width: suggestion_area.width.saturating_sub(4),
-            height: 1,
-        };
-
-        frame.render_widget(hint, hint_area);
+        // Use the animated suggestion list from autocomplete
+        self.autocomplete.suggestion_list_mut().render(frame, suggestion_area);
     }
+
 }

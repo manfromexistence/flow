@@ -132,7 +132,6 @@ pub struct ChatApp {
     // Autocomplete
     pub autocomplete: Autocomplete,
     pub suggestions: Vec<Suggestion>,
-    pub selected_suggestion: usize,
     pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
@@ -187,9 +186,8 @@ impl ChatApp {
             mode: 0,
             selected_local_mode: "Local".to_string(),
             selected_model: "Qwen3.5-0.8B".to_string(),
-            autocomplete: Autocomplete::new(),
+            autocomplete: Autocomplete::new(theme.clone()),
             suggestions: Vec::new(),
-            selected_suggestion: 0,
             show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
@@ -239,22 +237,14 @@ impl ChatApp {
                 && self.input.content != self.last_input_content
                 && self.last_input_change.elapsed() > Duration::from_millis(300)
             {
-                // Fetch suggestions asynchronously
-                if let Ok(suggestions) =
-                    self.autocomplete.get_suggestions(&self.input.content).await
-                    && !suggestions.is_empty()
-                {
-                    self.suggestions = suggestions;
-                    self.selected_suggestion = 0;
-                    self.show_suggestions = true;
-                    self.last_input_content = self.input.content.clone();
-                }
+                // Update suggestions using the new animated modal system
+                self.update_suggestions().await;
+                self.last_input_content = self.input.content.clone();
                 // Reset timer to allow next fetch after 300ms
                 self.last_input_change = Instant::now();
             } else if self.input.content.is_empty() {
                 // Clear suggestions when input is empty
-                self.show_suggestions = false;
-                self.suggestions.clear();
+                self.autocomplete.suggestion_list_mut().hide();
                 self.last_input_content.clear();
             }
 
@@ -272,35 +262,8 @@ impl ChatApp {
 
     fn handle_key(&mut self, key: event::KeyEvent) {
         // Handle autocomplete navigation when suggestions are visible
-        if self.show_suggestions && !self.suggestions.is_empty() {
-            match key.code {
-                KeyCode::Up => {
-                    self.selected_suggestion = self.selected_suggestion.saturating_sub(1);
-                    return;
-                }
-                KeyCode::Down => {
-                    self.selected_suggestion =
-                        (self.selected_suggestion + 1).min(self.suggestions.len() - 1);
-                    return;
-                }
-                KeyCode::Enter => {
-                    // Apply selected suggestion
-                    if let Some(suggestion) = self.suggestions.get(self.selected_suggestion) {
-                        self.input.content = suggestion.text.clone();
-                        self.input.cursor_position = suggestion.text.len();
-                        self.show_suggestions = false;
-                        self.suggestions.clear();
-                    }
-                    return;
-                }
-                KeyCode::Esc => {
-                    // Hide suggestions
-                    self.show_suggestions = false;
-                    self.suggestions.clear();
-                    return;
-                }
-                _ => {}
-            }
+        if self.handle_suggestion_navigation(key.code) {
+            return;
         }
 
         // Handle thinking accordion toggle with '0' key
@@ -412,8 +375,7 @@ impl ChatApp {
         match action {
             InputAction::Submit(msg) => {
                 self.send_message(msg);
-                self.show_suggestions = false;
-                self.suggestions.clear();
+                self.autocomplete.suggestion_list_mut().hide();
             }
             InputAction::Exit => {
                 self.should_quit = true;
@@ -421,7 +383,6 @@ impl ChatApp {
             InputAction::Changed => {
                 // Input changed, trigger autocomplete
                 self.last_input_change = Instant::now();
-                self.selected_suggestion = 0;
             }
             _ => {}
         }
@@ -526,5 +487,58 @@ impl ChatApp {
         // This is a rough estimate; actual value comes from layout
         let term_height = crossterm::terminal::size().map(|(_, h)| h).unwrap_or(24);
         (term_height as usize).saturating_sub(4)
+    }
+}
+impl ChatApp {
+    /// Update autocomplete suggestions based on current input
+    pub async fn update_suggestions(&mut self) {
+        let input_content = self.input.content.clone();
+        
+        // Only show suggestions if input is not empty and we're not in the middle of sending
+        if !input_content.trim().is_empty() && !self.is_loading {
+            if let Ok(suggestions) = self.autocomplete.get_suggestions(&input_content).await {
+                let items: Vec<String> = suggestions.iter().map(|s| s.text.clone()).collect();
+                let descriptions: Vec<String> = suggestions.iter().map(|s| s.description.clone()).collect();
+                self.autocomplete.suggestion_list_mut().update_suggestions(items, descriptions);
+            } else {
+                // If suggestion update fails, hide suggestions
+                self.autocomplete.suggestion_list_mut().hide();
+            }
+        } else {
+            self.autocomplete.suggestion_list_mut().hide();
+        }
+    }
+
+    /// Handle suggestion navigation
+    pub fn handle_suggestion_navigation(&mut self, key: crossterm::event::KeyCode) -> bool {
+        if !self.autocomplete.suggestion_list().is_visible() {
+            return false;
+        }
+
+        match key {
+            crossterm::event::KeyCode::Up => {
+                self.autocomplete.suggestion_list_mut().select_previous();
+                true
+            }
+            crossterm::event::KeyCode::Down => {
+                self.autocomplete.suggestion_list_mut().select_next();
+                true
+            }
+            crossterm::event::KeyCode::Tab | crossterm::event::KeyCode::Enter => {
+                if let Some(selected) = self.autocomplete.suggestion_list().get_selected() {
+                    self.input.content = selected.clone();
+                    self.input.cursor_position = selected.len();
+                    self.autocomplete.suggestion_list_mut().hide();
+                    true
+                } else {
+                    false
+                }
+            }
+            crossterm::event::KeyCode::Esc => {
+                self.autocomplete.suggestion_list_mut().hide();
+                true
+            }
+            _ => false,
+        }
     }
 }

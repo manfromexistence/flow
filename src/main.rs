@@ -5,6 +5,7 @@ mod effects;
 mod gruvbox;
 mod input;
 mod llm;
+mod modal;
 mod render;
 mod splash;
 mod tachyonfx;

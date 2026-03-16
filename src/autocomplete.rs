@@ -1,4 +1,6 @@
 use anyhow::Result;
+use crate::modal::AnimatedSuggestionList;
+use crate::theme::ChatTheme;
 // use reqwest::Client;
 // use serde_json::Value;
 
@@ -309,19 +311,31 @@ const CLI_COMMANDS: &[&str] = &[
     "/export",
 ];
 
-/// Autocomplete manager
+/// Autocomplete manager with animated suggestions
 pub struct Autocomplete {
+    suggestion_list: AnimatedSuggestionList,
     // http_client: Client,
 }
 
 impl Autocomplete {
-    pub fn new() -> Self {
+    pub fn new(theme: ChatTheme) -> Self {
         Self {
+            suggestion_list: AnimatedSuggestionList::new(theme),
             // http_client: Client::builder()
             //     .timeout(std::time::Duration::from_secs(3))
             //     .build()
             //     .unwrap_or_default(),
         }
+    }
+
+    /// Get animated suggestion list component
+    pub fn suggestion_list_mut(&mut self) -> &mut AnimatedSuggestionList {
+        &mut self.suggestion_list
+    }
+
+    /// Get animated suggestion list component (read-only)
+    pub fn suggestion_list(&self) -> &AnimatedSuggestionList {
+        &self.suggestion_list
     }
 
     /// Get autocomplete suggestions for the given query
@@ -400,6 +414,7 @@ impl Autocomplete {
                     description: description.to_string(),
                 }
             })
+            .take(3) // Limit to 3 suggestions as requested
             .collect()
     }
 
@@ -450,6 +465,6 @@ impl Autocomplete {
 
 impl Default for Autocomplete {
     fn default() -> Self {
-        Self::new()
+        Self::new(ChatTheme::dark_fallback())
     }
 }
