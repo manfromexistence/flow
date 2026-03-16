@@ -11,15 +11,14 @@ use ratatui::{
 use tachyonfx::{
     CellFilter, Duration, Effect, EffectRenderer, Interpolation::*,
     Motion,
-    fx::{self, ExpandDirection},
+    fx::{self, parallel, sequence},
 };
 
 /// Modal animation types
 #[derive(Debug, Clone, Copy)]
 pub enum ModalAnimation {
     FadeIn,
-    SlideIn,
-    SlideOut,
+    SlideInOut, // Changed to match TachyonFX demo
     Expand,
     None,
 }
@@ -47,23 +46,33 @@ impl Modal {
         self.show_animation = true;
         self.animation_start = Instant::now();
         
-        let duration = Duration::from_millis(300);
+        let slow = Duration::from_millis(1500); // Slower animation
+        let screen_bg = self.theme.bg;
+        let secondary = self.theme.mode_colors.plan; // Yellow color
         
         self.animation = Some(match animation_type {
             ModalAnimation::FadeIn => {
-                fx::fade_from_fg(self.theme.bg, (duration.as_millis() as u32, QuadOut))
+                fx::fade_from_fg(self.theme.bg, (300, QuadOut))
             }
-            ModalAnimation::SlideIn => {
-                fx::slide_in(Motion::UpToDown, 20, 0, self.theme.bg, (duration.as_millis() as u32, QuadOut))
-            }
-            ModalAnimation::SlideOut => {
-                fx::slide_out(Motion::DownToUp, 20, 0, self.theme.bg, (duration.as_millis() as u32, QuadOut))
+            ModalAnimation::SlideInOut => {
+                // EXACT same animation as TachyonFX demo - repeating infinitely with slower speed
+                fx::repeating(sequence(&[
+                    parallel(&[
+                        fx::fade_from_fg(secondary, (3000, ExpoInOut)), // Slower fade
+                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, slow),
+                    ]),
+                    fx::sleep(slow), // Pause between animations
+                    fx::prolong_end(
+                        slow,
+                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, slow),
+                    ),
+                ]))
             }
             ModalAnimation::Expand => {
                 fx::expand(
-                    ExpandDirection::Vertical,
-                    Style::new().fg(self.theme.accent).bg(self.theme.bg),
-                    duration.as_millis() as u32,
+                    fx::ExpandDirection::Vertical,
+                    ratatui::style::Style::new().fg(self.theme.accent).bg(self.theme.bg),
+                    300,
                 )
             }
             ModalAnimation::None => return,
@@ -78,7 +87,7 @@ impl Modal {
 
     /// Check if modal is visible
     pub fn is_visible(&self) -> bool {
-        self.show_animation
+        true // Always visible - never hide
     }
 
     /// Render modal with content
@@ -86,10 +95,8 @@ impl Modal {
     where
         F: FnOnce(&mut Frame, Rect, &ChatTheme),
     {
-        if !self.show_animation {
-            return;
-        }
-
+        // Always render - never hide
+        
         // Clear background
         Clear.render(area, f.buffer_mut());
         
@@ -102,12 +109,11 @@ impl Modal {
         let content_area = area.inner(Margin::new(2, 1));
         render_content(f, content_area, &self.theme);
 
-        // Apply animation effect
+        // Apply animation effect to the ENTIRE modal area
         if let Some(ref mut effect) = self.animation {
             let elapsed = self.animation_start.elapsed().into();
-            if effect.running() {
-                f.render_effect(effect, area, elapsed);
-            }
+            // Always render effect - repeating animations never complete
+            f.render_effect(effect, area, elapsed);
         }
     }
 }
@@ -143,40 +149,28 @@ impl AnimatedSuggestionList {
 
     /// Update suggestions and show modal
     pub fn update_suggestions(&mut self, items: Vec<String>, descriptions: Vec<String>) {
-        // Check if modal was visible BEFORE updating items
-        let was_visible = self.modal.is_visible() && !self.items.is_empty();
-        
         // Update items
         self.items = items;
         self.descriptions = descriptions;
         self.selected_index = 0;
         self.list_state.select(Some(0));
-        self.is_sliding_out = false;
         
         if !self.items.is_empty() {
-            // Only trigger slide-in animation if modal was not already visible
-            if !was_visible {
-                self.modal.show(ModalAnimation::SlideIn);
+            // Always show with the repeating slide in/out animation - never hide
+            if !self.modal.is_visible() {
+                self.modal.show(ModalAnimation::SlideInOut);
                 self.start_shimmer_effect();
             }
-            // If already visible, keep showing without re-animating
-            // (show_animation is already true, no need to set it again)
-        } else {
-            self.slide_out_and_hide();
         }
+        // Don't hide when items are empty - keep animation running infinitely
     }
 
     /// Hide suggestions with slide out animation
     pub fn slide_out_and_hide(&mut self) {
-        if self.modal.is_visible() && !self.items.is_empty() && !self.is_sliding_out {
-            // Trigger slide out animation but keep items visible during animation
-            self.is_sliding_out = true;
-            self.modal.show(ModalAnimation::SlideOut);
-        } else if self.items.is_empty() && !self.is_sliding_out {
-            // If no items, just hide immediately
-            self.is_sliding_out = false;
-            self.modal.hide();
-        }
+        self.items.clear();
+        self.descriptions.clear();
+        self.is_sliding_out = false;
+        self.modal.hide();
     }
 
     /// Hide suggestions
@@ -186,7 +180,7 @@ impl AnimatedSuggestionList {
 
     /// Check if suggestions are visible
     pub fn is_visible(&self) -> bool {
-        self.modal.is_visible() && (!self.items.is_empty() || self.is_sliding_out)
+        true // Always visible - animation runs infinitely
     }
 
     /// Move selection up
@@ -244,24 +238,8 @@ impl AnimatedSuggestionList {
 
     /// Render suggestions list
     pub fn render(&mut self, f: &mut Frame, area: Rect) {
-        // Check if we're sliding out and animation is complete
-        if self.is_sliding_out {
-            if let Some(ref effect) = self.modal.animation {
-                if !effect.running() {
-                    // Animation complete, now actually hide
-                    self.items.clear();
-                    self.descriptions.clear();
-                    self.is_sliding_out = false;
-                    self.modal.hide();
-                    return;
-                }
-            }
-        }
+        // Always render - never hide
         
-        if !self.is_visible() {
-            return;
-        }
-
         self.modal.render(f, area, |f, content_area, theme| {
             // Create list items with descriptions
             let list_items: Vec<ListItem> = self.items
@@ -307,13 +285,11 @@ impl AnimatedSuggestionList {
 
             f.render_stateful_widget(list, content_area, &mut self.list_state);
 
-            // Apply shimmer effect if active and not sliding out
-            if !self.is_sliding_out {
-                if let Some(ref mut effect) = self.shimmer_effect {
-                    let elapsed = self.shimmer_start.elapsed().into();
-                    if effect.running() {
-                        f.render_effect(effect, content_area, elapsed);
-                    }
+            // Apply shimmer effect if active
+            if let Some(ref mut effect) = self.shimmer_effect {
+                let elapsed = self.shimmer_start.elapsed().into();
+                if effect.running() {
+                    f.render_effect(effect, content_area, elapsed);
                 }
             }
         });

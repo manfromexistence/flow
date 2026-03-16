@@ -8,4 +8,3 @@
 8. creator software extension
 9. office software extension
 10. all other os
-mo
