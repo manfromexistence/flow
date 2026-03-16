@@ -11,7 +11,7 @@ use ratatui::{
 use tachyonfx::{
     CellFilter, Duration, Effect, EffectRenderer, Interpolation::*,
     Motion,
-    fx::{self, parallel, sequence},
+    fx::{self, parallel, sequence, repeating, prolong_end},
 };
 
 /// Modal animation types
@@ -46,7 +46,8 @@ impl Modal {
         self.show_animation = true;
         self.animation_start = Instant::now();
         
-        let slow = Duration::from_millis(1500); // Slower animation
+        // EXACT same values as TachyonFX demo
+        let medium = Duration::from_millis(750);
         let screen_bg = self.theme.bg;
         let secondary = self.theme.mode_colors.plan; // Yellow color
         
@@ -55,16 +56,16 @@ impl Modal {
                 fx::fade_from_fg(self.theme.bg, (300, QuadOut))
             }
             ModalAnimation::SlideInOut => {
-                // EXACT same animation as TachyonFX demo - repeating infinitely with slower speed
-                fx::repeating(sequence(&[
+                // EXACT same animation as TachyonFX demo "slide in/out"
+                repeating(sequence(&[
                     parallel(&[
-                        fx::fade_from_fg(secondary, (3000, ExpoInOut)), // Slower fade
-                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, slow),
+                        fx::fade_from_fg(secondary, (2000, ExpoInOut)),
+                        fx::slide_in(Motion::UpToDown, 20, 0, screen_bg, medium),
                     ]),
-                    fx::sleep(slow), // Pause between animations
-                    fx::prolong_end(
-                        slow,
-                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, slow),
+                    fx::sleep(medium),
+                    prolong_end(
+                        medium,
+                        fx::slide_out(Motion::LeftToRight, 80, 0, screen_bg, medium),
                     ),
                 ]))
             }
@@ -135,8 +136,12 @@ impl AnimatedSuggestionList {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
+        let mut modal = Modal::new(theme);
+        // Start the animation immediately
+        modal.show(ModalAnimation::SlideInOut);
+
         Self {
-            modal: Modal::new(theme),
+            modal,
             list_state,
             items: Vec::new(),
             descriptions: Vec::new(),
@@ -154,15 +159,7 @@ impl AnimatedSuggestionList {
         self.descriptions = descriptions;
         self.selected_index = 0;
         self.list_state.select(Some(0));
-        
-        if !self.items.is_empty() {
-            // Always show with the repeating slide in/out animation - never hide
-            if !self.modal.is_visible() {
-                self.modal.show(ModalAnimation::SlideInOut);
-                self.start_shimmer_effect();
-            }
-        }
-        // Don't hide when items are empty - keep animation running infinitely
+        // Animation is already running infinitely from initialization
     }
 
     /// Hide suggestions with slide out animation

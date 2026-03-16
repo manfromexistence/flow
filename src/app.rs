@@ -156,9 +156,9 @@ impl ChatApp {
             cursor_visible: true,
             splash_font_index: 0,
             last_font_change: Instant::now(),
-            animation_mode: true, // Start in animation mode
-            current_animation_index: 9, // Start with TachyonDemo (last in the list)
-            animation_start_time: Some(Instant::now()),
+            animation_mode: false, // Start with splash screen (not animation mode)
+            current_animation_index: 0,
+            animation_start_time: None,
             llm: Arc::new(LocalLlm::new()),
             llm_tx,
             llm_rx,
