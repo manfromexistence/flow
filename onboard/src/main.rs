@@ -60,13 +60,60 @@ impl RuntimeEnvironment {
 
 #[derive(Debug, Clone, Serialize)]
 struct OnboardingResult {
+    // Basic Info
     name: String,
     email: String,
+    website: String,
+    phone: String,
+    birth_date: String,
+    preferred_time: String,
+    bio: String,
+    
+    // Experience & Skills
+    experience_years: i64,
+    satisfaction_rating: usize,
+    productivity_level: i64,
+    work_hours: (i64, i64),
+    programming_languages: Vec<String>,
+    favorite_language: String,
+    framework: String,
+    project_type: String,
+    selected_skills: Vec<String>,
+    
+    // System & Environment
     runtime_environment: String,
     selected_components: Vec<String>,
     selected_providers: Vec<String>,
+    
+    // Preferences
     preferences: OnboardingPreferences,
+    
+    // Visual & Design
+    brand_color: String,
+    accent_color: String,
+    favorite_emoji: String,
+    
+    // Project Info
+    project_deadline: String,
+    code_snippet: CodeSnippetData,
+    config_file_path: String,
+    
+    // Workflow Data
+    todo_list_items: usize,
+    team_table_rows: usize,
+    kanban_tasks: usize,
+    wizard_completed_steps: usize,
+    
+    // Metadata
     timestamp: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct CodeSnippetData {
+    name: String,
+    language: String,
+    code: String,
+    description: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -543,7 +590,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         return Err(anyhow::anyhow!("Setup cancelled"));
     }
 
-    // Create result
+    // Create result with ALL collected data
     let preferences = OnboardingPreferences {
         theme: theme.to_string(),
         editor: editor.to_string(),
@@ -553,13 +600,59 @@ fn run_onboarding() -> Result<OnboardingResult> {
         telemetry,
     };
 
+    let code_snippet_data = CodeSnippetData {
+        name: code_example.name.clone(),
+        language: code_example.language.clone(),
+        code: code_example.code.clone(),
+        description: code_example.description.clone(),
+    };
+
     let result = OnboardingResult {
+        // Basic Info
         name,
         email,
+        website: website.clone(),
+        phone: phone.clone(),
+        birth_date: birth_date.clone(),
+        preferred_time: preferred_time.clone(),
+        bio,
+        
+        // Experience & Skills
+        experience_years,
+        satisfaction_rating: satisfaction,
+        productivity_level: productivity,
+        work_hours,
+        programming_languages: languages.clone(),
+        favorite_language: favorite_language.to_string(),
+        framework: framework.to_string(),
+        project_type: project_type.to_string(),
+        selected_skills: skills.iter().map(|s| s.to_string()).collect(),
+        
+        // System & Environment
         runtime_environment: runtime_env.as_str().to_string(),
         selected_components,
         selected_providers,
+        
+        // Preferences
         preferences,
+        
+        // Visual & Design
+        brand_color: brand_color.clone(),
+        accent_color: accent_color.clone(),
+        favorite_emoji: favorite_emoji.clone(),
+        
+        // Project Info
+        project_deadline,
+        code_snippet: code_snippet_data,
+        config_file_path: config_file.display().to_string(),
+        
+        // Workflow Data
+        todo_list_items: todo_list.len(),
+        team_table_rows: team_info.len(),
+        kanban_tasks: project_board.len(),
+        wizard_completed_steps: wizard_result,
+        
+        // Metadata
         timestamp: Local::now().to_rfc3339(),
     };
 
