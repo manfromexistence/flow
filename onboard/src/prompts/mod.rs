@@ -261,13 +261,13 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
         0
     };
     
-    // Top border with title
+    // Top border with title - use connect_left instead of box_top_left to connect with the intro bar
     term_write(format!(
         "{}{}{}{}",
-        theme.dim.apply_to(symbols.box_top_left),
+        theme.dim.apply_to(symbols.connect_left), // This connects to the intro vertical bar
         title_with_spaces,
         theme.dim.apply_to(symbols.box_horizontal.repeat(remaining_horizontal)),
-        theme.dim.apply_to(symbols.box_top_right)
+        theme.dim.apply_to(symbols.corner_top_right)
     ))?;
     term_write("\n")?;
 
@@ -284,18 +284,18 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
         ))?;
     }
 
-    // Bottom border - should match the total width of the top border
+    // Bottom border - use connect_left to connect with the continuing vertical bar
     let total_bottom_width = content_width + 2; // +2 for the spaces around content
     term_write(format!(
         "{}{}{}",
-        theme.dim.apply_to(symbols.box_bottom_left),
+        theme.dim.apply_to(symbols.connect_left), // This connects to the continuing vertical bar
         theme.dim.apply_to(symbols.box_horizontal.repeat(total_bottom_width)),
-        theme.dim.apply_to(symbols.box_bottom_right)
+        theme.dim.apply_to(symbols.corner_bottom_right)
     ))?;
     term_write("\n")?;
 
-    // Add connecting vertical bar - this continues the flow
-    term_write(format!("{}", theme.dim.apply_to(symbols.box_vertical)))?;
+    // Don't add the connecting vertical bar here - let the next prompt add its own symbol
+    // This allows the first prompt after the box to have a proper symbol (● or ♦) instead of |
 
     Ok(())
 }
