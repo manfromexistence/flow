@@ -245,26 +245,36 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
     let theme = THEME.read().unwrap();
     let symbols = &*SYMBOLS;
 
-    // Simple approach: calculate the width we need
+    // Calculate the exact width needed
     let max_line_width = lines.iter().map(|line| line.chars().count()).max().unwrap_or(0);
-    let title_len = title.chars().count() + 2; // " title "
-    let content_width = max_line_width.max(title_len).max(min_content_width);
+    let title_len = title.chars().count();
     
-    // Top border
+    // The content width should be the maximum of all content lines
+    let content_width = max_line_width.max(min_content_width);
+    
+    // Calculate how much horizontal line we need after the title
+    let title_with_spaces = format!(" {} ", title); // Space before and after title
+    let title_total_len = title_with_spaces.chars().count();
+    let remaining_horizontal = if content_width + 2 > title_total_len { // +2 for the side borders
+        content_width + 2 - title_total_len
+    } else {
+        0
+    };
+    
+    // Top border with title
     term_write(format!(
-        "{} {} {}",
+        "{}{}{}{}",
         theme.dim.apply_to(symbols.box_top_left),
-        title,
-        theme.dim.apply_to(format!("{}{}", 
-            symbols.box_horizontal.repeat(content_width.saturating_sub(title_len) + 1),
-            symbols.box_top_right
-        ))
+        title_with_spaces,
+        theme.dim.apply_to(symbols.box_horizontal.repeat(remaining_horizontal)),
+        theme.dim.apply_to(symbols.box_top_right)
     ))?;
     term_write("\n")?;
 
     // Content lines
     for line in lines {
-        let padding = content_width.saturating_sub(line.chars().count());
+        let line_width = line.chars().count();
+        let padding = content_width.saturating_sub(line_width);
         term_write(format!(
             "{} {}{} {}\n",
             theme.dim.apply_to(symbols.box_vertical),
@@ -274,13 +284,18 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
         ))?;
     }
 
-    // Bottom border
+    // Bottom border - should match the total width of the top border
+    let total_bottom_width = content_width + 2; // +2 for the spaces around content
     term_write(format!(
-        "{}{}{}\n",
+        "{}{}{}",
         theme.dim.apply_to(symbols.box_bottom_left),
-        theme.dim.apply_to(symbols.box_horizontal.repeat(content_width + 2)),
+        theme.dim.apply_to(symbols.box_horizontal.repeat(total_bottom_width)),
         theme.dim.apply_to(symbols.box_bottom_right)
     ))?;
+    term_write("\n")?;
+
+    // Add connecting vertical bar - this continues the flow
+    term_write(format!("{}", theme.dim.apply_to(symbols.box_vertical)))?;
 
     Ok(())
 }

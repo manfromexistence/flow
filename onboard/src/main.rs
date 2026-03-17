@@ -245,7 +245,6 @@ fn run_onboarding() -> Result<OnboardingResult> {
 
     // Welcome
     prompts::intro("🚀 DX Onboarding - Complete Prompts Showcase")?;
-    
     prompts::section_with_width("Welcome to DX", 80, |lines| {
         lines.push("This onboarding showcases ALL available prompt types!".to_string());
         lines.push(format!("Detected runtime: {}", detect_runtime_environment().label()));
