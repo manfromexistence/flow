@@ -225,23 +225,13 @@ fn run_onboarding() -> Result<OnboardingResult> {
     // Initialize rainbow effect
     let rainbow = RainbowEffect::new();
     
-    // Clear screen and show animated splash
+    // Clear screen and show DX logo with multiple fonts
     print!("\x1B[2J\x1B[H"); // Clear screen and move cursor to top
-    
-    // Show train animation for a few frames
-    for frame in 0..10 {
-        print!("\x1B[H"); // Move cursor to top
-        render_train_animation(&rainbow, frame)?;
-        thread::sleep(Duration::from_millis(200));
-    }
-    
-    // Clear and show DX logo
-    print!("\x1B[2J\x1B[H"); // Clear screen
     render_dx_logo(&rainbow)?;
     println!();
     println!("Enhanced Development Experience");
     println!();
-    thread::sleep(Duration::from_millis(1000));
+    thread::sleep(Duration::from_millis(1500));
 
     // Welcome
     prompts::intro("🚀 DX Onboarding - Complete Prompts Showcase")?;
@@ -693,10 +683,40 @@ fn run_onboarding() -> Result<OnboardingResult> {
 
     prompts::outro("🎉 Complete onboarding with ALL prompts finished!")?;
     
+    // Show train animation at the end
+    println!();
+    println!("🚂 Thank you for using DX! Here's a farewell train...");
+    println!();
+    thread::sleep(Duration::from_millis(500));
+    
+    print!("\x1B[2J\x1B[H"); // Clear screen
+    for frame in 0..15 {
+        print!("\x1B[H"); // Move cursor to top
+        render_train_animation(&rainbow, frame)?;
+        thread::sleep(Duration::from_millis(200));
+    }
+    
     Ok(result)
 }
 
 fn async_main() -> Result<()> {
+    // Set up Ctrl+C handler to show train animation on exit
+    ctrlc::set_handler(|| {
+        let rainbow = RainbowEffect::new();
+        println!();
+        println!("🚂 Exiting DX... Here's a farewell train!");
+        println!();
+        
+        print!("\x1B[2J\x1B[H"); // Clear screen
+        for frame in 0..15 {
+            print!("\x1B[H"); // Move cursor to top
+            let _ = render_train_animation(&rainbow, frame);
+            thread::sleep(Duration::from_millis(200));
+        }
+        
+        std::process::exit(0);
+    }).expect("Error setting Ctrl-C handler");
+    
     match run_onboarding() {
         Ok(result) => {
             println!("\n✨ Setup completed successfully!");
