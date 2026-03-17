@@ -4,40 +4,59 @@ use crate::effects::RainbowEffect;
 use figlet_rs::FIGfont;
 use owo_colors::OwoColorize;
 use terminal_size::{Width, Height, terminal_size};
+use rand;
 use std::io::{self, Write};
 
 pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
     let all_fonts = get_valid_fonts();
-    let current_font = all_fonts[0]; // Use first font (Block)
+    
+    // Show 5 random fonts with animation
+    use rand::seq::SliceRandom;
+    let mut rng = rand::thread_rng();
+    let selected_fonts: Vec<&str> = all_fonts.choose_multiple(&mut rng, 5).copied().collect();
 
-    let figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(current_font)
-        && let Ok(font_str) = String::from_utf8(font_data)
-        && let Ok(font) = FIGfont::from_content(&font_str)
-        && let Some(figure) = font.convert("DX")
-    {
-        figure.to_string().lines().map(|s| s.to_string()).collect()
-    } else {
-        // Fallback ASCII art
-        vec![
-            "██████╗ ██╗  ██╗".to_string(),
-            "██╔══██╗╚██╗██╔╝".to_string(),
-            "██║  ██║ ╚███╔╝ ".to_string(),
-            "██║  ██║ ██╔██╗ ".to_string(),
-            "██████╔╝██╔╝ ██╗".to_string(),
-            "╚═════╝ ╚═╝  ╚═╝".to_string(),
-        ]
-    };
+    for (idx, font_name) in selected_fonts.iter().enumerate() {
+        // Clear screen and move to top
+        print!("\x1B[2J\x1B[H");
+        
+        let figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(font_name)
+            && let Ok(font_str) = String::from_utf8(font_data)
+            && let Ok(font) = FIGfont::from_content(&font_str)
+            && let Some(figure) = font.convert("DX")
+        {
+            figure.to_string().lines().map(|s| s.to_string()).collect()
+        } else {
+            // Fallback ASCII art
+            vec![
+                "██████╗ ██╗  ██╗".to_string(),
+                "██╔══██╗╚██╗██╔╝".to_string(),
+                "██║  ██║ ╚███╔╝ ".to_string(),
+                "██║  ██║ ██╔██╗ ".to_string(),
+                "██████╔╝██╔╝ ██╗".to_string(),
+                "╚═════╝ ╚═╝  ╚═╝".to_string(),
+            ]
+        };
 
-    // Render each line with rainbow colors
-    for line in figlet_lines {
-        for (i, ch) in line.chars().enumerate() {
-            let color = rainbow.color_at(i);
-            print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+        // Render each line with rainbow colors
+        for line in figlet_lines {
+            for (i, ch) in line.chars().enumerate() {
+                let color = rainbow.color_at(i + idx * 20); // Offset colors for each font
+                print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+            }
+            println!();
         }
+        
         println!();
+        println!("Enhanced Development Experience");
+        
+        io::stdout().flush()?;
+        
+        // Wait before showing next font (except for the last one)
+        if idx < selected_fonts.len() - 1 {
+            std::thread::sleep(std::time::Duration::from_millis(800));
+        }
     }
 
-    io::stdout().flush()?;
     Ok(())
 }
 

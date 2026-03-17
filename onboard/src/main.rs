@@ -225,13 +225,11 @@ fn run_onboarding() -> Result<OnboardingResult> {
     // Initialize rainbow effect
     let rainbow = RainbowEffect::new();
     
-    // Clear screen and show DX logo with multiple fonts
+    // Clear screen and show DX logo with 5 animated fonts
     print!("\x1B[2J\x1B[H"); // Clear screen and move cursor to top
     render_dx_logo(&rainbow)?;
     println!();
-    println!("Enhanced Development Experience");
-    println!();
-    thread::sleep(Duration::from_millis(1500));
+    thread::sleep(Duration::from_millis(1000));
 
     // Welcome
     prompts::intro("🚀 DX Onboarding - Complete Prompts Showcase")?;
