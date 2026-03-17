@@ -3,7 +3,7 @@
 use crate::effects::RainbowEffect;
 use figlet_rs::FIGfont;
 use owo_colors::OwoColorize;
-use console::Term;
+use terminal_size::{Width, Height, terminal_size};
 use std::io::{self, Write};
 
 pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
@@ -42,19 +42,22 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
 }
 
 pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Result<()> {
-    // Get actual terminal width dynamically
-    let terminal_width = if let Some((width, _)) = Term::stdout().size_checked() {
-        width as usize
+    // Use terminal_size crate to get ACTUAL terminal width
+    let size = terminal_size();
+    let terminal_width = if let Some((Width(w), Height(_h))) = size {
+        w as usize
     } else {
-        80 // fallback
+        120 // fallback
     };
+    
+    let elapsed_ms = frame * 200;
+    let train_width = 55;
 
-    let elapsed_ms = frame * 50; // Simulate elapsed time
-    let train_width = 60;
-
-    // Train starts just inside the right edge and moves slower, loops infinitely
-    let total_travel = terminal_width as i32 + train_width + 20;
-    let x_pos = (terminal_width as i32 - 10) - ((elapsed_ms as i32 / 50) % total_travel);
+    // Train moves from right to left across the full terminal width
+    let total_travel = terminal_width + train_width + 10;
+    let cycle_duration = 3000;
+    let progress = (elapsed_ms % cycle_duration) as f32 / cycle_duration as f32;
+    let x_pos = (terminal_width as f32 + 10.0 - progress * total_travel as f32) as i32;
 
     let train = vec![
         "      ====        ________                ___________",
@@ -75,28 +78,35 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
         &["   (   )", "  (     )", " (       )"],
         &["  (    )", " (      )", "(        )"],
     ];
-    let smoke_frame_idx = ((elapsed_ms / 200) as usize) % smoke_frames.len();
+    let smoke_frame_idx = ((elapsed_ms / 300) as usize) % smoke_frames.len();
     let smoke = smoke_frames[smoke_frame_idx];
 
-    // Render smoke above the train
-    let smoke_x_offset = x_pos + 6; // position smoke above the smokestack
+    // Render smoke above the train - positioned relative to train
+    let smoke_x_offset = x_pos + 6;
     for smoke_line in smoke {
-        if smoke_x_offset >= -train_width && smoke_x_offset < terminal_width as i32 {
+        // Clear the line first
+        print!("{}", " ".repeat(terminal_width));
+        print!("\r");
+        
+        if smoke_x_offset >= -(smoke_line.len() as i32) && smoke_x_offset < terminal_width as i32 {
             if smoke_x_offset >= 0 {
                 print!("{}", " ".repeat(smoke_x_offset as usize));
                 for (ci, ch) in smoke_line.chars().enumerate() {
-                    let color_idx = (ci + (elapsed_ms / 150) as usize) % 50;
-                    let color = rainbow.color_at(color_idx);
-                    // Use owo-colors for better Windows compatibility
-                    print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                    if smoke_x_offset as usize + ci < terminal_width {
+                        let color_idx = (ci + (elapsed_ms / 200) as usize) % 50;
+                        let color = rainbow.color_at(color_idx);
+                        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                    }
                 }
             } else {
                 let visible_start = (-smoke_x_offset) as usize;
                 if visible_start < smoke_line.len() {
                     for (ci, ch) in smoke_line[visible_start..].chars().enumerate() {
-                        let color_idx = (ci + visible_start + (elapsed_ms / 150) as usize) % 50;
-                        let color = rainbow.color_at(color_idx);
-                        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                        if ci < terminal_width {
+                            let color_idx = (ci + visible_start + (elapsed_ms / 200) as usize) % 50;
+                            let color = rainbow.color_at(color_idx);
+                            print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                        }
                     }
                 }
             }
@@ -104,23 +114,33 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
         println!();
     }
 
-    // Render train
+    // Render train - ensure it uses the full terminal width
     for (line_idx, line) in train.iter().enumerate() {
-        if x_pos >= -train_width && x_pos < terminal_width as i32 {
+        // Clear the line first
+        print!("{}", " ".repeat(terminal_width));
+        print!("\r");
+        
+        if x_pos >= -(train_width as i32) && x_pos < terminal_width as i32 {
             if x_pos >= 0 {
+                // Train is fully or partially visible from the left
                 print!("{}", " ".repeat(x_pos as usize));
                 for (char_idx, ch) in line.chars().enumerate() {
-                    let color_idx = (char_idx + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
-                    let color = rainbow.color_at(color_idx);
-                    print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                    if x_pos as usize + char_idx < terminal_width {
+                        let color_idx = (char_idx + line_idx * 3 + (elapsed_ms / 150) as usize) % 50;
+                        let color = rainbow.color_at(color_idx);
+                        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                    }
                 }
             } else {
+                // Train is partially off-screen to the left
                 let visible_start = (-x_pos) as usize;
                 if visible_start < line.len() {
                     for (char_idx, ch) in line[visible_start..].chars().enumerate() {
-                        let color_idx = (char_idx + visible_start + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
-                        let color = rainbow.color_at(color_idx);
-                        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                        if char_idx < terminal_width {
+                            let color_idx = (char_idx + visible_start + line_idx * 3 + (elapsed_ms / 150) as usize) % 50;
+                            let color = rainbow.color_at(color_idx);
+                            print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+                        }
                     }
                 }
             }
@@ -129,9 +149,11 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
     }
 
     // Render tracks across full terminal width
+    print!("{}", " ".repeat(terminal_width));
+    print!("\r");
     for x in 0..terminal_width {
-        let ch = if (x + (elapsed_ms / 200) as usize) % 4 == 0 { '╫' } else { '═' };
-        let color_idx = (x + (elapsed_ms / 200) as usize) % 50;
+        let ch = if (x + (elapsed_ms / 300) as usize) % 4 == 0 { '╫' } else { '═' };
+        let color_idx = (x + (elapsed_ms / 300) as usize) % 50;
         let color = rainbow.color_at(color_idx);
         print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
     }
