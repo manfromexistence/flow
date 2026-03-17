@@ -95,7 +95,7 @@ impl TachyonDemo {
 
         // Create content area without border
         let content_area = f.area().inner_centered(82, 19);
-        
+
         // Render block with card background, no border
         Block::default()
             .style(Style::default().bg(content_bg))

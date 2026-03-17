@@ -35,7 +35,15 @@ pub enum AnimationType {
     Rain,
     NyanCat,
     DVDLogo,
-    TachyonDemo, // Uncommented - show tachyonfx effects
+    TachyonDemo,
+    Fire,
+    Plasma,
+    Spinners,
+    Waves,
+    DigitalRain,
+    Fireworks,
+    Snake,
+    Mandelbrot,
 }
 
 impl AnimationType {
@@ -50,7 +58,15 @@ impl AnimationType {
             Self::Rain,
             Self::NyanCat,
             Self::DVDLogo,
-            Self::TachyonDemo, // Uncommented
+            Self::TachyonDemo,
+            Self::Fire,
+            Self::Plasma,
+            Self::Spinners,
+            Self::Waves,
+            Self::DigitalRain,
+            Self::Fireworks,
+            Self::Snake,
+            Self::Mandelbrot,
         ]
     }
 
@@ -66,7 +82,15 @@ impl AnimationType {
             Self::Rain => "Rain",
             Self::NyanCat => "Nyan Cat",
             Self::DVDLogo => "DVD Logo",
-            Self::TachyonDemo => "Tachyon FX Demo", // Uncommented
+            Self::TachyonDemo => "Tachyon FX Demo",
+            Self::Fire => "Fire Animation",
+            Self::Plasma => "Plasma Effect",
+            Self::Spinners => "Spinners",
+            Self::Waves => "Ocean Waves",
+            Self::DigitalRain => "Digital Rain",
+            Self::Fireworks => "Fireworks",
+            Self::Snake => "Snake Game",
+            Self::Mandelbrot => "Mandelbrot Set",
         }
     }
 }
@@ -231,9 +255,7 @@ impl ChatApp {
             }
 
             // Check if we should fetch autocomplete suggestions
-            if !self.input.content.is_empty()
-                && self.input.content != self.last_input_content
-            {
+            if !self.input.content.is_empty() && self.input.content != self.last_input_content {
                 // Update suggestions immediately when input changes
                 self.update_suggestions().await;
                 self.last_input_content = self.input.content.clone();
@@ -488,13 +510,16 @@ impl ChatApp {
     /// Update autocomplete suggestions based on current input
     pub async fn update_suggestions(&mut self) {
         let input_content = self.input.content.clone();
-        
+
         // Only show suggestions if input is not empty and we're not in the middle of sending
         if !input_content.trim().is_empty() && !self.is_loading {
             if let Ok(suggestions) = self.autocomplete.get_suggestions(&input_content).await {
                 let items: Vec<String> = suggestions.iter().map(|s| s.text.clone()).collect();
-                let descriptions: Vec<String> = suggestions.iter().map(|s| s.description.clone()).collect();
-                self.autocomplete.suggestion_list_mut().update_suggestions(items, descriptions);
+                let descriptions: Vec<String> =
+                    suggestions.iter().map(|s| s.description.clone()).collect();
+                self.autocomplete
+                    .suggestion_list_mut()
+                    .update_suggestions(items, descriptions);
             } else {
                 // If suggestion update fails, slide out and hide suggestions
                 self.autocomplete.suggestion_list_mut().slide_out_and_hide();

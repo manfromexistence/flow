@@ -1,9 +1,9 @@
 //! Fire animation screen - Classic ASCII fire simulation
 
-use std::io::{self, Write};
-use terminal_size::{Width, Height, terminal_size};
 use owo_colors::OwoColorize;
 use rand::Rng;
+use std::io::{self, Write};
+use terminal_size::{Height, Width, terminal_size};
 
 pub struct FireScreen {
     width: usize,
@@ -18,19 +18,19 @@ impl FireScreen {
         } else {
             (120, 30)
         };
-        
+
         Self { width, height }
     }
 
     pub fn render(&self, frame: usize) -> io::Result<()> {
         let mut rng = rand::thread_rng();
         let fire_chars = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
-        
+
         // Clear screen
         print!("\x1B[2J\x1B[H");
-        
+
         println!("🔥 Fire Animation\n");
-        
+
         for y in 0..self.height.min(20) {
             for x in 0..self.width.min(80) {
                 let heat = if y > self.height.min(20) - 3 {
@@ -40,9 +40,9 @@ impl FireScreen {
                     let noise = (frame + x + y) % 3;
                     (base_heat + noise).min(9)
                 };
-                
+
                 let ch = fire_chars[heat];
-                
+
                 // Fire colors: red to yellow to white
                 let color = match heat {
                     0..=2 => (50, 0, 0),
@@ -51,12 +51,12 @@ impl FireScreen {
                     7..=8 => (255, 200, 0),
                     _ => (255, 255, 100),
                 };
-                
+
                 print!("{}", ch.to_string().truecolor(color.0, color.1, color.2));
             }
             println!();
         }
-        
+
         io::stdout().flush()
     }
 }

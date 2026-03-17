@@ -1,6 +1,6 @@
-use anyhow::Result;
 use crate::modal::AnimatedSuggestionList;
 use crate::theme::ChatTheme;
+use anyhow::Result;
 // use reqwest::Client;
 // use serde_json::Value;
 

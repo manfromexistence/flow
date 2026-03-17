@@ -108,6 +108,30 @@ impl ChatApp {
                 AnimationType::TachyonDemo => {
                     self.tachyon_demo.render(frame);
                 }
+                AnimationType::Fire => {
+                    self.render_fire_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Plasma => {
+                    self.render_plasma_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Spinners => {
+                    self.render_spinners_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Waves => {
+                    self.render_waves_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::DigitalRain => {
+                    self.render_digitalrain_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Fireworks => {
+                    self.render_fireworks_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Snake => {
+                    self.render_snake_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Mandelbrot => {
+                    self.render_mandelbrot_animation_in_area(chunks[0], frame);
+                }
             }
 
             // Render input box and bottom controls
@@ -158,7 +182,7 @@ impl ChatApp {
                 self.splash_font_index,
                 &self.rainbow_animation,
             );
-            
+
             // Show TachyonFX modal on top of splash screen
             if self.show_tachyon_modal {
                 self.tachyon_demo.render(frame);
@@ -1471,6 +1495,539 @@ impl ChatApp {
             .render(area, frame.buffer_mut());
     }
 
+    fn render_fire_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let elapsed_ms = (elapsed * 1000.0) as u64;
+        let bg_color = self.theme_bg_color();
+
+        let fire_chars = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        let mut lines = Vec::new();
+        for y in 0..h {
+            let mut spans = Vec::new();
+            for x in 0..w {
+                let heat = if y > h.saturating_sub(3) {
+                    7 + ((x * 7 + elapsed_ms as usize / 50) % 3)
+                } else {
+                    let base_heat = 10 - (y * 10 / h.max(1));
+                    let noise = (elapsed_ms as usize / 100 + x + y) % 3;
+                    (base_heat + noise).min(9)
+                };
+
+                let ch = fire_chars[heat.min(fire_chars.len() - 1)];
+                let color = match heat {
+                    0..=2 => ratatui::style::Color::Rgb(50, 0, 0),
+                    3..=4 => ratatui::style::Color::Rgb(150, 50, 0),
+                    5..=6 => ratatui::style::Color::Rgb(255, 100, 0),
+                    7..=8 => ratatui::style::Color::Rgb(255, 200, 0),
+                    _ => ratatui::style::Color::Rgb(255, 255, 100),
+                };
+
+                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_plasma_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let t = elapsed * 10.0;
+        let bg_color = self.theme_bg_color();
+
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        let mut lines = Vec::new();
+        for y in 0..h {
+            let mut spans = Vec::new();
+            for x in 0..w {
+                let fx = x as f32 / 10.0;
+                let fy = y as f32 / 10.0;
+
+                let value = (fx + t).sin() + (fy + t).sin() + ((fx + fy) / 2.0 + t).sin();
+
+                let r = ((value + 1.0) * 127.5) as u8;
+                let g = ((value.sin() + 1.0) * 127.5) as u8;
+                let b = ((value.cos() + 1.0) * 127.5) as u8;
+
+                let ch = if value > 1.0 {
+                    '█'
+                } else if value > 0.0 {
+                    '▓'
+                } else if value > -1.0 {
+                    '▒'
+                } else {
+                    '░'
+                };
+
+                spans.push(Span::styled(
+                    ch.to_string(),
+                    Style::default().fg(ratatui::style::Color::Rgb(r, g, b)),
+                ));
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_spinners_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::{Modifier, Style};
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let frame_num = (elapsed * 10.0) as usize;
+
+        let spinners: Vec<Vec<char>> = vec![
+            vec!['|', '/', '-', '\\'],
+            vec!['◐', '◓', '◑', '◒'],
+            vec!['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
+            vec!['▁', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃'],
+            vec!['◜', '◠', '◝', '◞', '◡', '◟'],
+            vec!['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
+        ];
+
+        let spinner_names = [
+            "Classic",
+            "Dots",
+            "Braille",
+            "Blocks",
+            "Arc",
+            "Braille Dots",
+        ];
+
+        let mut lines = vec![Line::from("")];
+
+        for (i, (spinner_set, name)) in spinners.iter().zip(spinner_names.iter()).enumerate() {
+            let char_idx = frame_num % spinner_set.len();
+
+            let color_idx = (i * 7 + frame_num) % 50;
+            let color = self.rainbow_color(color_idx);
+
+            let spinner_line = Line::from(vec![
+                Span::styled(
+                    format!("  {} ", spinner_set[char_idx]),
+                    Style::default().fg(color).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(*name, Style::default().fg(self.theme.fg)),
+            ]);
+
+            lines.push(spinner_line);
+            lines.push(Line::from(""));
+        }
+
+        Paragraph::new(lines)
+            .alignment(ratatui::layout::Alignment::Center)
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_waves_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let bg_color = self.theme_bg_color();
+
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        let mut lines = Vec::new();
+        for y in 0..h {
+            let mut spans = Vec::new();
+            for x in 0..w {
+                let fx = x as f32 / 8.0;
+                let _fy = y as f32 / 4.0;
+                let t = elapsed * 2.0;
+
+                // Multiple sine waves for ocean effect
+                let wave1 = (fx + t).sin();
+                let wave2 = (fx * 0.5 - t * 0.7).sin();
+                let wave3 = (fx * 1.5 + t * 0.5).sin();
+                let combined = (wave1 + wave2 + wave3) / 3.0;
+
+                let wave_height = (h as f32 * 0.5 + combined * h as f32 * 0.3) as usize;
+
+                let ch = if y < wave_height {
+                    ' '
+                } else if y == wave_height {
+                    '~'
+                } else if y == wave_height + 1 {
+                    '≈'
+                } else {
+                    '·'
+                };
+
+                // Blue gradient for water
+                let depth = (y.saturating_sub(wave_height)) as f32 / h as f32;
+                let blue_intensity = (200.0 - depth * 150.0) as u8;
+                let color = ratatui::style::Color::Rgb(0, blue_intensity / 3, blue_intensity);
+
+                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_digitalrain_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let elapsed_ms = (elapsed * 1000.0) as u64;
+        let bg_color = self.theme_bg_color();
+
+        // Binary and hex characters
+        let chars = vec![
+            '0', '1', 'A', 'B', 'C', 'D', 'E', 'F', '2', '3', '4', '5', '6', '7', '8', '9',
+        ];
+
+        let mut screen: Vec<Vec<(char, ratatui::style::Color)>> =
+            vec![vec![(' ', bg_color); area.width as usize]; area.height as usize];
+
+        for x in 0..area.width {
+            if (x * 5) % 4 != 0 {
+                continue;
+            }
+
+            let column_speed = 1 + ((x * 7) % 3) as usize;
+            let column_length = 6 + ((x * 11) % 8);
+
+            let fall_progress =
+                ((elapsed_ms / (120 / column_speed as u64)) + (x * 13) as u64) as i32;
+            let head_y = (fall_progress % (area.height as i32 + 20)) - 10;
+
+            for trail_pos in 0..column_length {
+                let y = head_y - trail_pos as i32;
+
+                if y >= 0 && y < area.height as i32 {
+                    let char_idx = ((x as usize * 23 + y as usize * 19 + elapsed_ms as usize / 150)
+                        % chars.len()) as usize;
+
+                    // Rainbow colors instead of green
+                    let color_idx =
+                        (x as usize * 3 + trail_pos as usize * 5 + (elapsed_ms / 100) as usize)
+                            % 50;
+                    let c = self.rainbow_animation.rgb_color_at(color_idx);
+
+                    let fade = if trail_pos == 0 {
+                        1.0
+                    } else {
+                        1.0 - (trail_pos as f32 / column_length as f32) * 0.7
+                    };
+
+                    let color = ratatui::style::Color::Rgb(
+                        (c.r as f32 * fade) as u8,
+                        (c.g as f32 * fade) as u8,
+                        (c.b as f32 * fade) as u8,
+                    );
+
+                    screen[y as usize][x as usize] = (chars[char_idx], color);
+                }
+            }
+        }
+
+        let mut lines = vec![];
+        for row in screen {
+            let mut spans = vec![];
+            for (ch, color) in row {
+                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_fireworks_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let elapsed_ms = (elapsed * 1000.0) as u64;
+        let bg_color = self.theme_bg_color();
+
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        if w == 0 || h == 0 {
+            return;
+        }
+
+        let mut grid: Vec<Vec<Option<(char, ratatui::style::Color)>>> = vec![vec![None; w]; h];
+
+        // Multiple firework bursts
+        let num_fireworks = 4;
+        let cycle_ms: u64 = 4000;
+
+        for fw_id in 0..num_fireworks {
+            let offset = fw_id * (cycle_ms / num_fireworks);
+            let local_time = (elapsed_ms.wrapping_add(offset)) % cycle_ms;
+            let age = local_time as f64 / 1000.0;
+
+            // Launch position
+            let center_x = match fw_id {
+                0 => w / 4,
+                1 => w / 2,
+                2 => 3 * w / 4,
+                _ => w / 3,
+            };
+            let launch_y = h.saturating_sub(1);
+
+            // Rocket launch phase (first 0.5 seconds)
+            if age < 0.5 {
+                let rocket_offset = (age * h as f64 * 2.0) as usize;
+                if rocket_offset <= launch_y {
+                    let rocket_y = launch_y - rocket_offset;
+                    if rocket_y < h {
+                        let color_idx = (fw_id as usize * 13 + (elapsed_ms / 50) as usize) % 50;
+                        let c = self.rainbow_animation.rgb_color_at(color_idx);
+                        let color = ratatui::style::Color::Rgb(c.r, c.g, c.b);
+                        grid[rocket_y][center_x] = Some(('|', color));
+                        if rocket_y + 1 < h {
+                            grid[rocket_y + 1][center_x] = Some(('·', color));
+                        }
+                    }
+                }
+            } else {
+                // Explosion phase
+                let explosion_age = age - 0.5;
+                let explosion_offset = (0.5 * h as f64 * 2.0) as usize;
+                if explosion_offset <= launch_y {
+                    let explosion_y = launch_y - explosion_offset;
+
+                    let num_particles = 60;
+                    for i in 0..num_particles {
+                        let angle = (i as f64 * 2.0 * std::f64::consts::PI) / num_particles as f64;
+                        let speed = 15.0 + (i % 5) as f64 * 2.0;
+                        let vx = angle.cos() * speed;
+                        let vy = angle.sin() * speed * 0.6 - 3.0;
+
+                        let px = center_x as f64 + vx * explosion_age;
+                        let py = explosion_y as f64
+                            + vy * explosion_age
+                            + 5.0 * explosion_age * explosion_age;
+
+                        let px_i = px as i32;
+                        let py_i = py as i32;
+
+                        if px_i >= 0 && px_i < w as i32 && py_i >= 0 && py_i < h as i32 {
+                            let fade = (1.0 - explosion_age / 2.0).max(0.0);
+                            if fade > 0.1 {
+                                let color_idx = (fw_id as usize * 13 + i * 3) % 50;
+                                let c = self.rainbow_animation.rgb_color_at(color_idx);
+                                let color = ratatui::style::Color::Rgb(
+                                    (c.r as f64 * fade) as u8,
+                                    (c.g as f64 * fade) as u8,
+                                    (c.b as f64 * fade) as u8,
+                                );
+
+                                let chars = ['*', '·', '+', '×'];
+                                let ch = chars[i % chars.len()];
+                                grid[py_i as usize][px_i as usize] = Some((ch, color));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        let mut lines = Vec::new();
+        for row in grid.iter().take(h) {
+            let mut spans = Vec::new();
+            for cell in row.iter().take(w) {
+                if let Some((ch, color)) = cell {
+                    spans.push(Span::styled(ch.to_string(), Style::default().fg(*color)));
+                } else {
+                    spans.push(Span::raw(" "));
+                }
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_snake_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let bg_color = self.theme_bg_color();
+
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        if w == 0 || h == 0 {
+            return;
+        }
+
+        // Snake parameters
+        let snake_length = 20;
+        let speed = 5.0;
+        let t = elapsed * speed;
+
+        let mut snake_positions = Vec::new();
+
+        // Create a winding snake path
+        for i in 0..snake_length {
+            let offset = i as f32 * 0.5;
+            let x = (w as f32 / 2.0 + (t - offset).cos() * w as f32 * 0.3) as usize;
+            let y = (h as f32 / 2.0 + (t - offset).sin() * h as f32 * 0.3) as usize;
+
+            if x < w && y < h {
+                snake_positions.push((x, y, i));
+            }
+        }
+
+        let mut grid: Vec<Vec<Option<(char, ratatui::style::Color)>>> = vec![vec![None; w]; h];
+
+        // Draw snake
+        for (x, y, i) in snake_positions {
+            let color_idx = (i * 3 + (elapsed * 10.0) as usize) % 50;
+            let c = self.rainbow_animation.rgb_color_at(color_idx);
+            let color = ratatui::style::Color::Rgb(c.r, c.g, c.b);
+
+            let ch = if i == 0 {
+                '◉'
+            } else if i < 3 {
+                '●'
+            } else {
+                '○'
+            };
+            grid[y][x] = Some((ch, color));
+        }
+
+        // Add some food dots
+        for i in 0..5 {
+            let food_x = ((i * 37 + (elapsed * 2.0) as usize * 13) % w.saturating_sub(2)).saturating_add(1).min(w.saturating_sub(1));
+            let food_y = ((i * 53 + (elapsed * 3.0) as usize * 17) % h.saturating_sub(2)).saturating_add(1).min(h.saturating_sub(1));
+
+            if grid[food_y][food_x].is_none() {
+                let pulse = ((elapsed * 5.0 + i as f32).sin() * 0.5 + 0.5) * 255.0;
+                let color = ratatui::style::Color::Rgb(pulse as u8, 50, 50);
+                grid[food_y][food_x] = Some(('◆', color));
+            }
+        }
+
+        let mut lines = Vec::new();
+        for row in &grid {
+            let mut spans = Vec::new();
+            for cell in row {
+                if let Some((ch, color)) = cell {
+                    spans.push(Span::styled(ch.to_string(), Style::default().fg(*color)));
+                } else {
+                    spans.push(Span::raw(" "));
+                }
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
+    fn render_mandelbrot_animation_in_area(&self, area: Rect, frame: &mut ratatui::Frame) {
+        use ratatui::style::Style;
+        use ratatui::text::{Line, Span};
+        use ratatui::widgets::Paragraph;
+
+        let elapsed = self.rainbow_animation.elapsed();
+        let bg_color = self.theme_bg_color();
+
+        let w = area.width as usize;
+        let h = area.height as usize;
+
+        if w == 0 || h == 0 {
+            return;
+        }
+
+        // Zoom animation
+        let zoom = 1.0 + (elapsed * 0.3).sin() * 0.5;
+        let center_x = -0.5 + (elapsed * 0.1).cos() * 0.3;
+        let center_y = 0.0 + (elapsed * 0.1).sin() * 0.3;
+
+        let mut lines = Vec::new();
+        for py in 0..h {
+            let mut spans = Vec::new();
+            for px in 0..w {
+                let x0 = (px as f64 / w as f64 - 0.5) * 3.5 / zoom as f64 + center_x as f64;
+                let y0 = (py as f64 / h as f64 - 0.5) * 2.0 / zoom as f64 + center_y as f64;
+
+                let mut x = 0.0;
+                let mut y = 0.0;
+                let mut iteration = 0;
+                let max_iteration = 50;
+
+                while x * x + y * y <= 4.0 && iteration < max_iteration {
+                    let xtemp = x * x - y * y + x0;
+                    y = 2.0 * x * y + y0;
+                    x = xtemp;
+                    iteration += 1;
+                }
+
+                let ch = if iteration == max_iteration {
+                    '█'
+                } else if iteration > 40 {
+                    '▓'
+                } else if iteration > 30 {
+                    '▒'
+                } else if iteration > 20 {
+                    '░'
+                } else if iteration > 10 {
+                    '·'
+                } else {
+                    ' '
+                };
+
+                // Rainbow coloring based on iteration count
+                let color = if iteration == max_iteration {
+                    ratatui::style::Color::Rgb(0, 0, 0)
+                } else {
+                    let color_idx = (iteration * 5 + (elapsed * 10.0) as usize) % 50;
+                    let c = self.rainbow_animation.rgb_color_at(color_idx);
+                    ratatui::style::Color::Rgb(c.r, c.g, c.b)
+                };
+
+                spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+            }
+            lines.push(Line::from(spans));
+        }
+
+        Paragraph::new(lines)
+            .style(Style::default().bg(bg_color))
+            .render(area, frame.buffer_mut());
+    }
+
     /// Render autocomplete suggestions overlay
     /// Render autocomplete suggestions overlay using animated modal
     pub fn render_suggestions(&mut self, frame: &mut ratatui::Frame, input_area: Rect) {
@@ -1490,7 +2047,8 @@ impl ChatApp {
         };
 
         // Use the animated suggestion list from autocomplete
-        self.autocomplete.suggestion_list_mut().render(frame, suggestion_area);
+        self.autocomplete
+            .suggestion_list_mut()
+            .render(frame, suggestion_area);
     }
-
 }

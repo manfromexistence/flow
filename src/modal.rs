@@ -9,9 +9,10 @@ use ratatui::{
     widgets::{List, ListItem, ListState},
 };
 use tachyonfx::{
-    CellFilter, Duration, Effect, EffectRenderer, Interpolation::*,
+    CellFilter, Duration, Effect, EffectRenderer,
+    Interpolation::*,
     Motion,
-    fx::{self, parallel, sequence, repeating, prolong_end},
+    fx::{self, parallel, prolong_end, repeating, sequence},
 };
 
 /// Modal animation types
@@ -42,12 +43,12 @@ impl Modal {
     pub fn show(&mut self, animation_type: ModalAnimation) {
         self.show_animation = true;
         self.animation_start = Instant::now();
-        
+
         // EXACT same values as TachyonFX demo
         let medium = Duration::from_millis(750);
         let screen_bg = self.theme.bg;
         let secondary = self.theme.mode_colors.plan; // Yellow color
-        
+
         self.animation = Some(match animation_type {
             ModalAnimation::SlideInOut => {
                 // EXACT same animation as TachyonFX demo "slide in/out"
@@ -83,7 +84,7 @@ impl Modal {
         F: FnOnce(&mut Frame, Rect, &ChatTheme),
     {
         // Don't render background - only content and effects
-        
+
         // Render content with padding
         let content_area = area.inner(Margin::new(2, 1));
         render_content(f, content_area, &self.theme);
@@ -133,7 +134,7 @@ impl AnimatedSuggestionList {
         self.descriptions = descriptions;
         self.selected_index = 0;
         self.list_state.select(Some(0));
-        
+
         if !self.items.is_empty() {
             // Show modal with animation when there are items
             if !self.modal.show_animation {
@@ -193,15 +194,15 @@ impl AnimatedSuggestionList {
     fn start_shimmer_effect(&mut self) {
         self.shimmer_start = Instant::now();
         let duration = Duration::from_millis(2000);
-        
+
         // Create a subtle shimmer effect using theme colors
         let theme_fg = self.modal.theme.fg;
         self.shimmer_effect = Some(
             fx::effect_fn(Instant::now(), duration, move |state, _ctx, cell_iter| {
                 let cycle: f32 = (state.elapsed().as_millis() % 2000) as f32;
                 let wave = (cycle / 2000.0 * std::f32::consts::PI * 2.0).sin();
-                let brightness = (wave * 0.1 + 0.9).max(0.8).min(1.0);
-                
+                let brightness = (wave * 0.1 + 0.9).clamp(0.8, 1.0);
+
                 cell_iter
                     .filter(|(_, cell)| cell.symbol() != " ")
                     .for_each(|(_pos, cell)| {
@@ -213,7 +214,7 @@ impl AnimatedSuggestionList {
                         }
                     });
             })
-            .with_filter(CellFilter::Text)
+            .with_filter(CellFilter::Text),
         );
     }
 
@@ -222,16 +223,17 @@ impl AnimatedSuggestionList {
         if !self.is_visible() {
             return;
         }
-        
+
         self.modal.render(f, area, |f, content_area, theme| {
             // Create list items with descriptions
-            let list_items: Vec<ListItem> = self.items
+            let list_items: Vec<ListItem> = self
+                .items
                 .iter()
                 .zip(self.descriptions.iter())
                 .enumerate()
                 .map(|(i, (item, desc))| {
                     let is_selected = i == self.selected_index;
-                    
+
                     let style = if is_selected {
                         Style::default()
                             .fg(theme.accent)
@@ -263,7 +265,7 @@ impl AnimatedSuggestionList {
                     Style::default()
                         .bg(theme.accent)
                         .fg(theme.primary_fg)
-                        .add_modifier(Modifier::BOLD)
+                        .add_modifier(Modifier::BOLD),
                 );
 
             f.render_stateful_widget(list, content_area, &mut self.list_state);
