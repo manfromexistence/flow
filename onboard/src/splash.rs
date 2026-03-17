@@ -41,37 +41,38 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
 }
 
 pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Result<()> {
+    // Smaller train that fits better in terminal
     let train = vec![
-        "      ====        ________                ___________",
-        "  _D _|  |_______/        \\__I_I_____===__|_________|",
-        "   |(_)---  |   H\\________/ |   |        =|___ ___|",
-        "   /     |  |   H  |  |     |   |         ||_| |_||",
-        "  |      |  |   H  |__--------------------| [___] |",
-        "  | ________|___H__/__|_____/[][]~\\_______|       |",
-        "  |/ |   |-----------I_____I [][] []  D   |=======|",
-        "__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|",
-        " |/-=|___|=O=====O=====O=====O   |_____/~\\___/",
-        "  \\_/      \\__/  \\__/  \\__/  \\__/      \\_/",
+        "    ====        ________           ",
+        "_D _|  |_______/        \\__I_I_____|",
+        " |(_)---  |   H\\________/ |   |    |",
+        " /     |  |   H  |  |     |   |    |",
+        "|      |  |   H  |__----------| [_]|",
+        "| ________|___H__/__|_____/[][]~\\___|",
+        "|/ |   |-------I_____I [][] []  D  |",
+        "_/ =| o |=-~~\\  /~~\\  /~~\\ ____Y___|",
+        "|/-=|___|=O===O===O===O   |_____/~\\|",
+        " \\_/      \\__/ \\__/ \\__/      \\_/  ",
     ];
 
-    // Add animated smoke
+    // Smaller animated smoke
     let smoke_frames: Vec<&[&str]> = vec![
-        &["    (  )", "   (    )", "  (      )"],
-        &["   (   )", "  (     )", " (       )"],
-        &["  (    )", " (      )", "(        )"],
+        &["  ( )", " (   )"],
+        &[" (  )", "(    )"],
+        &["(   )", " (   )"],
     ];
     let smoke_frame_idx = frame % smoke_frames.len();
     let smoke = smoke_frames[smoke_frame_idx];
 
     // Calculate train position (moves from right to left)
-    let terminal_width = 120i32; // Assume standard width
-    let train_width = 60i32;
-    let total_travel = terminal_width + train_width + 20;
-    let x_pos = (terminal_width - 10) - ((frame as i32 * 2) % total_travel);
+    let terminal_width = 80i32; // Smaller width for better fit
+    let train_width = 35i32; // Adjusted for smaller train
+    let total_travel = terminal_width + train_width + 10;
+    let x_pos = (terminal_width - 5) - ((frame as i32 * 2) % total_travel);
 
     // Render smoke above the train
     for smoke_line in smoke {
-        let smoke_x_offset = x_pos + 6; // position smoke above the smokestack
+        let smoke_x_offset = x_pos + 4; // position smoke above the smokestack
         if smoke_x_offset >= 0 && smoke_x_offset < terminal_width {
             print!("{}", " ".repeat(smoke_x_offset as usize));
             for (ci, ch) in smoke_line.chars().enumerate() {
@@ -95,7 +96,7 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
         println!();
     }
 
-    // Render animated tracks
+    // Render animated tracks (shorter)
     let track_offset = frame;
     for x in 0..terminal_width as usize {
         let ch = if (x + track_offset).is_multiple_of(4) {

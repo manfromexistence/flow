@@ -688,7 +688,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
 
     // Save configuration
     let config_json = serde_json::to_string_pretty(&result)?;
-    let config_path = find_workspace_root().join("dx-config.json");
+    let config_path = find_workspace_root().join("dx.json");
     fs::write(&config_path, config_json)?;
     prompts::log::success(format!("Configuration saved to: {}", config_path.display()))?;
 
