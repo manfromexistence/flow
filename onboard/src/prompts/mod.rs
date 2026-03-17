@@ -247,7 +247,6 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
 
     // Calculate the exact width needed
     let max_line_width = lines.iter().map(|line| line.chars().count()).max().unwrap_or(0);
-    let title_len = title.chars().count();
     
     // The content width should be the maximum of all content lines
     let content_width = max_line_width.max(min_content_width);
