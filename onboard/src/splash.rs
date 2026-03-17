@@ -1,36 +1,58 @@
 //! ASCII art splash screen with rainbow colors
 
 use crate::effects::RainbowEffect;
+use figlet_rs::FIGfont;
 use owo_colors::OwoColorize;
 use terminal_size::{Width, Height, terminal_size};
+use rand;
 use std::io::{self, Write};
 
 pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
-    // Static DX logo with rainbow colors
-    let dx_lines = vec![
-        "Enhanced Development Experience",
-        "",
-        "▓█████▄ ▒██   ██▒",
-        "▒██▀ ██▌▒▒ █ █ ▒░",
-        "░██   █▌░░  █   ░",
-        "░▓█▄   ▌ ░ █ █ ▒ ",
-        "░▒████▓ ▒██▒ ▒██▒",
-        "▒▒▓  ▒ ▒▒ ░ ░▓ ░",
-        "░ ▒  ▒ ░░   ░▒ ░",
-        "░ ░  ░  ░    ░  ",
-        "  ░     ░    ░  ",
-        "        ░       ",
-    ];
+    // Pick a random font for DX title each time
+    let all_fonts = get_valid_fonts();
+    use rand::seq::SliceRandom;
+    let mut rng = rand::thread_rng();
+    let selected_font = all_fonts.choose(&mut rng).unwrap_or(&"Block");
 
-    // Render each line with rainbow colors
-    for (line_idx, line) in dx_lines.iter().enumerate() {
+    // Render DX with the randomly selected font
+    let dx_figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(selected_font)
+        && let Ok(font_str) = String::from_utf8(font_data)
+        && let Ok(font) = FIGfont::from_content(&font_str)
+        && let Some(figure) = font.convert("DX")
+    {
+        figure.to_string().lines().map(|s| s.to_string()).collect()
+    } else {
+        // Fallback ASCII art
+        vec![
+            "██████╗ ██╗  ██╗".to_string(),
+            "██╔══██╗╚██╗██╔╝".to_string(),
+            "██║  ██║ ╚███╔╝ ".to_string(),
+            "██║  ██║ ██╔██╗ ".to_string(),
+            "██████╔╝██╔╝ ██╗".to_string(),
+            "╚═════╝ ╚═╝  ╚═╝".to_string(),
+        ]
+    };
+
+    // Render DX title with rainbow colors
+    for (line_idx, line) in dx_figlet_lines.iter().enumerate() {
         for (char_idx, ch) in line.chars().enumerate() {
-            let color_idx = char_idx + line_idx * 5; // Offset colors for each line
+            let color_idx = char_idx + line_idx * 5;
             let color = rainbow.color_at(color_idx);
             print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
         }
         println!();
     }
+
+    println!();
+
+    // Description text at the bottom with rainbow colors
+    let description = "Enhanced Development Experience";
+    for (char_idx, ch) in description.chars().enumerate() {
+        let color_idx = char_idx + 50; // Different offset for description
+        let color = rainbow.color_at(color_idx);
+        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+    }
+    println!();
 
     io::stdout().flush()?;
     Ok(())
