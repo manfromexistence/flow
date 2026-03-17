@@ -294,8 +294,8 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
     ))?;
     term_write("\n")?;
 
-    // Don't add the connecting vertical bar here - let the next prompt add its own symbol
-    // This allows the first prompt after the box to have a proper symbol (● or ♦) instead of |
+    // Add the continuing vertical bar line for terminal-like appearance
+    term_write(format!("{}\n", theme.dim.apply_to(symbols.bar)))?;
 
     Ok(())
 }
