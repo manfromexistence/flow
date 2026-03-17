@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Margin, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Clear, List, ListItem, ListState, Widget},
+    widgets::{List, ListItem, ListState},
 };
 use tachyonfx::{
     CellFilter, Duration, Effect, EffectRenderer, Interpolation::*,
@@ -17,10 +17,7 @@ use tachyonfx::{
 /// Modal animation types
 #[derive(Debug, Clone, Copy)]
 pub enum ModalAnimation {
-    FadeIn,
     SlideInOut, // Changed to match TachyonFX demo
-    Expand,
-    None,
 }
 
 /// Reusable modal component with tachyonfx effects
@@ -52,9 +49,6 @@ impl Modal {
         let secondary = self.theme.mode_colors.plan; // Yellow color
         
         self.animation = Some(match animation_type {
-            ModalAnimation::FadeIn => {
-                fx::fade_from_fg(self.theme.bg, (300, QuadOut))
-            }
             ModalAnimation::SlideInOut => {
                 // EXACT same animation as TachyonFX demo "slide in/out"
                 repeating(sequence(&[
@@ -69,14 +63,6 @@ impl Modal {
                     ),
                 ]))
             }
-            ModalAnimation::Expand => {
-                fx::expand(
-                    fx::ExpandDirection::Vertical,
-                    ratatui::style::Style::new().fg(self.theme.accent).bg(self.theme.bg),
-                    300,
-                )
-            }
-            ModalAnimation::None => return,
         });
     }
 

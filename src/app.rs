@@ -1,5 +1,5 @@
 use crate::{
-    autocomplete::{Autocomplete, Suggestion},
+    autocomplete::Autocomplete,
     components::Message,
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
@@ -131,8 +131,6 @@ pub struct ChatApp {
     pub selected_model: String,
     // Autocomplete
     pub autocomplete: Autocomplete,
-    pub suggestions: Vec<Suggestion>,
-    pub show_suggestions: bool,
     pub last_input_change: Instant,
     pub last_input_content: String,
     // Tachyonfx demo - uncommented
@@ -188,8 +186,6 @@ impl ChatApp {
             selected_local_mode: "Local".to_string(),
             selected_model: "Qwen3.5-0.8B".to_string(),
             autocomplete: Autocomplete::new(theme.clone()),
-            suggestions: Vec::new(),
-            show_suggestions: false,
             last_input_change: Instant::now(),
             last_input_content: String::new(),
             tachyon_demo: TachyonDemo::new(theme), // Uncommented
