@@ -65,8 +65,6 @@ struct OnboardingResult {
     email: String,
     website: String,
     phone: String,
-    birth_date: String,
-    preferred_time: String,
     bio: String,
     
     // Experience & Skills
@@ -88,32 +86,11 @@ struct OnboardingResult {
     // Preferences
     preferences: OnboardingPreferences,
     
-    // Visual & Design
-    brand_color: String,
-    accent_color: String,
-    favorite_emoji: String,
-    
-    // Project Info
-    project_deadline: String,
-    code_snippet: CodeSnippetData,
-    config_file_path: String,
-    
     // Workflow Data
-    todo_list_items: usize,
-    team_table_rows: usize,
-    kanban_tasks: usize,
     wizard_completed_steps: usize,
     
     // Metadata
     timestamp: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct CodeSnippetData {
-    name: String,
-    language: String,
-    code: String,
-    description: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -289,53 +266,32 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Phone: {}", phone))?;
 
-    // 6. Credit Card Input (demo)
-    let use_payment = prompts::confirm("Would you like to add payment info? (demo only)")
-        .initial_value(false)
-        .interact()?;
-
-    if use_payment {
-        let _card = prompts::credit_card::credit_card("Enter credit card number (demo)")
-            .interact()?;
-        prompts::log::info("Credit card info collected (demo only)")?;
-    }
-
-    // 7. Date Picker
-    let birth_date = prompts::date_picker::date_picker("What's your birth date?")
-        .interact()?;
-    prompts::log::info(format!("Birth date: {}", birth_date))?;
-
-    // 8. Time Picker
-    let preferred_time = prompts::time_picker::time_picker("What's your preferred work start time?")
-        .interact()?;
-    prompts::log::info(format!("Preferred time: {}", preferred_time))?;
-
-    // 9. Number Input
+    // 6. Number Input
     let experience_years = prompts::number::number("How many years of coding experience?")
         .min(0)
         .max(50)
         .interact()?;
     prompts::log::info(format!("Experience: {} years", experience_years))?;
 
-    // 10. Rating
+    // 7. Rating
     let satisfaction = prompts::rating::rating("Rate your current dev setup satisfaction")
         .max(5)
         .interact()?;
     prompts::log::info(format!("Current setup satisfaction: {}/5 stars", satisfaction))?;
 
-    // 11. Slider
+    // 8. Slider
     let productivity = prompts::slider::slider("Rate your productivity level (0-100)", 0, 100)
         .initial_value(75)
         .interact()?;
     prompts::log::info(format!("Productivity level: {}%", productivity))?;
 
-    // 12. Range Slider
+    // 9. Range Slider
     let work_hours = prompts::range_slider::range_slider("Select your preferred work hours", 0, 24)
         .initial_range(9, 17)
         .interact()?;
     prompts::log::info(format!("Work hours: {}:00 - {}:00", work_hours.0, work_hours.1))?;
 
-    // 13. Toggle switches
+    // 10. Toggle switches
     let notifications = prompts::toggle::toggle("Enable desktop notifications")
         .initial_value(true)
         .interact()?;
@@ -348,7 +304,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .initial_value(false)
         .interact()?;
 
-    // 14. Single Select
+    // 11. Single Select
     let theme = prompts::select("Choose your preferred theme")
         .item("dark", "Dark Theme", "Perfect for late-night coding")
         .item("light", "Light Theme", "Easy on the eyes during the day")
@@ -357,7 +313,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Selected theme: {}", theme))?;
 
-    // 15. Editor preference
+    // 12. Editor preference
     let editor = prompts::select("What's your preferred code editor?")
         .item("vscode", "Visual Studio Code", "Most popular choice")
         .item("neovim", "Neovim", "Modal editing powerhouse")
@@ -367,7 +323,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .item("atom", "Atom", "Hackable text editor")
         .interact()?;
 
-    // 16. Shell preference
+    // 13. Shell preference
     let shell = prompts::select("What's your preferred shell?")
         .item("bash", "Bash", "The standard shell")
         .item("zsh", "Zsh", "Feature-rich with great plugins")
@@ -376,7 +332,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .item("cmd", "Command Prompt", "Windows classic")
         .interact()?;
 
-    // 17. Multi-select for components
+    // 14. Multi-select for components
     let components = build_component_targets(runtime_env);
     let mut component_multiselect = prompts::multiselect("Which components would you like to install?");
     for component in &components {
@@ -391,7 +347,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         }
     }
 
-    // 18. Multi-select for providers
+    // 15. Multi-select for providers
     let providers = vec![
         ("openai", "OpenAI"),
         ("anthropic", "Anthropic"), 
@@ -415,13 +371,13 @@ fn run_onboarding() -> Result<OnboardingResult> {
         }
     }
 
-    // 19. Tags input for programming languages
+    // 16. Tags input for programming languages
     let languages = prompts::tags::tags("What programming languages do you use?")
         .placeholder("Type languages and press Enter")
         .interact()?;
     prompts::log::info(format!("Programming languages: {}", languages.join(", ")))?;
 
-    // 20. Autocomplete
+    // 17. Autocomplete
     let favorite_language = prompts::autocomplete::autocomplete("What's your favorite programming language?")
         .item("rust", "Rust")
         .item("javascript", "JavaScript")
@@ -434,7 +390,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Favorite language: {}", favorite_language))?;
 
-    // 21. Search Filter
+    // 18. Search Filter
     let framework = prompts::search_filter::search_filter("Choose your preferred web framework")
         .item("React", "React", vec!["frontend".to_string(), "javascript".to_string()])
         .item("Vue.js", "Vue.js", vec!["frontend".to_string(), "javascript".to_string()])
@@ -445,7 +401,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Preferred framework: {}", framework))?;
 
-    // 22. Tree Select - simplified for now
+    // 19. Tree Select - simplified for now
     let project_type = prompts::select("What type of project are you working on?")
         .item("web_frontend", "Web Frontend", "React, Vue, Angular applications")
         .item("web_backend", "Web Backend", "APIs and server applications")
@@ -455,7 +411,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Project type: {}", project_type))?;
 
-    // 23. Matrix Select - simplified for now
+    // 20. Matrix Select - simplified for now
     let skills = prompts::multiselect("Rate your skills in different areas")
         .item("frontend", "Frontend Development", "HTML, CSS, JavaScript")
         .item("backend", "Backend Development", "APIs, databases, servers")
@@ -465,73 +421,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         .interact()?;
     prompts::log::info(format!("Skills selected: {} areas", skills.len()))?;
 
-    // 24. File Browser
-    let config_file = prompts::file_browser::file_browser("Select a configuration file")
-        .interact()?;
-    prompts::log::info(format!("Selected file: {}", config_file.display()))?;
-
-    // 25. Color Picker
-    let brand_color = prompts::color_picker::color_picker("Choose your brand color")
-        .interact()?;
-    prompts::log::info(format!("Brand color: {}", brand_color))?;
-
-    // 26. Advanced Color Picker
-    let accent_color = prompts::color_picker_advanced::color_picker_advanced("Choose accent color")
-        .mode(prompts::ColorMode::HEX)
-        .interact()?;
-    prompts::log::info(format!("Accent color: {}", accent_color))?;
-
-    // 27. Emoji Picker
-    let favorite_emoji = prompts::emoji_picker::emoji_picker("Pick your favorite emoji")
-        .interact()?;
-    prompts::log::info(format!("Favorite emoji: {}", favorite_emoji))?;
-
-    // 28. Calendar View
-    let project_deadline = prompts::calendar::calendar("When is your project deadline?")
-        .interact()?;
-    prompts::log::info(format!("Project deadline: {}", project_deadline))?;
-
-    // 29. Code Snippet - simplified
-    let code_example = prompts::code_snippet::code_snippet("Paste a code snippet you're proud of")
-        .snippet(prompts::CodeSnippet {
-            name: "Hello World".to_string(),
-            language: "rust".to_string(),
-            code: "fn main() {\n    println!(\"Hello, world!\");\n}".to_string(),
-            description: "A simple Rust hello world program".to_string(),
-        })
-        .interact()?;
-    prompts::log::info(format!("Code snippet length: {} characters", code_example.code.len()))?;
-
-    // 30. JSON Editor - simplified
-    let _config_json = prompts::json_editor::json_editor("Edit your configuration")
-        .interact()?;
-    prompts::log::info("JSON configuration updated")?;
-
-    // 31. Markdown Editor - simplified
-    let readme_content = prompts::markdown_editor::markdown_editor("Write your project README")
-        .interact()?;
-    prompts::log::info(format!("README length: {} characters", readme_content.len()))?;
-
-    // 32. Table Editor
-    let team_info = prompts::table_editor::table_editor("Edit team information")
-        .headers(vec!["Name".to_string(), "Role".to_string(), "Experience".to_string()])
-        .interact()?;
-    prompts::log::info(format!("Team table has {} rows", team_info.len()))?;
-
-    // 33. List Editor
-    let todo_list = prompts::list_editor("Create your TODO list")
-        .interact()?;
-    prompts::log::info(format!("TODO list has {} items", todo_list.len()))?;
-
-    // 34. Kanban Board
-    let project_board = prompts::kanban::kanban("Organize your project tasks")
-        .column("TODO")
-        .column("In Progress")
-        .column("Done")
-        .interact()?;
-    prompts::log::info(format!("Kanban board has {} tasks", project_board.len()))?;
-
-    // 35. Progress Bar Demo
+    // 21. Progress Bar Demo
     prompts::log::info("Simulating setup progress...")?;
     let mut progress = prompts::progress::ProgressBar::new("Setting up environment", 100);
     progress.start()?;
@@ -547,19 +437,19 @@ fn run_onboarding() -> Result<OnboardingResult> {
     std::thread::sleep(std::time::Duration::from_millis(500));
     progress.finish("Setup complete!")?;
 
-    // 36. Spinner Demo
+    // 22. Spinner Demo
     let mut spinner = prompts::spinner::spinner("Processing your configuration...");
     spinner.start()?;
     std::thread::sleep(std::time::Duration::from_millis(2000));
     spinner.stop("Configuration processed successfully!")?;
 
-    // 37. Text Area
+    // 23. Text Area
     let bio = prompts::text::text("Tell us about yourself")
         .placeholder("Write a short bio...")
         .interact()?;
     prompts::log::info(format!("Bio length: {} characters", bio.len()))?;
 
-    // 38. Wizard (multi-step process)
+    // 24. Wizard (multi-step process)
     let wizard_result = prompts::wizard::wizard("Complete Project Setup")
         .step("Project Basics", "Set up basic project information")
         .step("Advanced Settings", "Configure advanced options")
@@ -587,21 +477,12 @@ fn run_onboarding() -> Result<OnboardingResult> {
         telemetry,
     };
 
-    let code_snippet_data = CodeSnippetData {
-        name: code_example.name.clone(),
-        language: code_example.language.clone(),
-        code: code_example.code.clone(),
-        description: code_example.description.clone(),
-    };
-
     let result = OnboardingResult {
         // Basic Info
         name,
         email,
         website: website.clone(),
         phone: phone.clone(),
-        birth_date: birth_date.clone(),
-        preferred_time: preferred_time.clone(),
         bio,
         
         // Experience & Skills
@@ -623,20 +504,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
         // Preferences
         preferences,
         
-        // Visual & Design
-        brand_color: brand_color.clone(),
-        accent_color: accent_color.clone(),
-        favorite_emoji: favorite_emoji.clone(),
-        
-        // Project Info
-        project_deadline,
-        code_snippet: code_snippet_data,
-        config_file_path: config_file.display().to_string(),
-        
         // Workflow Data
-        todo_list_items: todo_list.len(),
-        team_table_rows: team_info.len(),
-        kanban_tasks: project_board.len(),
         wizard_completed_steps: wizard_result,
         
         // Metadata
@@ -649,8 +517,6 @@ fn run_onboarding() -> Result<OnboardingResult> {
         lines.push(format!("Email: {}", result.email));
         lines.push(format!("Website: {}", website));
         lines.push(format!("Phone: {}", phone));
-        lines.push(format!("Birth Date: {}", birth_date));
-        lines.push(format!("Preferred Time: {}", preferred_time));
         lines.push(format!("Experience: {} years", experience_years));
         lines.push(format!("Satisfaction: {}/5 stars", satisfaction));
         lines.push(format!("Productivity: {}%", productivity));
@@ -662,14 +528,11 @@ fn run_onboarding() -> Result<OnboardingResult> {
         lines.push(format!("Favorite Language: {}", favorite_language));
         lines.push(format!("Framework: {}", framework));
         lines.push(format!("Project Type: {}", project_type));
-        lines.push(format!("Brand Color: {}", brand_color));
-        lines.push(format!("Accent Color: {}", accent_color));
-        lines.push(format!("Favorite Emoji: {}", favorite_emoji));
         lines.push(format!("Components: {}", result.selected_components.len()));
         lines.push(format!("Providers: {}", result.selected_providers.len()));
         lines.push(format!("Languages: {}", languages.join(", ")));
         lines.push("".to_string());
-        lines.push("🚀 ALL 38 PROMPT TYPES DEMONSTRATED! 🚀".to_string());
+        lines.push("🚀 24 ESSENTIAL PROMPT TYPES! 🚀".to_string());
         lines.push("Your DX environment is fully configured!".to_string());
     })?;
 
