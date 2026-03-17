@@ -37,6 +37,18 @@ dx-font = { path = "./font" }
 # Animations
 tachyonfx = { path = "./tachyonfx" }
 
+# Animation crates
+noise = "0.9"
+bracket-noise = "0.8"
+charmed-harmonica = "0.1"
+spinners = "4.1"
+indicatif = "0.17"
+coolor = "1.0"
+palette = "0.7"
+terminal_size = "0.4"
+owo-colors = { version = "4.0", features = ["supports-colors"] }
+rand = "0.8"
+
 # Clipboard
 cli-clipboard = "0.4"
 

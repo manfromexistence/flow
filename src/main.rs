@@ -7,6 +7,7 @@ mod input;
 mod llm;
 mod modal;
 mod render;
+mod screens;
 mod splash;
 mod tachyonfx;
 mod theme;

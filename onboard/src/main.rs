@@ -17,9 +17,9 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
-use prompts::PromptInteraction;
 use effects::RainbowEffect;
 use splash::{render_dx_logo, render_train_animation};
+use prompts::PromptInteraction;
 
 #[derive(Debug, Clone, Copy)]
 enum RuntimeEnvironment {
@@ -202,7 +202,7 @@ fn run_onboarding() -> Result<OnboardingResult> {
     // Initialize rainbow effect
     let rainbow = RainbowEffect::new();
     
-    // Clear screen and show DX logo with 5 animated fonts
+    // Clear screen and show DX logo with random font
     print!("\x1B[2J\x1B[H"); // Clear screen and move cursor to top
     render_dx_logo(&rainbow)?;
     println!();
