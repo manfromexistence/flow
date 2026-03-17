@@ -47,6 +47,8 @@ use std::fmt::Display;
 use std::io;
 use std::sync::RwLock;
 use textwrap::wrap;
+use crate::effects::RainbowEffect;
+use owo_colors::OwoColorize;
 
 pub use autocomplete::{Autocomplete, AutocompleteItem, autocomplete};
 pub use calendar::{CalendarView, calendar};
@@ -112,6 +114,34 @@ impl Default for DxTheme {
 pub static THEME: Lazy<RwLock<DxTheme>> = Lazy::new(|| RwLock::new(DxTheme::default()));
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Rainbow Animation
+// ─────────────────────────────────────────────────────────────────────────────
+
+pub static RAINBOW: Lazy<RwLock<RainbowEffect>> = Lazy::new(|| RwLock::new(RainbowEffect::new()));
+
+/// Get a rainbow-colored symbol
+pub fn rainbow_symbol(symbol: &str, index: usize) -> String {
+    if let Ok(rainbow) = RAINBOW.read() {
+        let color = rainbow.color_at(index);
+        symbol.truecolor(color.r, color.g, color.b).to_string()
+    } else {
+        symbol.to_string()
+    }
+}
+
+/// Get a rainbow-colored step_submit symbol (♦)
+pub fn rainbow_step_submit() -> String {
+    let symbols = &*SYMBOLS;
+    rainbow_symbol(symbols.step_submit, 0)
+}
+
+/// Get a rainbow-colored step_active symbol  
+pub fn rainbow_step_active() -> String {
+    let symbols = &*SYMBOLS;
+    rainbow_symbol(symbols.step_active, 1)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Symbols
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -150,9 +180,9 @@ impl Symbols {
             step_cancel: "■",
             step_error: "▲",
             step_submit: "♦",
-            bar_start: "┌",
+            bar_start: "╭",  // More curved
             bar: "│",
-            bar_end: "└",
+            bar_end: "╰",    // More curved
             radio_active: "●",
             radio_inactive: "○",
             checkbox_active: "◻",
@@ -163,9 +193,9 @@ impl Symbols {
             corner_top_right: "╮",
             connect_left: "├",
             corner_bottom_right: "╯",
-            box_top_left: "┌",
+            box_top_left: "╭",      // More curved
             box_top_right: "╮",
-            box_bottom_left: "├",
+            box_bottom_left: "╰",   // More curved
             box_bottom_right: "╯",
             box_horizontal: "─",
             box_vertical: "│",
@@ -201,10 +231,12 @@ pub fn intro(title: impl Display) -> io::Result<()> {
 pub fn outro(message: impl Display) -> io::Result<()> {
     let theme = THEME.read().unwrap();
     let symbols = &*SYMBOLS;
+    let rainbow_step_submit = rainbow_symbol(symbols.step_submit, 1);
+    
     term_write(format!(
         "{}{} {}\n",
         theme.dim.apply_to(symbols.bar),
-        theme.success.apply_to(symbols.step_submit),
+        rainbow_step_submit,
         message,
     ))
 }
@@ -212,85 +244,45 @@ pub fn outro(message: impl Display) -> io::Result<()> {
 fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> io::Result<()> {
     let theme = THEME.read().unwrap();
     let symbols = &*SYMBOLS;
-    let bar = theme.dim.apply_to(symbols.bar);
 
-    let terminal_columns = std::env::var("COLUMNS")
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .unwrap_or(120)
-        .max(40);
-
-    // Content row format is: "│" + content + "│"
-    let max_box_content_width = terminal_columns.saturating_sub(2).max(20);
-
-    let requested_content_width = lines
-        .iter()
-        .map(|line| line.chars().count().saturating_add(2))
-        .max()
-        .unwrap_or(0)
-        .max(min_content_width)
-        .min(max_box_content_width);
-
-    let wrapped_lines = lines
-        .iter()
-        .flat_map(|line| {
-            let wraps = wrap(line, requested_content_width.saturating_sub(2).max(1));
-            if wraps.is_empty() {
-                vec![String::new()]
-            } else {
-                wraps.into_iter().map(|item| item.into_owned()).collect()
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let max_content_len = wrapped_lines
-        .iter()
-        .map(|line| format!("  {}", line).chars().count())
-        .max()
-        .unwrap_or(0)
-        .max(min_content_width)
-        .min(max_box_content_width);
-
-    let title_with_spaces = format!(" {}  ", title);
-    let title_len = title_with_spaces.chars().count();
-    let remaining = max_content_len.saturating_sub(title_len);
-
+    // Simple approach: calculate the width we need
+    let max_line_width = lines.iter().map(|line| line.chars().count()).max().unwrap_or(0);
+    let title_len = title.chars().count() + 2; // " title "
+    let content_width = max_line_width.max(title_len).max(min_content_width);
+    
+    // Top border
     term_write(format!(
-        "{}{}{}{}",
-        theme.dim.apply_to(symbols.bar),
-        title_with_spaces,
-        theme.dim.apply_to(symbols.box_horizontal.repeat(remaining)),
-        theme.dim.apply_to(symbols.box_top_right)
+        "{} {} {}",
+        theme.dim.apply_to(symbols.box_top_left),
+        title,
+        theme.dim.apply_to(format!("{}{}", 
+            symbols.box_horizontal.repeat(content_width.saturating_sub(title_len) + 1),
+            symbols.box_top_right
+        ))
     ))?;
     term_write("\n")?;
 
-    term_write(format!("{}{}{}\n", bar, " ".repeat(max_content_len), bar))?;
-
-    for line in &wrapped_lines {
-        let content = format!("  {}", line);
-        let content_len = content.chars().count();
-        let spaces_needed = max_content_len.saturating_sub(content_len);
+    // Content lines
+    for line in lines {
+        let padding = content_width.saturating_sub(line.chars().count());
         term_write(format!(
-            "{}{}{}{}\n",
-            bar,
-            content,
-            " ".repeat(spaces_needed),
-            bar
+            "{} {}{} {}\n",
+            theme.dim.apply_to(symbols.box_vertical),
+            line,
+            " ".repeat(padding),
+            theme.dim.apply_to(symbols.box_vertical)
         ))?;
     }
 
-    term_write(format!("{}{}{}\n", bar, " ".repeat(max_content_len), bar))?;
-
+    // Bottom border
     term_write(format!(
         "{}{}{}\n",
         theme.dim.apply_to(symbols.box_bottom_left),
-        theme
-            .dim
-            .apply_to(symbols.box_horizontal.repeat(max_content_len)),
+        theme.dim.apply_to(symbols.box_horizontal.repeat(content_width + 2)),
         theme.dim.apply_to(symbols.box_bottom_right)
     ))?;
 
-    term_write(format!("{}\n", bar))
+    Ok(())
 }
 
 pub fn section_with_width<F>(title: &str, content_width: usize, build: F) -> io::Result<()>
@@ -350,10 +342,11 @@ pub mod log {
     pub fn step(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
+        let rainbow_step = rainbow_symbol("◇", 1);
         eprintln!(
             "{} {} {}",
             theme.dim.apply_to(symbols.bar),
-            "◇".green(),
+            rainbow_step,
             text
         );
         Ok(())
