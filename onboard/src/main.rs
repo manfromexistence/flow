@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 // mod prompt_suite;
-// mod prompts;
+mod prompts;
 
 use anyhow::Result;
 use argon2::Argon2;
@@ -35,7 +35,7 @@ use std::time::Duration;
 use textwrap::wrap;
 use url::Url;
 
-// use prompts::PromptInteraction;
+use prompts::PromptInteraction;
 
 #[derive(Debug, Default, Clone)]
 struct OnboardCliArgs {
@@ -2814,37 +2814,111 @@ fn print_usage() {
 async fn async_main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
-    println!("🚀 DX Onboard - Simplified Version");
-    println!("Runtime Environment: {:?}", detect_runtime_environment());
+    // Show the onboarding UI
+    prompts::intro("🚀 DX Onboarding")?;
     
-    // Test basic functionality that doesn't require missing dependencies
-    println!("✅ Basic imports working");
-    println!("✅ Environment detection working");
-    println!("✅ Workspace root: {}", find_workspace_root().display());
+    prompts::section_with_width("Welcome to DX", 80, |lines| {
+        lines.push("Environment-aware onboarding + auth + provider/channel setup".to_string());
+        lines.push(format!("Detected runtime: {}", detect_runtime_environment().label()));
+        lines.push(format!("Runtime hint: {}", detect_runtime_environment().hint()));
+        lines.push("".to_string());
+        lines.push("This onboarding will help you set up your DX environment.".to_string());
+    })?;
+
+    // Environment detection
+    let runtime_env = detect_runtime_environment();
+    prompts::log::info(format!("Runtime Environment: {}", runtime_env.label()))?;
+    prompts::log::info(format!("Workspace root: {}", find_workspace_root().display()))?;
+
+    // User information
+    let name = prompts::input::input("What's your name?")
+        .placeholder("Developer")
+        .interact()?;
     
-    // Test password hashing
-    let test_password = "test123";
-    match hash_password(test_password) {
-        Ok(hash) => {
-            println!("✅ Password hashing working");
-            if verify_password(test_password, &hash) {
-                println!("✅ Password verification working");
-            } else {
-                println!("❌ Password verification failed");
+    let email = prompts::email::email("What's your email?")
+        .initial_value("dev@example.com")
+        .interact()?;
+
+    prompts::log::success(format!("Hello, {}! ({})", name, email))?;
+
+    // Test password functionality
+    let use_password = prompts::confirm("Would you like to set up a password?")
+        .initial_value(true)
+        .interact()?;
+
+    if use_password {
+        let password = prompts::password::password("Enter a password")
+            .interact()?;
+        
+        match hash_password(&password) {
+            Ok(hash) => {
+                prompts::log::success("Password hashed successfully")?;
+                if verify_password(&password, &hash) {
+                    prompts::log::success("Password verification working")?;
+                } else {
+                    prompts::log::warning("Password verification failed")?;
+                }
             }
+            Err(e) => prompts::log::warning(format!("Password hashing failed: {}", e))?,
         }
-        Err(e) => println!("❌ Password hashing failed: {}", e),
     }
-    
-    // Test JSON serialization
-    let test_data = json!({
-        "message": "Hello from onboard!",
-        "timestamp": Local::now().to_rfc3339(),
-        "environment": detect_runtime_environment().as_str()
-    });
-    println!("✅ JSON serialization working: {}", test_data);
-    
-    println!("🎉 All basic functionality tests passed!");
+
+    // Component selection
+    let components = build_component_targets(runtime_env);
+    prompts::section_with_width("Available Components", 80, |lines| {
+        lines.push("Select components to install based on your environment:".to_string());
+        for component in &components {
+            lines.push(format!("• {}", component));
+        }
+    })?;
+
+    let mut component_multiselect = prompts::multiselect("Which components would you like to install?");
+    for component in &components {
+        component_multiselect = component_multiselect.item(component.clone(), component.clone(), "Available component");
+    }
+    let selected_components = component_multiselect.interact()?;
+
+    if !selected_components.is_empty() {
+        prompts::log::info("Selected components:")?;
+        for component in &selected_components {
+            prompts::log::step(component)?;
+        }
+    }
+
+    // Provider selection (simplified without LLM dependencies)
+    let providers = vec![
+        ("openai", "OpenAI"),
+        ("anthropic", "Anthropic"), 
+        ("google", "Google Gemini"),
+        ("github_copilot", "GitHub Copilot"),
+    ];
+
+    let mut provider_multiselect = prompts::multiselect("Which AI providers would you like to configure?")
+        .required(false);
+    for (id, name) in &providers {
+        provider_multiselect = provider_multiselect.item(id.to_string(), name.to_string(), "AI Provider");
+    }
+    let selected_providers = provider_multiselect.interact()?;
+
+    if !selected_providers.is_empty() {
+        prompts::log::info("Selected providers:")?;
+        for provider in &selected_providers {
+            prompts::log::step(provider)?;
+        }
+    }
+
+    // Final summary
+    prompts::section_with_width("Setup Complete", 80, |lines| {
+        lines.push(format!("Name: {}", name));
+        lines.push(format!("Email: {}", email));
+        lines.push(format!("Runtime: {}", runtime_env.label()));
+        lines.push(format!("Components: {}", selected_components.len()));
+        lines.push(format!("Providers: {}", selected_providers.len()));
+        lines.push("".to_string());
+        lines.push("Your DX environment is ready to use!".to_string());
+    })?;
+
+    prompts::outro("🎉 Onboarding completed successfully!")?;
     
     Ok(())
 }
