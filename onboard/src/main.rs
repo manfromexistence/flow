@@ -2,6 +2,8 @@
 #![allow(dead_code)]
 
 mod prompts;
+mod effects;
+mod splash;
 
 use anyhow::Result;
 use argon2::Argon2;
@@ -12,8 +14,12 @@ use serde::Serialize;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::thread;
+use std::time::Duration;
 
 use prompts::PromptInteraction;
+use effects::RainbowEffect;
+use splash::{render_dx_logo, render_train_animation};
 
 #[derive(Debug, Clone, Copy)]
 enum RuntimeEnvironment {
@@ -169,6 +175,27 @@ fn verify_password(password: &str, password_hash: &str) -> bool {
 }
 
 fn run_onboarding() -> Result<OnboardingResult> {
+    // Initialize rainbow effect
+    let rainbow = RainbowEffect::new();
+    
+    // Clear screen and show animated splash
+    print!("\x1B[2J\x1B[H"); // Clear screen and move cursor to top
+    
+    // Show train animation for a few frames
+    for frame in 0..10 {
+        print!("\x1B[H"); // Move cursor to top
+        render_train_animation(&rainbow, frame)?;
+        thread::sleep(Duration::from_millis(200));
+    }
+    
+    // Clear and show DX logo
+    print!("\x1B[2J\x1B[H"); // Clear screen
+    render_dx_logo(&rainbow)?;
+    println!();
+    println!("Enhanced Development Experience");
+    println!();
+    thread::sleep(Duration::from_millis(1000));
+
     // Welcome
     prompts::intro("🚀 DX Onboarding - Complete Prompts Showcase")?;
     
