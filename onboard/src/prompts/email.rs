@@ -98,7 +98,7 @@ impl PromptInteraction for EmailInput {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let curved_bar = theme.dim.apply_to("╰");  // Use curved symbol for active input
                 let display = if self.value.is_empty() {
                     format!("█{}", theme.dim.apply_to("user@example.com"))
                 } else {
@@ -107,11 +107,11 @@ impl PromptInteraction for EmailInput {
                 term.write_line(&format!("♦ {}", self.message))?;
                 lines += 1;
 
-                term.write_line(&format!("{} {}", bar, display))?;
+                term.write_line(&format!("{} {}", curved_bar, display))?;
                 lines += 1;
 
                 if let Some(error) = &self.error_message {
-                    term.write_line(&format!("{} {}", bar, theme.error.apply_to(error)))?;
+                    term.write_line(&format!("{} {}", theme.dim.apply_to(symbols.bar), theme.error.apply_to(error)))?;
                     lines += 1;
                 }
             }
