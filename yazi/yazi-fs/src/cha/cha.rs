@@ -59,13 +59,15 @@ impl Cha {
 	where
 		U: AsUrl,
 	{
-		let mut kind = ChaKind::DUMMY;
+		let kind = ChaKind::DUMMY;
 		let mode = r#type.map(ChaMode::from_bare).unwrap_or_default();
 
 		#[cfg(unix)]
-		if _url.as_url().urn().is_hidden() {
-			kind |= ChaKind::HIDDEN;
-		}
+		let kind = if _url.as_url().urn().is_hidden() {
+			kind | ChaKind::HIDDEN
+		} else {
+			kind
+		};
 
 		Self { kind, mode, ..Default::default() }
 	}

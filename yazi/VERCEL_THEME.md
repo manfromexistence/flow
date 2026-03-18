@@ -6,6 +6,17 @@ This document describes the Vercel-inspired theme implementation for Yazi file m
 
 The Yazi file manager has been configured with a custom theme that uses the Vercel design system colors from `cursed/old/ui/assets/theme.css`. The theme provides a clean, modern dark interface with carefully selected colors that match Vercel's design language.
 
+## Running Yazi
+
+From the yazi folder, simply run:
+
+```bash
+cd yazi
+cargo run
+```
+
+This will automatically build and run the `yazi` binary (from yazi-fm) with the Vercel theme applied.
+
 ## Color Palette
 
 The theme uses OKLCH color space values converted to hex:
@@ -48,21 +59,19 @@ All UI components have been themed consistently:
 
 1. **yazi/yazi-config/preset/theme-vercel.toml** - New Vercel theme definition
 2. **yazi/yazi-config/preset/theme-dark.toml** - Replaced with Vercel theme (original backed up as theme-dark.toml.backup)
-3. **Cargo.toml** - Updated workspace to make yazi-fm the default binary
+3. **yazi/Cargo.toml** - Workspace already configured with yazi-fm as default
+4. **Fixed warnings in**:
+   - yazi/yazi-shared/src/url/buf.rs
+   - yazi/yazi-fs/src/cha/cha.rs
+   - yazi/yazi-fs/src/provider/attrs.rs
+   - yazi/yazi-binding/src/cha.rs
+   - yazi/yazi-scheduler/src/process/shell.rs
+   - yazi/yazi-cli/src/package/delete.rs
+   - yazi/yazi-cli/src/package/deploy.rs
 
-## Usage
+## Build Status
 
-When you run `cargo run` from the workspace root, it will now launch yazi-fm with the Vercel theme by default.
-
-```bash
-cargo run
-```
-
-The file picker will display with:
-- Dark background
-- Bordered interface
-- Vercel-inspired color scheme
-- Clean, modern aesthetics
+The project builds successfully with only minor future-compatibility warnings from Rust about potential API changes. All unused variable, unused mut, and unused Result warnings have been fixed.
 
 ## Theme Structure
 

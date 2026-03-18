@@ -255,5 +255,22 @@ globs = []
 dirs  = []
 files = []
 exts  = []
+conds = [
+	# Special files
+	{ if = "orphan", text = "", fg = "#ef4444" },
+	{ if = "link", text = "", fg = "#737373" },
+	{ if = "block", text = "", fg = "#f59e0b" },
+	{ if = "char", text = "", fg = "#f59e0b" },
+	{ if = "fifo", text = "", fg = "#f59e0b" },
+	{ if = "sock", text = "", fg = "#f59e0b" },
+	{ if = "sticky", text = "", fg = "#f59e0b" },
+	{ if = "dummy", text = "", fg = "#ef4444" },
+
+	# Fallback
+	{ if = "dir & hovered", text = "", fg = "#3b82f6" },
+	{ if = "dir", text = "", fg = "#3b82f6" },
+	{ if = "exec", text = "", fg = "#22c55e" },
+	{ if = "!dir", text = "", fg = "#ffffff" },
+]
 
 # : }}}
