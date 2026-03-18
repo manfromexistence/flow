@@ -34,7 +34,7 @@ symlink_target = { fg = "#737373", italic = true }
 # Marker
 marker_copied   = { fg = "#22c55e", bg = "#22c55e" }
 marker_cut      = { fg = "#ef4444", bg = "#ef4444" }
-marker_marked   = { fg = "#3b82f6", bg = "#3b82f6" }
+marker_marked   = { fg = "#ffffff", bg = "#ffffff" }
 marker_selected = { fg = "#f59e0b", bg = "#f59e0b" }
 marker_symbol   = "│"
 
@@ -73,8 +73,8 @@ normal_main = { fg = "#000000", bg = "#ffffff", bold = true }
 normal_alt  = { fg = "#ffffff", bg = "#3a3a3a" }
 
 # Select mode
-select_main = { fg = "#ffffff", bg = "#3b82f6", bold = true }
-select_alt  = { fg = "#3b82f6", bg = "#3a3a3a" }
+select_main = { fg = "#000000", bg = "#ffffff", bold = true }
+select_alt  = { fg = "#ffffff", bg = "#3a3a3a" }
 
 # Unset mode
 unset_main = { fg = "#ffffff", bg = "#ef4444", bold = true }
@@ -104,7 +104,7 @@ perm_sep   = { fg = "#525252" }
 perm_type  = { fg = "#22c55e" }
 perm_read  = { fg = "#f59e0b" }
 perm_write = { fg = "#ef4444" }
-perm_exec  = { fg = "#3b82f6" }
+perm_exec  = { fg = "#22c55e" }
 
 # Progress
 progress_label  = { bold = true }
@@ -214,9 +214,9 @@ hovered = { fg = "#ffffff", bg = "#3a3a3a", bold = true }
 # : Help menu {{{
 
 [help]
-on      = { fg = "#3b82f6" }
+on      = { fg = "#ffffff" }
 run     = { fg = "#a855f7" }
-desc    = { fg = "#ffffff" }
+desc    = { fg = "#b8b8b8" }
 hovered = { fg = "#000000", bg = "#ffffff", bold = true }
 footer  = { fg = "#000000", bg = "#ffffff" }
 
@@ -233,7 +233,7 @@ rules = [
 	# Archive
 	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#ef4444" },
 	# Document
-	{ mime = "application/{pdf,doc,rtf}", fg = "#3b82f6" },
+	{ mime = "application/{pdf,doc,rtf}", fg = "#b8b8b8" },
 	# Virtual file system
 	{ mime = "vfs/{absent,stale}", fg = "#737373" },
 	# Special file
@@ -243,7 +243,7 @@ rules = [
 	{ url = "*", is = "dummy", bg = "#ef4444" },
 	{ url = "*/", is = "dummy", bg = "#ef4444" },
 	# Fallback
-	{ url = "*/", fg = "#3b82f6" }
+	{ url = "*/", fg = "#b8b8b8" }
 ]
 
 # : }}}
@@ -267,8 +267,8 @@ conds = [
 	{ if = "dummy", text = "", fg = "#ef4444" },
 
 	# Fallback
-	{ if = "dir & hovered", text = "", fg = "#3b82f6" },
-	{ if = "dir", text = "", fg = "#3b82f6" },
+	{ if = "dir & hovered", text = "", fg = "#ffffff" },
+	{ if = "dir", text = "", fg = "#b8b8b8" },
 	{ if = "exec", text = "", fg = "#22c55e" },
 	{ if = "!dir", text = "", fg = "#ffffff" },
 ]

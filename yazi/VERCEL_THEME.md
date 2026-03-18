@@ -19,21 +19,28 @@ This will automatically build and run the `yazi` binary (from yazi-fm) with the 
 
 ## Color Palette
 
-The theme uses OKLCH color space values converted to hex:
+The theme uses OKLCH color space values from `cursed/old/ui/assets/theme.css` converted to hex:
 
+### Core Colors (Dark Mode)
 - **Background**: `#000000` (pure black - oklch(0 0 0))
 - **Foreground**: `#ffffff` (pure white - oklch(1 0 0))
 - **Border**: `#424242` (dark gray - oklch(0.2600 0 0))
 - **Muted**: `#3a3a3a` (muted background - oklch(0.2300 0 0))
-- **Muted Foreground**: `#a3a3a3` (muted text - oklch(0.7200 0 0))
+- **Muted Foreground**: `#b8b8b8` (muted text - oklch(0.7200 0 0))
+- **Accent**: `#525252` (accent gray - oklch(0.3200 0 0))
 
-### Accent Colors
+### Semantic Accent Colors
+- **Success/Green**: `#22c55e` (executable files, copied items, success states)
+- **Error/Red**: `#ef4444` (errors, cut items, destructive actions)
+- **Warning/Orange**: `#f59e0b` (warnings, selected items, images)
+- **Info/Purple**: `#a855f7` (media files, special actions)
 
-- **Success/Green**: `#22c55e`
-- **Error/Red**: `#ef4444`
-- **Info/Blue**: `#3b82f6`
-- **Warning/Orange**: `#f59e0b`
-- **Purple**: `#a855f7`
+### Design Principles
+1. **No Blue Colors**: The theme avoids blue (#3b82f6) to maintain Vercel's minimalist aesthetic
+2. **High Contrast**: Pure black background with pure white foreground
+3. **Consistent Borders**: All UI elements use #424242 for borders
+4. **Inverted Active States**: Active items use black-on-white for clear indication
+5. **Semantic Colors**: Colors convey meaning (green=success, red=error, orange=warning)
 
 ## Features
 
