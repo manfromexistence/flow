@@ -6,7 +6,7 @@ mod gruvbox;
 mod input;
 mod llm;
 mod modal;
-mod render;
+mod render; // Now a module directory with submodules
 // mod screens; // Unused - only for standalone screen demos
 mod splash;
 mod tachyonfx;
