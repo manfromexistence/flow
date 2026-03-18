@@ -1,38 +1,16 @@
-1. cli
-2. tui
-3. website
-4. desktop
-5. mobile
-6. browser extension
-7. ide extension
-8. creator software extension
-9. office software extension
-10. all other os
+# Project TODO
 
-Now, from the src splash different fonts with rainbow animated colors - I really like it so even in our onboard please first show that slash like fonts of "Dx" with rainbow colors in the left side and show them correctly and from the src folder of the root I also liked the train tainbow animations so at top alongside the with slash left aligned fronts with rainbow colors please put the same tain in rainbow colors - please don't try to create ai slop and jjust copy them into the onboard project correctly!!!
+> Auto-managed by AI. Updated after every completed or failed task.
 
-"/c/Program Files/MPV Player/mpv.exe" --vo=tct video.mp4
+## In Progress
 
-Make the TechyonFX model screen have model options with highlight and other model options. Make a control panel model on that TecuneFX effect screen. With file browser setting, provider model, and other AI/CLI-related options, make it as a control panel model. Please do a web search about the control panel model of AI/CLIs and it should be used 17 March 2026. 
+## Pending
 
-git clone https://github.com/rigellute/spotify-tui && cd spotify-tui && rm -rf .git && cd ..
+## Completed
 
-Cli
-1. Image
-2. Audio
-3. video
-4. 3d
-5. Yazi
+- [x] ~~Create Vercel-inspired theme for Yazi using theme.css colors~~ ✅ (completed: 2026-03-19)
+- [x] ~~Update workspace Cargo.toml to set yazi-fm as default binary~~ ✅ (completed: 2026-03-19)
+- [x] ~~Apply theme.css design system colors to Yazi file picker~~ ✅ (completed: 2026-03-19)
+- [x] ~~Configure borders for Yazi file picker (already implemented)~~ ✅ (completed: 2026-03-19)
 
-Offline
-1. wikipedia
-2. maps
-3. ...
-
-Onboard
-1. rainbow cursor
-2. theme
-
-Now here is the final boss task. As you can see in our src folder there are many files that are so big. Please first create a proper backup for those files and then try to split those big files into smaller files to make our report more professional and maintainable.
-
-Now tell me, is our src folder a production-ready, professional 10 out of 10 rust codebase or not? 
+## Blocked / Failed

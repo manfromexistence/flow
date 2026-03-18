@@ -2,7 +2,7 @@
 resolver        = "3"
 members         = [ "yazi-*" ]
 default-members = [ "yazi-fm", "yazi-cli" ]
-
+# "yazi-fm", "yazi-cli"
 [workspace.package]
 edition      = "2024"
 version      = "26.2.2"
