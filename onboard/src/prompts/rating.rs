@@ -111,7 +111,7 @@ impl PromptInteraction for Rating {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 // NO │ prefix on prompt line
                 term.write_line(&format!("♦ {}", self.message))?;
                 lines += 1;
@@ -155,12 +155,12 @@ impl PromptInteraction for Rating {
                     .apply_to(format!("{} ({}/{})", stars, self.value, self.max));
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,
@@ -171,8 +171,8 @@ impl PromptInteraction for Rating {
                 lines += 1;
             }
             State::Error => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,

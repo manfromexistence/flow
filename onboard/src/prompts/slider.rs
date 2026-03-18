@@ -119,11 +119,11 @@ impl PromptInteraction for Slider {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 let title_with_spaces = format!("  {}  ", self.message);
                 term.write_line(&format!(
                     "{}{}",
-                    theme.primary.apply_to(symbols.step_submit),
+                    theme.primary.apply_to(symbols.step_submit.as_str()),
                     title_with_spaces.bold()
                 ))?;
                 lines += 1;
@@ -161,12 +161,12 @@ impl PromptInteraction for Slider {
                 let display = theme.dim.apply_to(self.value.to_string());
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,
@@ -177,8 +177,8 @@ impl PromptInteraction for Slider {
                 lines += 1;
             }
             State::Error => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,

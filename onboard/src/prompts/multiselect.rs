@@ -262,7 +262,7 @@ impl<T: Clone> PromptInteraction for MultiSelect<T> {
         match self.state {
             State::Active => {
                 // NO │ prefix on prompt line
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 term.write_line(&format!("♦ {}", self.message))?;
                 lines += 1;
 
@@ -284,18 +284,18 @@ impl<T: Clone> PromptInteraction for MultiSelect<T> {
                         if is_cursor {
                             theme
                                 .primary
-                                .apply_to(symbols.checkbox_selected)
+                                .apply_to(symbols.checkbox_selected.as_str())
                                 .to_string()
                         } else {
                             theme
                                 .success
-                                .apply_to(symbols.checkbox_selected)
+                                .apply_to(symbols.checkbox_selected.as_str())
                                 .to_string()
                         }
                     } else if is_cursor {
-                        theme.primary.apply_to(symbols.checkbox_active).to_string()
+                        theme.primary.apply_to(symbols.checkbox_active.as_str()).to_string()
                     } else {
-                        theme.dim.apply_to(symbols.checkbox_inactive).to_string()
+                        theme.dim.apply_to(symbols.checkbox_inactive.as_str()).to_string()
                     };
 
                     let label = if is_cursor {
@@ -361,14 +361,14 @@ impl<T: Clone> PromptInteraction for MultiSelect<T> {
                 ))?;
                 lines += 1;
                 // Add blank line with bar after completion
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{}  {}  {}",
-                    theme.dim.apply_to(symbols.bar),
+                    theme.dim.apply_to(symbols.bar.as_str()),
                     symbol,
                     self.message.strikethrough(),
                     theme.dim.apply_to("cancelled")
@@ -376,10 +376,10 @@ impl<T: Clone> PromptInteraction for MultiSelect<T> {
                 lines += 1;
             }
             State::Error => {
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{}  {}  {}",
-                    theme.dim.apply_to(symbols.bar),
+                    theme.dim.apply_to(symbols.bar.as_str()),
                     symbol,
                     self.message.bold(),
                     theme.error.apply_to("error")

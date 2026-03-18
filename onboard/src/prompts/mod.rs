@@ -76,22 +76,22 @@ pub fn intro(title: impl Display) -> io::Result<()> {
     let symbols = &*SYMBOLS;
     term_write(format!(
         "{}{}{}",
-        theme.dim.apply_to(symbols.bar_start),
+        theme.dim.apply_to(symbols.bar_start.as_str()),
         theme.dim.apply_to("─"),
         format!(" {}", title)
     ))?;
     term_write("\n")?;
-    term_write(format!("{}\n", theme.dim.apply_to(symbols.bar)))
+    term_write(format!("{}\n", theme.dim.apply_to(symbols.bar.as_str())))
 }
 
 pub fn outro(message: impl Display) -> io::Result<()> {
     let theme = THEME.read().unwrap();
     let symbols = &*SYMBOLS;
-    let rainbow_step_submit = rainbow_symbol(symbols.step_submit, 1);
+    let rainbow_step_submit = rainbow_symbol(&symbols.step_submit, 1);
     
     term_write(format!(
         "{}{} {}\n",
-        theme.dim.apply_to(symbols.bar),
+        theme.dim.apply_to(symbols.bar.as_str()),
         rainbow_step_submit,
         message,
     ))
@@ -114,10 +114,10 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
     
     term_write(format!(
         "{}{}{}{}",
-        theme.dim.apply_to(symbols.connect_left),
+        theme.dim.apply_to(symbols.connect_left.as_str()),
         title_with_spaces,
         theme.dim.apply_to(symbols.box_horizontal.repeat(remaining_horizontal)),
-        theme.dim.apply_to(symbols.corner_top_right)
+        theme.dim.apply_to(symbols.corner_top_right.as_str())
     ))?;
     term_write("\n")?;
 
@@ -126,22 +126,22 @@ fn render_box_section(title: &str, lines: &[&str], min_content_width: usize) -> 
         let padding = content_width.saturating_sub(line_width);
         term_write(format!(
             "{} {}{} {}\n",
-            theme.dim.apply_to(symbols.box_vertical),
+            theme.dim.apply_to(symbols.box_vertical.as_str()),
             line,
             " ".repeat(padding),
-            theme.dim.apply_to(symbols.box_vertical)
+            theme.dim.apply_to(symbols.box_vertical.as_str())
         ))?;
     }
 
     let total_bottom_width = content_width + 2;
     term_write(format!(
         "{}{}{}",
-        theme.dim.apply_to(symbols.connect_left),
+        theme.dim.apply_to(symbols.connect_left.as_str()),
         theme.dim.apply_to(symbols.box_horizontal.repeat(total_bottom_width)),
-        theme.dim.apply_to(symbols.corner_bottom_right)
+        theme.dim.apply_to(symbols.corner_bottom_right.as_str())
     ))?;
     term_write("\n")?;
-    term_write(format!("{}\n", theme.dim.apply_to(symbols.bar)))?;
+    term_write(format!("{}\n", theme.dim.apply_to(symbols.bar.as_str())))?;
 
     Ok(())
 }
@@ -180,7 +180,7 @@ pub mod log {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
         eprintln!("{} {}", "●".blue(), text);
-        eprintln!("{}", theme.dim.apply_to(symbols.bar));
+        eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
 
@@ -188,7 +188,7 @@ pub mod log {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
         eprintln!("{} {}", "✓".green().bold(), text);
-        eprintln!("{}", theme.dim.apply_to(symbols.bar));
+        eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
 
@@ -196,7 +196,7 @@ pub mod log {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
         eprintln!("{} {}", "⚠".yellow().bold(), text);
-        eprintln!("{}", theme.dim.apply_to(symbols.bar));
+        eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
 
@@ -206,7 +206,7 @@ pub mod log {
         let rainbow_step = rainbow_symbol("◇", 1);
         eprintln!(
             "{} {} {}",
-            theme.dim.apply_to(symbols.bar),
+            theme.dim.apply_to(symbols.bar.as_str()),
             rainbow_step,
             text
         );

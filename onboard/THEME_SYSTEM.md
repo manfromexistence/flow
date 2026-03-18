@@ -2,29 +2,109 @@
 
 ## Overview
 
-The theme system has been extracted into a dedicated module (`theme.rs`) that provides unified theming across all prompts in the onboarding experience.
+The theme system has been extracted into a dedicated module (`theme.rs`) that provides unified theming across all prompts in the onboarding experience. Themes can be customized via a `theme.toml` file.
+
+## Features
+
+- TOML-based configuration for easy customization
+- Serde serialization/deserialization support
+- Automatic fallback to default theme if config file is missing
+- Hot-reloadable theme settings
+- Support for custom colors and Unicode symbols
 
 ## Theme Module (`src/prompts/theme.rs`)
 
 The theme module contains:
 
-### 1. DxTheme
-Core color scheme with:
-- `primary` - Cyan for main UI elements
-- `success` - Green for successful operations
-- `warning` - Yellow for warnings
-- `error` - Red for errors
-- `dim` - Dimmed text for borders and secondary elements
+### 1. ThemeConfig
+Complete theme configuration structure with:
+- `colors` - Color configuration (ColorConfig)
+- `symbols` - Symbol configuration (SymbolConfig)
+- `rainbow` - Rainbow effect configuration (RainbowConfig)
 
-### 2. Symbols
+### 2. ColorConfig
+Color scheme with hex color codes:
+- `primary` - Cyan (#00FFFF) for main UI elements
+- `success` - Green (#00FF00) for successful operations
+- `warning` - Yellow (#FFFF00) for warnings
+- `error` - Red (#FF0000) for errors
+- `dim` - Gray (#808080) for borders and secondary elements
+
+### 3. SymbolConfig
 Unicode symbols for consistent visual appearance:
 - Step indicators (active, cancel, error, submit)
 - Borders (bars, corners, boxes)
 - Selection indicators (radio, checkbox)
 - Password masking
 
-### 3. Rainbow Effects
+### 4. RainbowConfig
+Rainbow effect settings:
+- `enabled` - Enable/disable rainbow effects (default: true)
+- `speed` - Animation speed multiplier (default: 1.0)
+
+### 5. DxTheme
+Runtime theme with console::Style instances for applying colors.
+
+### 6. Symbols
+Runtime symbol collection loaded from configuration.
+
+### 7. Rainbow Effects
 Animated rainbow coloring for special symbols using the `RainbowEffect` from effects module.
+
+## Configuration File (`theme.toml`)
+
+Place a `theme.toml` file in the project root to customize the theme:
+
+```toml
+[colors]
+primary = "#00FFFF"
+success = "#00FF00"
+warning = "#FFFF00"
+error = "#FF0000"
+dim = "#808080"
+
+[symbols]
+step_active = "♦"
+bar = "│"
+# ... more symbols
+
+[rainbow]
+enabled = true
+speed = 1.0
+```
+
+## Usage
+
+### Loading Theme
+
+The theme is automatically loaded when the application starts:
+
+```rust
+use onboard::prompts::theme::{load_theme_or_default, init_theme};
+
+// Load theme from theme.toml or use defaults
+let config = load_theme_or_default();
+
+// Initialize the global theme
+init_theme();
+```
+
+### Accessing Theme Elements
+
+```rust
+use onboard::prompts::theme::{THEME, SYMBOLS, rainbow_symbol};
+
+// Access theme colors
+let theme = THEME.read().unwrap();
+let styled_text = theme.primary.apply_to("Hello");
+
+// Access symbols
+let symbols = &*SYMBOLS;
+let bar = symbols.bar.as_str();
+
+// Use rainbow effects
+let rainbow_text = rainbow_symbol("♦", 0);
+```
 
 ## Active Prompts (21 total)
 
@@ -53,7 +133,7 @@ The following prompts are kept and actively used:
 21. `url` - URL input
 22. `wizard` - Multi-step wizard
 
-## Archived Prompts (15 total)
+## Archived Prompts (14 total)
 
 Moved to `src/prompts/trash/`:
 
@@ -72,7 +152,15 @@ Moved to `src/prompts/trash/`:
 13. `table_editor` - Table editor
 14. `time_picker` - Time selection
 
-## Usage
+## Dependencies
+
+- `serde` (v1.0) with derive feature - Serialization framework
+- `toml` (v1.0.7) - TOML parser and serializer
+- `console` - Terminal styling
+- `once_cell` - Lazy static initialization
+- `owo-colors` - True color support
+
+## Implementation Details
 
 All prompts now import theme elements from the theme module:
 
@@ -80,4 +168,4 @@ All prompts now import theme elements from the theme module:
 use crate::prompts::theme::{THEME, SYMBOLS, rainbow_symbol};
 ```
 
-The theme is globally accessible and thread-safe via `RwLock`.
+The theme is globally accessible and thread-safe via `RwLock`. Symbol fields are accessed using `.as_str()` to convert from `String` to `&str` for compatibility with console styling functions.

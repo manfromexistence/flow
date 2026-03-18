@@ -63,6 +63,7 @@ ctrlc = "3.4"
 # ASCII art and animations
 dx-font = { path = "../font" }
 figlet-rs = "0.1"
+toml = "1.0.7"
 
 # ──────────────────────────────────────────────
 #  Platform-specific Dependencies

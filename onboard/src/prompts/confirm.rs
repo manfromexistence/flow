@@ -106,12 +106,12 @@ impl PromptInteraction for Confirm {
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
                 // Add blank line with bar after completion
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,
@@ -122,8 +122,8 @@ impl PromptInteraction for Confirm {
                 lines += 1;
             }
             State::Error => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,

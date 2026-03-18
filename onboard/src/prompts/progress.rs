@@ -66,8 +66,8 @@ impl ProgressBar {
 
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        let symbol = theme.success.apply_to(symbols.step_submit);
-        let bar = theme.dim.apply_to(symbols.bar);
+        let symbol = theme.success.apply_to(symbols.step_submit.as_str());
+        let bar = theme.dim.apply_to(symbols.bar.as_str());
         let msg = message.into();
 
         self.term
@@ -84,8 +84,8 @@ impl ProgressBar {
 
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        let symbol = theme.error.apply_to(symbols.step_active);
-        let bar = theme.dim.apply_to(symbols.bar);
+        let symbol = theme.error.apply_to(symbols.step_active.as_str());
+        let bar = theme.dim.apply_to(symbols.bar.as_str());
         let msg = message.into();
 
         self.term
@@ -114,13 +114,13 @@ impl ProgressBar {
         let mut lines = 0;
 
         // Title line
-        let symbol = theme.primary.apply_to(symbols.step_active);
+        let symbol = theme.primary.apply_to(symbols.step_active.as_str());
         self.term
             .write_line(&format!("{} {}", symbol, self.message.bold()))?;
         lines += 1;
 
         // Progress bar line
-        let bar = theme.dim.apply_to(symbols.bar);
+        let bar = theme.dim.apply_to(symbols.bar.as_str());
         let progress = if self.total > 0 {
             (self.current as f64 / self.total as f64).min(1.0)
         } else {
@@ -142,7 +142,7 @@ impl ProgressBar {
         lines += 1;
 
         // Bottom bar
-        let bar_end = theme.dim.apply_to(symbols.bar_end);
+        let bar_end = theme.dim.apply_to(symbols.bar_end.as_str());
         self.term.write_line(&format!("{}", bar_end))?;
         lines += 1;
 

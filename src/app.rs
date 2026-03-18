@@ -4,6 +4,7 @@ use crate::{
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
     input::{InputAction, InputState},
     llm::LocalLlm,
+    perf::PerfMonitor,
     tachyonfx::TachyonDemo, // Uncommented
     theme::ChatTheme,
 };
@@ -156,6 +157,11 @@ pub struct ChatApp {
     pub tachyon_rng: SimpleRng,
     pub last_frame_instant: Instant,
     pub show_tachyon_modal: bool, // Show TachyonFX modal on top of splash
+    // Performance monitoring
+    pub perf_monitor: PerfMonitor,
+    pub show_perf_overlay: bool,
+    pub last_keystroke_time: std::time::Duration,
+    pub last_input_render_time: std::time::Duration,
 }
 
 impl ChatApp {
@@ -210,6 +216,10 @@ impl ChatApp {
             tachyon_rng: SimpleRng::default(),
             last_frame_instant: Instant::now(),
             show_tachyon_modal: false, // Don't show TachyonFX modal by default
+            perf_monitor: PerfMonitor::new(),
+            show_perf_overlay: false,
+            last_keystroke_time: Duration::from_secs(0),
+            last_input_render_time: Duration::from_secs(0),
         }
     }
 
@@ -242,7 +252,15 @@ impl ChatApp {
         terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     ) -> Result<()> {
         loop {
+            // Start timing frame render
+            self.perf_monitor.start_timing();
             terminal.draw(|f| self.render(f))?;
+            
+            // Record frame render time with previous input and keystroke times
+            self.perf_monitor.record_frame_render(
+                self.last_input_render_time,
+                self.last_keystroke_time
+            );
 
             if self.should_quit {
                 break;
@@ -272,6 +290,17 @@ impl ChatApp {
     }
 
     fn handle_key(&mut self, key: event::KeyEvent) {
+        // Start timing keystroke handling
+        self.perf_monitor.start_timing();
+        
+        // Toggle performance overlay with Ctrl+P
+        if key.code == KeyCode::Char('p') 
+            && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+            self.show_perf_overlay = !self.show_perf_overlay;
+            self.last_keystroke_time = self.perf_monitor.record_keystroke();
+            return;
+        }
+        
         // Handle autocomplete navigation when suggestions are visible
         // if self.handle_suggestion_navigation(key.code) {
         //     return;
@@ -383,6 +412,10 @@ impl ChatApp {
         }
 
         let action = self.input.handle_key(key);
+        
+        // Record keystroke latency
+        self.last_keystroke_time = self.perf_monitor.record_keystroke();
+        
         match action {
             InputAction::Submit(msg) => {
                 self.send_message(msg);

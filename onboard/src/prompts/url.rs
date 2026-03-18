@@ -103,7 +103,7 @@ impl PromptInteraction for UrlInput {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 term.write_line(&format!("♦ {}", self.message))?;
                 lines += 1;
 
@@ -135,7 +135,7 @@ impl PromptInteraction for UrlInput {
                     theme.dim.apply_to(&self.value)
                 ))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             _ => {}

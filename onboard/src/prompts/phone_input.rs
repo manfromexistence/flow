@@ -119,7 +119,7 @@ impl PromptInteraction for PhoneInput {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 let formatted = self.format_phone();
                 let display = if formatted.is_empty() {
                     format!("█{}", theme.dim.apply_to("(555) 123-4567"))
@@ -153,7 +153,7 @@ impl PromptInteraction for PhoneInput {
                     theme.dim.apply_to(full_number)
                 ))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             _ => {}

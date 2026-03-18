@@ -7,6 +7,10 @@ edition = "2024"
 name = "tui"
 path = "src/main.rs"
 
+[[bin]]
+name = "benchmark"
+path = "src/bin/benchmark.rs"
+
 [dependencies]
 # Terminal UI
 ratatui = "0.30"

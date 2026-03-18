@@ -130,10 +130,10 @@ impl PromptInteraction for RangeSlider {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 term.write_line(&format!(
                     "{}{}",
-                    theme.primary.apply_to(symbols.step_submit),
+                    theme.primary.apply_to(symbols.step_submit.as_str()),
                     format!("  {}  ", self.message).bold()
                 ))?;
                 lines += 1;
@@ -192,7 +192,7 @@ impl PromptInteraction for RangeSlider {
                         .apply_to(format!("{} - {}", self.min_value, self.max_value))
                 ))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             _ => {}

@@ -180,7 +180,7 @@ impl<T: Clone> PromptInteraction for Select<T> {
 
         match self.state {
             State::Active => {
-                let bar = theme.dim.apply_to(symbols.bar);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
                 term.write_line(&format!("♦ {}", self.message))?;
                 lines += 1;
 
@@ -199,9 +199,9 @@ impl<T: Clone> PromptInteraction for Select<T> {
                     let is_selected = display_idx == self.cursor;
 
                     let radio = if is_selected {
-                        theme.primary.apply_to(symbols.radio_active).to_string()
+                        theme.primary.apply_to(symbols.radio_active.as_str()).to_string()
                     } else {
-                        theme.dim.apply_to(symbols.radio_inactive).to_string()
+                        theme.dim.apply_to(symbols.radio_inactive.as_str()).to_string()
                     };
 
                     let label = if is_selected {
@@ -254,12 +254,12 @@ impl<T: Clone> PromptInteraction for Select<T> {
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
                 // Add blank line with bar after completion
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,
@@ -270,8 +270,8 @@ impl<T: Clone> PromptInteraction for Select<T> {
                 lines += 1;
             }
             State::Error => {
-                let bar = theme.dim.apply_to(symbols.bar);
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let bar = theme.dim.apply_to(symbols.bar.as_str());
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{}{} {}  {}",
                     bar,

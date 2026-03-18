@@ -111,7 +111,7 @@ impl PromptInteraction for EmailInput {
                 lines += 1;
 
                 if let Some(error) = &self.error_message {
-                    term.write_line(&format!("{} {}", theme.dim.apply_to(symbols.bar), theme.error.apply_to(error)))?;
+                    term.write_line(&format!("{} {}", theme.dim.apply_to(symbols.bar.as_str()), theme.error.apply_to(error)))?;
                     lines += 1;
                 }
             }
@@ -124,7 +124,7 @@ impl PromptInteraction for EmailInput {
                     theme.dim.apply_to(&self.value)
                 ))?;
                 lines += 1;
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             _ => {}

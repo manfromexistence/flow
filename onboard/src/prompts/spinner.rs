@@ -50,7 +50,7 @@ impl Spinner {
         self.handle = Some(thread::spawn(move || {
             let theme = THEME.read().unwrap();
             let symbols = &*SYMBOLS;
-            let bar = theme.dim.apply_to(symbols.bar).to_string();
+            let bar = theme.dim.apply_to(symbols.bar.as_str()).to_string();
             let mut frame_idx = 0;
 
             while running.load(Ordering::SeqCst) {
@@ -86,8 +86,8 @@ impl Spinner {
 
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        let symbol = theme.success.apply_to(symbols.step_submit);
-        let bar = theme.dim.apply_to(symbols.bar);
+        let symbol = theme.success.apply_to(symbols.step_submit.as_str());
+        let bar = theme.dim.apply_to(symbols.bar.as_str());
         let msg = message.into();
 
         self.term.clear_line()?;
@@ -111,8 +111,8 @@ impl Spinner {
 
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        let symbol = theme.error.apply_to(symbols.step_active);
-        let bar = theme.dim.apply_to(symbols.bar);
+        let symbol = theme.error.apply_to(symbols.step_active.as_str());
+        let bar = theme.dim.apply_to(symbols.bar.as_str());
         let msg = message.into();
 
         self.term.clear_line()?;

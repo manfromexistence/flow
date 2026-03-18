@@ -204,7 +204,7 @@ where
 
                 // Error line if present
                 if let Some(ref error) = self.error {
-                    term.write_line(&format!("{} {}", theme.dim.apply_to(symbols.bar), theme.error.apply_to(error)))?;
+                    term.write_line(&format!("{} {}", theme.dim.apply_to(symbols.bar.as_str()), theme.error.apply_to(error)))?;
                     lines += 1;
                 }
             }
@@ -215,11 +215,11 @@ where
                 term.write_line(&format!("{} {}  {}", checkmark, self.message, display))?;
                 lines += 1;
                 // Blank line with │ after prompt
-                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar)))?;
+                term.write_line(&format!("{}", theme.dim.apply_to(symbols.bar.as_str())))?;
                 lines += 1;
             }
             State::Cancel => {
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{} {}  {}",
                     symbol,
@@ -229,7 +229,7 @@ where
                 lines += 1;
             }
             State::Error => {
-                let symbol = theme.error.apply_to(symbols.step_submit);
+                let symbol = theme.error.apply_to(symbols.step_submit.as_str());
                 term.write_line(&format!(
                     "{} {}  {}",
                     symbol,
