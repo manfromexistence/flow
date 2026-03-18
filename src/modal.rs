@@ -16,12 +16,14 @@ use tachyonfx::{
 };
 
 /// Modal animation types
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum ModalAnimation {
     SlideInOut, // Changed to match TachyonFX demo
 }
 
 /// Reusable modal component with tachyonfx effects
+#[allow(dead_code)]
 pub struct Modal {
     theme: ChatTheme,
     animation: Option<Effect>,
@@ -29,6 +31,7 @@ pub struct Modal {
     pub show_animation: bool,
 }
 
+#[allow(dead_code)]
 impl Modal {
     pub fn new(theme: ChatTheme) -> Self {
         Self {
@@ -99,6 +102,7 @@ impl Modal {
 }
 
 /// Animated suggestion list component
+#[allow(dead_code)]
 pub struct AnimatedSuggestionList {
     modal: Modal,
     list_state: ListState,
@@ -110,6 +114,7 @@ pub struct AnimatedSuggestionList {
     is_sliding_out: bool,
 }
 
+#[allow(dead_code)]
 impl AnimatedSuggestionList {
     pub fn new(theme: ChatTheme) -> Self {
         let mut list_state = ListState::default();

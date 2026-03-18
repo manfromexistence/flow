@@ -144,9 +144,12 @@ pub struct ChatApp {
     pub selected_local_mode: String,
     #[allow(dead_code)]
     pub selected_model: String,
-    // Autocomplete
+    // Autocomplete (currently disabled)
+    #[allow(dead_code)]
     pub autocomplete: Autocomplete,
+    #[allow(dead_code)]
     pub last_input_change: Instant,
+    #[allow(dead_code)]
     pub last_input_content: String,
     // Tachyonfx demo - uncommented
     pub tachyon_demo: TachyonDemo,

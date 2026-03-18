@@ -5,6 +5,7 @@ use anyhow::Result;
 // use serde_json::Value;
 
 /// Autocomplete suggestion source
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum SuggestionSource {
     Local,
@@ -12,6 +13,7 @@ pub enum SuggestionSource {
 }
 
 /// A single autocomplete suggestion
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Suggestion {
     pub text: String,
@@ -21,6 +23,7 @@ pub struct Suggestion {
 }
 
 /// Local CLI commands for autocomplete
+#[allow(dead_code)]
 const CLI_COMMANDS: &[&str] = &[
     // Interactive TUI
     "dx",
@@ -312,11 +315,13 @@ const CLI_COMMANDS: &[&str] = &[
 ];
 
 /// Autocomplete manager with animated suggestions
+#[allow(dead_code)]
 pub struct Autocomplete {
     suggestion_list: AnimatedSuggestionList,
     // http_client: Client,
 }
 
+#[allow(dead_code)]
 impl Autocomplete {
     pub fn new(theme: ChatTheme) -> Self {
         Self {
