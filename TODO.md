@@ -34,3 +34,5 @@ Onboard
 2. theme
 
 Now here is the final boss task. As you can see in our src folder there are many files that are so big. Please first create a proper backup for those files and then try to split those big files into smaller files to make our report more professional and maintainable.
+
+Now tell me, is our src folder a production-ready, professional 10 out of 10 rust codebase or not? 
