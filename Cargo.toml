@@ -15,12 +15,6 @@ crossterm = "0.28"
 # Async Runtime
 tokio = { version = "1.42", features = ["full"] }
 
-# HTTP client
-# reqwest = { version = "0.12", features = ["json", "gzip", "brotli", "deflate"] }
-
-# Serialization
-# serde_json = "1.0"
-
 # LLM
 llama-cpp-2 = "0.1"
 sysinfo = "0.32"
@@ -37,16 +31,8 @@ dx-font = { path = "./font" }
 # Animations
 tachyonfx = { path = "./tachyonfx" }
 
-# Animation crates
-noise = "0.9"
-bracket-noise = "0.8"
-charmed-harmonica = "0.1"
-spinners = "4.1"
-indicatif = "0.17"
-coolor = "1.0"
+# Color/palette for effects
 palette = "0.7"
-terminal_size = "0.4"
-owo-colors = { version = "4.0", features = ["supports-colors"] }
 rand = "0.8"
 
 # Clipboard
@@ -57,9 +43,6 @@ figlet-rs = "0.1"
 
 # Token counting
 tiktoken-rs = "0.9"
-
-# [build-dependencies]
-# serializer = { package = "dx-serializer", path = "./serializer" }
 
 [profile.release]
 opt-level = 3

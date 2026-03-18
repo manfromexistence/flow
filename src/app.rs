@@ -40,10 +40,7 @@ pub enum AnimationType {
     Plasma,
     Spinners,
     Waves,
-    DigitalRain,
     Fireworks,
-    Snake,
-    Mandelbrot,
 }
 
 impl AnimationType {
@@ -63,10 +60,7 @@ impl AnimationType {
             Self::Plasma,
             Self::Spinners,
             Self::Waves,
-            Self::DigitalRain,
             Self::Fireworks,
-            Self::Snake,
-            Self::Mandelbrot,
         ]
     }
 
@@ -87,10 +81,7 @@ impl AnimationType {
             Self::Plasma => "Plasma Effect",
             Self::Spinners => "Spinners",
             Self::Waves => "Ocean Waves",
-            Self::DigitalRain => "Digital Rain",
             Self::Fireworks => "Fireworks",
-            Self::Snake => "Snake Game",
-            Self::Mandelbrot => "Mandelbrot Set",
         }
     }
 }

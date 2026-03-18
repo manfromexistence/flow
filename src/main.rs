@@ -7,7 +7,7 @@ mod input;
 mod llm;
 mod modal;
 mod render;
-mod screens;
+// mod screens; // Unused - only for standalone screen demos
 mod splash;
 mod tachyonfx;
 mod theme;
