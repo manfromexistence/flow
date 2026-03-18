@@ -66,7 +66,7 @@ impl Default for ColorConfig {
     }
 }
 
-fn default_primary() -> String { "#00FFFF".to_string() }
+fn default_primary() -> String { "#FFFFFF".to_string() }
 fn default_success() -> String { "#00FF00".to_string() }
 fn default_warning() -> String { "#FFFF00".to_string() }
 fn default_error() -> String { "#FF0000".to_string() }
@@ -125,6 +125,18 @@ pub struct SymbolConfig {
     pub box_left_t: String,
     #[serde(default = "default_box_right_t")]
     pub box_right_t: String,
+    #[serde(default = "default_checkmark")]
+    pub checkmark: String,
+    #[serde(default = "default_info")]
+    pub info: String,
+    #[serde(default = "default_arrow_right")]
+    pub arrow_right: String,
+    #[serde(default = "default_slider_filled")]
+    pub slider_filled: String,
+    #[serde(default = "default_slider_empty")]
+    pub slider_empty: String,
+    #[serde(default = "default_slider_handle")]
+    pub slider_handle: String,
 }
 
 impl Default for SymbolConfig {
@@ -155,23 +167,29 @@ impl Default for SymbolConfig {
             box_vertical: default_box_vertical(),
             box_left_t: default_box_left_t(),
             box_right_t: default_box_right_t(),
+            checkmark: default_checkmark(),
+            info: default_info(),
+            arrow_right: default_arrow_right(),
+            slider_filled: default_slider_filled(),
+            slider_empty: default_slider_empty(),
+            slider_handle: default_slider_handle(),
         }
     }
 }
 
-fn default_step_active() -> String { "♦".to_string() }
-fn default_step_cancel() -> String { "■".to_string() }
-fn default_step_error() -> String { "▲".to_string() }
-fn default_step_submit() -> String { "♦".to_string() }
+fn default_step_active() -> String { ">".to_string() }
+fn default_step_cancel() -> String { "x".to_string() }
+fn default_step_error() -> String { "!".to_string() }
+fn default_step_submit() -> String { ">".to_string() }
 fn default_bar_start() -> String { "╭".to_string() }
 fn default_bar() -> String { "│".to_string() }
 fn default_bar_end() -> String { "╰".to_string() }
-fn default_radio_active() -> String { "●".to_string() }
-fn default_radio_inactive() -> String { "○".to_string() }
-fn default_checkbox_active() -> String { "◻".to_string() }
-fn default_checkbox_selected() -> String { "◼".to_string() }
-fn default_checkbox_inactive() -> String { "◻".to_string() }
-fn default_password_mask() -> String { "•".to_string() }
+fn default_radio_active() -> String { "(*)".to_string() }
+fn default_radio_inactive() -> String { "( )".to_string() }
+fn default_checkbox_active() -> String { "[ ]".to_string() }
+fn default_checkbox_selected() -> String { "[x]".to_string() }
+fn default_checkbox_inactive() -> String { "[ ]".to_string() }
+fn default_password_mask() -> String { "*".to_string() }
 fn default_bar_h() -> String { "─".to_string() }
 fn default_corner_top_right() -> String { "╮".to_string() }
 fn default_connect_left() -> String { "├".to_string() }
@@ -184,6 +202,12 @@ fn default_box_horizontal() -> String { "─".to_string() }
 fn default_box_vertical() -> String { "│".to_string() }
 fn default_box_left_t() -> String { "├".to_string() }
 fn default_box_right_t() -> String { "╯".to_string() }
+fn default_checkmark() -> String { "√".to_string() }
+fn default_info() -> String { "i".to_string() }
+fn default_arrow_right() -> String { ">".to_string() }
+fn default_slider_filled() -> String { "=".to_string() }
+fn default_slider_empty() -> String { "-".to_string() }
+fn default_slider_handle() -> String { "O".to_string() }
 
 /// Rainbow effect configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -239,7 +263,7 @@ pub struct DxTheme {
 impl Default for DxTheme {
     fn default() -> Self {
         Self {
-            primary: Style::new().cyan(),
+            primary: Style::new().white(),
             success: Style::new().green(),
             warning: Style::new().yellow(),
             error: Style::new().red(),
@@ -312,6 +336,12 @@ pub struct Symbols {
     pub box_vertical: String,
     pub box_left_t: String,
     pub box_right_t: String,
+    pub checkmark: String,
+    pub info: String,
+    pub arrow_right: String,
+    pub slider_filled: String,
+    pub slider_empty: String,
+    pub slider_handle: String,
 }
 
 impl Symbols {
@@ -329,7 +359,7 @@ impl Symbols {
             checkbox_active: config.checkbox_active.clone(),
             checkbox_selected: config.checkbox_selected.clone(),
             checkbox_inactive: config.checkbox_inactive.clone(),
-            password_mask: config.password_mask.chars().next().unwrap_or('•'),
+            password_mask: config.password_mask.chars().next().unwrap_or('*'),
             bar_h: config.bar_h.clone(),
             corner_top_right: config.corner_top_right.clone(),
             connect_left: config.connect_left.clone(),
@@ -342,6 +372,12 @@ impl Symbols {
             box_vertical: config.box_vertical.clone(),
             box_left_t: config.box_left_t.clone(),
             box_right_t: config.box_right_t.clone(),
+            checkmark: config.checkmark.clone(),
+            info: config.info.clone(),
+            arrow_right: config.arrow_right.clone(),
+            slider_filled: config.slider_filled.clone(),
+            slider_empty: config.slider_empty.clone(),
+            slider_handle: config.slider_handle.clone(),
         }
     }
     
@@ -358,6 +394,9 @@ impl Symbols {
             "corner_top_right" => &self.corner_top_right,
             "box_vertical" => &self.box_vertical,
             "corner_bottom_right" => &self.corner_bottom_right,
+            "checkmark" => &self.checkmark,
+            "info" => &self.info,
+            "arrow_right" => &self.arrow_right,
             _ => "",
         }
     }

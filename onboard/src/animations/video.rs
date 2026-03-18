@@ -180,9 +180,9 @@ pub fn play_video(path: &Path, _duration: Duration) -> io::Result<()> {
     // Try to initialize GPU processor
     let gpu_processor = GpuFrameProcessor::new();
     if gpu_processor.is_some() {
-        eprintln!("✓ GPU compute pipeline initialized");
+        eprintln!("√ GPU compute pipeline initialized");
     } else {
-        eprintln!("⚠ GPU unavailable, using CPU SIMD");
+        eprintln!("! GPU unavailable, using CPU SIMD");
     }
 
     // Find ffmpeg

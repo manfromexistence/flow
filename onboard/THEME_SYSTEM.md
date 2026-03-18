@@ -4,13 +4,19 @@
 
 The theme system has been extracted into a dedicated module (`theme.rs`) that provides unified theming across all prompts in the onboarding experience. Themes can be customized via a `theme.toml` file.
 
+**Key Changes:**
+- ✅ Removed all hardcoded blue colors - now uses theme.primary
+- ✅ Removed all emojis - replaced with ASCII symbols
+- ✅ All symbols are now configurable via TOML
+
 ## Features
 
 - TOML-based configuration for easy customization
 - Serde serialization/deserialization support
 - Automatic fallback to default theme if config file is missing
 - Hot-reloadable theme settings
-- Support for custom colors and Unicode symbols
+- Support for custom colors and ASCII symbols (no emojis)
+- Consistent theming across all 21 active prompts
 
 ## Theme Module (`src/prompts/theme.rs`)
 
@@ -24,18 +30,24 @@ Complete theme configuration structure with:
 
 ### 2. ColorConfig
 Color scheme with hex color codes:
-- `primary` - Cyan (#00FFFF) for main UI elements
+- `primary` - White (#FFFFFF) for main UI elements (changed from cyan)
 - `success` - Green (#00FF00) for successful operations
 - `warning` - Yellow (#FFFF00) for warnings
 - `error` - Red (#FF0000) for errors
 - `dim` - Gray (#808080) for borders and secondary elements
 
+**Color Usage:**
+- Info messages now use `dim` color instead of `primary` for better readability
+- Primary color changed from cyan to white for better contrast
+- All theme colors are fully configurable via TOML
+
 ### 3. SymbolConfig
-Unicode symbols for consistent visual appearance:
-- Step indicators (active, cancel, error, submit)
-- Borders (bars, corners, boxes)
-- Selection indicators (radio, checkbox)
-- Password masking
+ASCII symbols for consistent visual appearance (no emojis):
+- Step indicators: `>`, `x`, `!`, `>`
+- Selection indicators: `(*)`, `( )`, `[ ]`, `[x]`
+- UI symbols: `√` (checkmark), `i` (info), `>` (arrow)
+- Slider symbols: `=` (filled), `-` (empty), `O` (handle)
+- Border elements: `│`, `╭`, `╮`, `╰`, `╯`, `├`, `─`
 
 ### 4. RainbowConfig
 Rainbow effect settings:
@@ -57,15 +69,19 @@ Place a `theme.toml` file in the project root to customize the theme:
 
 ```toml
 [colors]
-primary = "#00FFFF"
+primary = "#FFFFFF"  # Changed from cyan to white
 success = "#00FF00"
 warning = "#FFFF00"
 error = "#FF0000"
-dim = "#808080"
+dim = "#808080"      # Used for info messages
 
 [symbols]
-step_active = "♦"
-bar = "│"
+# ASCII symbols only (no emojis)
+step_active = ">"
+checkmark = "√"
+info = "i"           # Uses dim color, not primary
+radio_active = "(*)"
+radio_inactive = "( )"
 # ... more symbols
 
 [rainbow]
@@ -94,24 +110,39 @@ init_theme();
 ```rust
 use onboard::prompts::theme::{THEME, SYMBOLS, rainbow_symbol};
 
-// Access theme colors
+// Access theme colors (replaces hardcoded blue)
 let theme = THEME.read().unwrap();
 let styled_text = theme.primary.apply_to("Hello");
 
-// Access symbols
+// Access symbols (no emojis)
 let symbols = &*SYMBOLS;
-let bar = symbols.bar.as_str();
+let checkmark = symbols.checkmark.as_str(); // "√" instead of "✓"
 
 // Use rainbow effects
-let rainbow_text = rainbow_symbol("♦", 0);
+let rainbow_text = rainbow_symbol(&symbols.step_active, 0);
 ```
+
+## Symbol Replacements Made
+
+| Old (Emoji/Unicode) | New (ASCII) | Usage |
+|---------------------|-------------|-------|
+| ✓ | √ | Checkmark/success |
+| ♦ | > | Step indicator |
+| ● | (*) | Active radio |
+| ○ | ( ) | Inactive radio |
+| ◼ | [x] | Selected checkbox |
+| ◻ | [ ] | Unselected checkbox |
+| ★ | * | Rating stars |
+| ☆ | - | Empty rating |
+| ⚠ | ! | Warning |
+| Blue colors | theme.primary | All blue text |
 
 ## Active Prompts (21 total)
 
-The following prompts are kept and actively used:
+All prompts now use theme colors and ASCII symbols:
 
 1. `autocomplete` - Autocomplete with suggestions
-2. `confirm` - Yes/no confirmation (used in main.rs)
+2. `confirm` - Yes/no confirmation
 3. `email` - Email input with validation
 4. `input` - Basic text input
 5. `matrix_select` - Skills rating matrix
@@ -121,7 +152,7 @@ The following prompts are kept and actively used:
 9. `phone_input` - Phone number input
 10. `progress` - Progress bar
 11. `range_slider` - Range selection
-12. `rating` - Star rating
+12. `rating` - Star rating (using * instead of ★)
 13. `search_filter` - Search with filtering
 14. `select` - Single selection
 15. `slider` - Value slider
@@ -132,25 +163,6 @@ The following prompts are kept and actively used:
 20. `tree_select` - Tree selection
 21. `url` - URL input
 22. `wizard` - Multi-step wizard
-
-## Archived Prompts (14 total)
-
-Moved to `src/prompts/trash/`:
-
-1. `calendar` - Calendar view
-2. `code_snippet` - Code snippet picker
-3. `color_picker` - Basic color picker
-4. `color_picker_advanced` - Advanced color picker
-5. `credit_card` - Credit card input
-6. `date_picker` - Date selection
-7. `emoji_picker` - Emoji selection
-8. `file_browser` - File browser
-9. `json_editor` - JSON editor
-10. `kanban` - Kanban board
-11. `list` - List editor
-12. `markdown_editor` - Markdown editor
-13. `table_editor` - Table editor
-14. `time_picker` - Time selection
 
 ## Dependencies
 
@@ -169,3 +181,5 @@ use crate::prompts::theme::{THEME, SYMBOLS, rainbow_symbol};
 ```
 
 The theme is globally accessible and thread-safe via `RwLock`. Symbol fields are accessed using `.as_str()` to convert from `String` to `&str` for compatibility with console styling functions.
+
+**No more hardcoded blue colors or emojis anywhere in the codebase!**

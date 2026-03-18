@@ -2,8 +2,8 @@
 # Customize the colors and symbols used throughout the onboarding experience
 
 [colors]
-# Primary color for main UI elements (cyan)
-primary = "#00FFFF"
+# Primary color for main UI elements (white/neutral)
+primary = "#FFFFFF"
 
 # Success color for completed actions (green)
 success = "#00FF00"
@@ -19,10 +19,10 @@ dim = "#808080"
 
 [symbols]
 # Step indicators
-step_active = "♦"
-step_cancel = "■"
-step_error = "▲"
-step_submit = "♦"
+step_active = ">"
+step_cancel = "x"
+step_error = "!"
+step_submit = ">"
 
 # Border elements
 bar_start = "╭"
@@ -46,14 +46,24 @@ box_left_t = "├"
 box_right_t = "╯"
 
 # Selection indicators
-radio_active = "●"
-radio_inactive = "○"
-checkbox_active = "◻"
-checkbox_selected = "◼"
-checkbox_inactive = "◻"
+radio_active = "(*)"
+radio_inactive = "( )"
+checkbox_active = "[ ]"
+checkbox_selected = "[x]"
+checkbox_inactive = "[ ]"
 
 # Password masking character
-password_mask = "•"
+password_mask = "*"
+
+# UI symbols (no emojis)
+checkmark = "√"
+info = "i"
+arrow_right = ">"
+
+# Slider symbols
+slider_filled = "="
+slider_empty = "-"
+slider_handle = "O"
 
 [rainbow]
 # Enable rainbow effects for special symbols
@@ -66,6 +76,6 @@ speed = 1.0
 # 
 # 1. Place this file in the same directory as your onboard binary
 # 2. Customize colors using hex color codes (#RRGGBB format)
-# 3. Customize symbols using any Unicode characters
+# 3. Customize symbols using any Unicode characters (emojis removed by default)
 # 4. The theme will be automatically loaded when the application starts
 # 5. If this file is missing, default theme values will be used

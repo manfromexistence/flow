@@ -43,9 +43,9 @@ impl Rating {
         let mut stars = String::new();
         for i in 1..=self.max {
             if i <= self.value {
-                stars.push_str(&theme.primary.apply_to("★").to_string());
+                stars.push_str(&theme.primary.apply_to("*").to_string());
             } else {
-                stars.push_str(&theme.dim.apply_to("☆").to_string());
+                stars.push_str(&theme.dim.apply_to("-").to_string());
             }
             if i < self.max {
                 stars.push(' ');
@@ -148,8 +148,8 @@ impl PromptInteraction for Rating {
                 lines += 1;
             }
             State::Submit => {
-                let checkmark = theme.success.apply_to("✓");
-                let stars = "★".repeat(self.value);
+                let checkmark = theme.success.apply_to(symbols.checkmark.as_str());
+                let stars = "*".repeat(self.value);
                 let display = theme
                     .dim
                     .apply_to(format!("{} ({}/{})", stars, self.value, self.max));

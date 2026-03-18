@@ -96,7 +96,9 @@ impl PromptInteraction for Confirm {
                 } else {
                     theme.dim.apply_to("No").to_string()
                 };
-                term.write_line(&format!("♦ {}  {}  /  {}", self.message, yes, no))?;
+                term.write_line(&format!("{} {}  {}  /  {}", 
+                    theme.primary.apply_to(symbols.step_submit.as_str()),
+                    self.message, yes, no))?;
                 lines += 1;
             }
             State::Submit => {

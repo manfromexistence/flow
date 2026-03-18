@@ -137,11 +137,11 @@ impl PromptInteraction for Wizard {
                 // Show all steps with status
                 for (i, step) in self.steps.iter().enumerate() {
                     let icon = if step.completed {
-                        theme.success.apply_to("✓").to_string()
+                        theme.success.apply_to(symbols.checkmark.as_str()).to_string()
                     } else if i == self.current_step {
-                        theme.primary.apply_to("▸").to_string()
+                        theme.primary.apply_to(symbols.arrow_right.as_str()).to_string()
                     } else {
-                        theme.dim.apply_to("○").to_string()
+                        theme.dim.apply_to(symbols.radio_inactive.as_str()).to_string()
                     };
 
                     let title = if i == self.current_step {
@@ -182,7 +182,7 @@ impl PromptInteraction for Wizard {
                 lines += 1;
             }
             State::Submit => {
-                let checkmark = theme.success.apply_to("✓");
+                let checkmark = theme.success.apply_to(symbols.checkmark.as_str());
                 let completed = self.steps.iter().filter(|s| s.completed).count();
                 term.write_line(&format!(
                     "{} {}  {}",

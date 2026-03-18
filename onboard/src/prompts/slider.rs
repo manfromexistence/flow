@@ -45,6 +45,7 @@ impl Slider {
     }
 
     fn render_slider(&self) -> String {
+        let symbols = &*SYMBOLS;
         let width = 40;
         let range = self.max - self.min;
         let position = if range > 0 {
@@ -57,11 +58,11 @@ impl Slider {
         slider.push('[');
         for i in 0..width {
             if i == position {
-                slider.push('●');
+                slider.push_str(symbols.slider_handle.as_str());
             } else if i < position {
-                slider.push('━');
+                slider.push_str(symbols.slider_filled.as_str());
             } else {
-                slider.push('─');
+                slider.push_str(symbols.slider_empty.as_str());
             }
         }
         slider.push(']');

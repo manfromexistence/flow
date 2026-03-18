@@ -179,7 +179,7 @@ pub mod log {
     pub fn info(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        eprintln!("{} {}", "●".blue(), text);
+        eprintln!("{} {}", theme.dim.apply_to(symbols.info.as_str()), text);
         eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
@@ -187,7 +187,7 @@ pub mod log {
     pub fn success(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        eprintln!("{} {}", "✓".green().bold(), text);
+        eprintln!("{} {}", theme.success.apply_to(symbols.checkmark.as_str()).bold(), text);
         eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
@@ -195,7 +195,7 @@ pub mod log {
     pub fn warning(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        eprintln!("{} {}", "⚠".yellow().bold(), text);
+        eprintln!("{} {}", theme.warning.apply_to(symbols.step_error.as_str()).bold(), text);
         eprintln!("{}", theme.dim.apply_to(symbols.bar.as_str()));
         Ok(())
     }
@@ -203,7 +203,7 @@ pub mod log {
     pub fn step(text: impl Display) -> io::Result<()> {
         let theme = THEME.read().unwrap();
         let symbols = &*SYMBOLS;
-        let rainbow_step = rainbow_symbol("◇", 1);
+        let rainbow_step = rainbow_symbol(&symbols.step_active, 1);
         eprintln!(
             "{} {} {}",
             theme.dim.apply_to(symbols.bar.as_str()),

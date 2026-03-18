@@ -43,19 +43,18 @@ impl Toggle {
     }
 
     fn render_toggle(&self, theme: &super::DxTheme) -> String {
+        let symbols = &*SYMBOLS;
         if self.value {
             format!(
-                "{}{}{}",
-                theme.success.apply_to("[ "),
-                theme.success.apply_to("●").bold(),
-                theme.dim.apply_to(" ○ ]")
+                "[ {} {} ]",
+                theme.success.apply_to(symbols.radio_active.as_str()).bold(),
+                theme.dim.apply_to(symbols.radio_inactive.as_str())
             )
         } else {
             format!(
-                "{}{}{}",
-                theme.dim.apply_to("[ ○ "),
-                theme.primary.apply_to("●").bold(),
-                theme.primary.apply_to(" ]")
+                "[ {} {} ]",
+                theme.dim.apply_to(symbols.radio_inactive.as_str()),
+                theme.primary.apply_to(symbols.radio_active.as_str()).bold()
             )
         }
     }
