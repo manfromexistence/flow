@@ -7,9 +7,14 @@ Header = {
 	_inc = 1000,
 	_left = {
 		{ "cwd", id = 1, order = 1000 },
+		{ "mode", id = 2, order = 2000 },
+		{ "size", id = 3, order = 3000 },
 	},
 	_right = {
-		{ "count", id = 1, order = 1000 },
+		{ "perm", id = 4, order = 1000 },
+		{ "percent", id = 5, order = 2000 },
+		{ "position", id = 6, order = 3000 },
+		{ "count", id = 7, order = 4000 },
 	},
 }
 
@@ -65,6 +70,104 @@ function Header:count()
 	end
 
 	return ui.Line { span, " " }
+end
+
+function Header:style()
+	local m = th.mode
+	if self._tab.mode.is_select then
+		return { main = m.select_main, alt = m.select_alt }
+	elseif self._tab.mode.is_unset then
+		return { main = m.unset_main, alt = m.unset_alt }
+	else
+		return { main = m.normal_main, alt = m.normal_alt }
+	end
+end
+
+function Header:mode()
+	local mode = tostring(self._tab.mode):sub(1, 3):upper()
+
+	local style = self:style()
+	return ui.Line {
+		ui.Span(" "):fg("reset"),
+		ui.Span(th.status.sep_left.open):fg(style.main:bg()):bg("reset"),
+		ui.Span(" " .. mode .. " "):style(style.main),
+		ui.Span(th.status.sep_left.close):fg(style.main:bg()):bg(style.alt:bg()),
+	}
+end
+
+function Header:size()
+	local h = self._current.hovered
+	local size = h and (h:size() or h.cha.len) or 0
+
+	local style = self:style()
+	return ui.Line {
+		ui.Span(" " .. ya.readable_size(size) .. " "):style(style.alt),
+		ui.Span(th.status.sep_left.close):fg(style.alt:bg()),
+	}
+end
+
+function Header:perm()
+	local h = self._current.hovered
+	if not h then
+		return ""
+	end
+
+	local perm = h.cha:perm()
+	if not perm then
+		return ""
+	end
+
+	local spans = {}
+	for i = 1, #perm do
+		local c = perm:sub(i, i)
+		local style = th.status.perm_type
+		if c == "-" or c == "?" then
+			style = th.status.perm_sep
+		elseif c == "r" then
+			style = th.status.perm_read
+		elseif c == "w" then
+			style = th.status.perm_write
+		elseif c == "x" or c == "s" or c == "S" or c == "t" or c == "T" then
+			style = th.status.perm_exec
+		end
+		spans[i] = ui.Span(c):style(style)
+	end
+	return ui.Line(spans)
+end
+
+function Header:percent()
+	local percent = 0
+	local cursor = self._current.cursor
+	local length = #self._current.files
+	if cursor ~= 0 and length ~= 0 then
+		percent = math.floor((cursor + 1) * 100 / length)
+	end
+
+	if percent == 0 then
+		percent = " Top "
+	elseif percent == 100 then
+		percent = " Bot "
+	else
+		percent = string.format(" %2d%% ", percent)
+	end
+
+	local style = self:style()
+	return ui.Line {
+		ui.Span(" " .. th.status.sep_right.open):fg(style.alt:bg()),
+		ui.Span(percent):style(style.alt),
+	}
+end
+
+function Header:position()
+	local cursor = self._current.cursor
+	local length = #self._current.files
+
+	local style = self:style()
+	return ui.Line {
+		ui.Span(th.status.sep_right.open):fg(style.main:bg()):bg(style.alt:bg()),
+		ui.Span(string.format(" %2d/%-2d ", math.min(cursor + 1, length), length)):style(style.main),
+		ui.Span(th.status.sep_right.close):fg(style.main:bg()):bg("reset"),
+	}
 end
 
 function Header:reflow() return { self } end

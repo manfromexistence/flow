@@ -17,17 +17,27 @@ function Root:layout()
 			ui.Constraint.Length(1),
 			ui.Constraint.Length(Tabs.height()),
 			ui.Constraint.Fill(1),
-			ui.Constraint.Length(1),
 		})
 		:split(self._area)
 end
 
 function Root:build()
+	-- Create border bars
+	self._base = {
+		-- Top border
+		ui.Bar(ui.Edge.TOP):area(self._area):symbol("─"):style(th.pick.border),
+		-- Bottom border
+		ui.Bar(ui.Edge.BOTTOM):area(self._area):symbol("─"):style(th.pick.border),
+		-- Left border
+		ui.Bar(ui.Edge.LEFT):area(self._area):symbol("│"):style(th.pick.border),
+		-- Right border
+		ui.Bar(ui.Edge.RIGHT):area(self._area):symbol("│"):style(th.pick.border),
+	}
+	
 	self._children = {
 		Header:new(self._chunks[1], cx.active),
 		Tabs:new(self._chunks[2]),
 		Tab:new(self._chunks[3], cx.active),
-		Status:new(self._chunks[4], cx.active),
 		Modal:new(self._area),
 	}
 end

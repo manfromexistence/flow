@@ -8,11 +8,14 @@
 
 ## Completed
 
+- [x] ~~Create theme system module from all prompts~~ ✅ (completed: 2026-03-19 03:35)
+- [x] ~~Create trash folder and move unused prompts~~ ✅ (completed: 2026-03-19 03:35)
+- [x] ~~Update mod.rs to remove references to trashed prompts~~ ✅ (completed: 2026-03-19 03:35)
+- [x] ~~Keep only the required prompts (24 total + confirm for main.rs)~~ ✅ (completed: 2026-03-19 03:35)
+- [x] ~~Verify compilation after cleanup~~ ✅ (completed: 2026-03-19 03:35)
 - [x] ~~Create Vercel-inspired theme for Yazi using theme.css colors~~ ✅ (completed: 2026-03-19)
-- [x] ~~Update workspace Cargo.toml to set yazi-fm as default binary~~ ✅ (completed: 2026-03-19)
-- [x] ~~Apply theme.css design system colors to Yazi file picker~~ ✅ (completed: 2026-03-19)
-- [x] ~~Configure borders for Yazi file picker (already implemented)~~ ✅ (completed: 2026-03-19)
-- [x] ~~Fix all Yazi warnings (unused variables, unused Results, etc.)~~ ✅ (completed: 2026-03-19)
-- [x] ~~Configure yazi workspace to use yazi-fm as default binary~~ ✅ (completed: 2026-03-19)
+- [x] ~~Fix all Yazi warnings and errors~~ ✅ (completed: 2026-03-19)
+- [x] ~~Move status bar buttons to top header next to path~~ ✅ (completed: 2026-03-19)
+- [x] ~~Add rounded border around the whole Yazi TUI~~ ✅ (completed: 2026-03-19)
 
 ## Blocked / Failed
