@@ -4,7 +4,6 @@
 mod prompts;
 mod effects;
 mod splash;
-mod font;
 
 use anyhow::Result;
 use argon2::Argon2;
@@ -545,19 +544,6 @@ fn run_onboarding() -> Result<OnboardingResult> {
 
     prompts::outro("🎉 Complete onboarding with ALL prompts finished!")?;
     
-    // Show train animation at the end
-    println!();
-    println!("🚂 Thank you for using DX! Here's a farewell train...");
-    println!();
-    thread::sleep(Duration::from_millis(500));
-    
-    print!("\x1B[2J\x1B[H"); // Clear screen
-    for frame in 0..15 {
-        print!("\x1B[H"); // Move cursor to top
-        render_train_animation(&rainbow, frame)?;
-        thread::sleep(Duration::from_millis(200));
-    }
-    
     Ok(result)
 }
 
@@ -568,14 +554,14 @@ fn async_main() -> Result<()> {
         println!();
         println!("🚂 Exiting DX... Here's a farewell train!");
         println!();
-        
+
         print!("\x1B[2J\x1B[H"); // Clear screen
         for frame in 0..15 {
             print!("\x1B[H"); // Move cursor to top
             let _ = render_train_animation(&rainbow, frame);
             thread::sleep(Duration::from_millis(200));
         }
-        
+
         std::process::exit(0);
     }).expect("Error setting Ctrl-C handler");
     
@@ -583,6 +569,19 @@ fn async_main() -> Result<()> {
         Ok(result) => {
             println!("\n✨ Setup completed successfully!");
             println!("Welcome to DX, {}! 🚀", result.name);
+            
+            // Show outro train animation
+            let rainbow = RainbowEffect::new();
+            println!();
+            println!("🚂 Thanks for using DX! Here's a celebration train!");
+            println!();
+            
+            print!("\x1B[2J\x1B[H"); // Clear screen
+            for frame in 0..15 {
+                print!("\x1B[H"); // Move cursor to top
+                let _ = render_train_animation(&rainbow, frame);
+                thread::sleep(Duration::from_millis(200));
+            }
         }
         Err(e) => {
             eprintln!("❌ Setup failed: {}", e);
