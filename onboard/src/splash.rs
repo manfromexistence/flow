@@ -2,9 +2,9 @@
 
 use crate::effects::RainbowEffect;
 use owo_colors::OwoColorize;
-use terminal_size::{Width, Height, terminal_size};
-use std::io::{self, Write};
 use rand::seq::SliceRandom;
+use std::io::{self, Write};
+use terminal_size::{Height, Width, terminal_size};
 
 // 10 hardcoded DX logos selected by user
 const DX_LOGOS: [&str; 10] = [
@@ -19,7 +19,6 @@ const DX_LOGOS: [&str; 10] = [
  ░ ░  ░  ░    ░  
    ░     ░    ░  
  ░               "#,
-    
     // 3d
     r#" ███████   ██     ██
 ░██░░░░██ ░░██   ██ 
@@ -29,7 +28,6 @@ const DX_LOGOS: [&str; 10] = [
 ░██    ██   ██ ░░██ 
 ░███████   ██   ░░██
 ░░░░░░░   ░░     ░░ "#,
-    
     // Doh
     r#"                                          
 DDDDDDDDDDDDD        XXXXXXX       XXXXXXX
@@ -48,7 +46,6 @@ DDD:::::DDDDD:::::D  X::::::X     X::::::X
 D:::::::::::::::DD   X:::::X       X:::::X
 D::::::::::::DDD     X:::::X       X:::::X
 DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
-    
     // Diamond
     r#"/\\\\\    /\\      /\\
 /\\   /\\  /\\   /\\  
@@ -57,7 +54,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
 /\\    /\\  /\\ /\\   
 /\\   /\\  /\\   /\\  
 /\\\\\    /\\      /\\"#,
-    
     // Electronic
     r#" ▄▄▄▄▄▄▄▄▄▄   ▄       ▄ 
 ▐░░░░░░░░░░▌ ▐░▌     ▐░▌
@@ -70,7 +66,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
 ▐░█▄▄▄▄▄▄▄█░▌ ▐░▌   ▐░▌ 
 ▐░░░░░░░░░░▌ ▐░▌     ▐░▌
  ▀▀▀▀▀▀▀▀▀▀   ▀       ▀ "#,
-    
     // Fraktur
     r#"       ....                       ..   
    .xH888888Hx.         .H88x.  :~)88: 
@@ -84,7 +79,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
   X88888888hx. ..!   X888  X88888x.x"  
  !   "*888888888"    X88% : '%8888"    
         ^"***"`       "*=~    `""      "#,
-    
     // Marquee
     r#".:::::    .::      .::
 .::   .::  .::   .::  
@@ -93,7 +87,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
 .::    .::  .:: .::   
 .::   .::  .::   .::  
 .:::::    .::      .::"#,
-    
     // Reverse
     r#"====================
 =       ===   ==   =
@@ -106,7 +99,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
 =  ====  ===  ==  ==
 =       ===  ====  =
 ===================="#,
-    
     // Stellar
     r#"`.....    `..      `..
 `..   `..  `..   `..  
@@ -115,7 +107,6 @@ DDDDDDDDDDDDD        XXXXXXX       XXXXXXX"#,
 `..    `..  `.. `..   
 `..   `..  `..   `..  
 `.....    `..      `.."#,
-    
     // Tubular
     r#"O~~~~~    O~~      O~~
 O~~   O~~  O~~   O~~  
@@ -130,7 +121,7 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
     // Pick a random logo from the 10 hardcoded options
     let mut rng = rand::thread_rng();
     let logo = DX_LOGOS.choose(&mut rng).unwrap_or(&DX_LOGOS[0]);
-    
+
     // Render with rainbow colors
     for (line_idx, line) in logo.lines().enumerate() {
         for (char_idx, ch) in line.chars().enumerate() {
@@ -140,9 +131,9 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
         }
         println!();
     }
-    
+
     println!();
-    
+
     // Description text with rainbow colors
     let description = "Enhanced Development Experience";
     for (char_idx, ch) in description.chars().enumerate() {
@@ -151,7 +142,7 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
         print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
     }
     println!();
-    
+
     io::stdout().flush()?;
     Ok(())
 }
@@ -193,7 +184,7 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
         &["   (   )", "  (     )", " (       )"],
         &["  (    )", " (      )", "(        )"],
     ];
-    let smoke_frame_idx = ((elapsed_ms / 300) as usize) % smoke_frames.len();
+    let smoke_frame_idx = (elapsed_ms / 300) % smoke_frames.len();
     let smoke = smoke_frames[smoke_frame_idx];
 
     // Render smoke above the train - positioned relative to train
@@ -208,7 +199,7 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
                 print!("{}", " ".repeat(smoke_x_offset as usize));
                 for (ci, ch) in smoke_line.chars().enumerate() {
                     if smoke_x_offset as usize + ci < terminal_width {
-                        let color_idx = (ci + (elapsed_ms / 200) as usize) % 50;
+                        let color_idx = (ci + (elapsed_ms / 200)) % 50;
                         let color = rainbow.color_at(color_idx);
                         print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
                     }
@@ -218,7 +209,7 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
                 if visible_start < smoke_line.len() {
                     for (ci, ch) in smoke_line[visible_start..].chars().enumerate() {
                         if ci < terminal_width {
-                            let color_idx = (ci + visible_start + (elapsed_ms / 200) as usize) % 50;
+                            let color_idx = (ci + visible_start + (elapsed_ms / 200)) % 50;
                             let color = rainbow.color_at(color_idx);
                             print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
                         }
@@ -241,7 +232,7 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
                 print!("{}", " ".repeat(x_pos as usize));
                 for (char_idx, ch) in line.chars().enumerate() {
                     if x_pos as usize + char_idx < terminal_width {
-                        let color_idx = (char_idx + line_idx * 3 + (elapsed_ms / 150) as usize) % 50;
+                        let color_idx = (char_idx + line_idx * 3 + (elapsed_ms / 150)) % 50;
                         let color = rainbow.color_at(color_idx);
                         print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
                     }
@@ -252,7 +243,8 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
                 if visible_start < line.len() {
                     for (char_idx, ch) in line[visible_start..].chars().enumerate() {
                         if char_idx < terminal_width {
-                            let color_idx = (char_idx + visible_start + line_idx * 3 + (elapsed_ms / 150) as usize) % 50;
+                            let color_idx =
+                                (char_idx + visible_start + line_idx * 3 + (elapsed_ms / 150)) % 50;
                             let color = rainbow.color_at(color_idx);
                             print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
                         }
@@ -267,8 +259,12 @@ pub fn render_train_animation(rainbow: &RainbowEffect, frame: usize) -> io::Resu
     print!("{}", " ".repeat(terminal_width));
     print!("\r");
     for x in 0..terminal_width {
-        let ch = if (x + (elapsed_ms / 300) as usize) % 4 == 0 { '╫' } else { '═' };
-        let color_idx = (x + (elapsed_ms / 300) as usize) % 50;
+        let ch = if (x + (elapsed_ms / 300)).is_multiple_of(4) {
+            '╫'
+        } else {
+            '═'
+        };
+        let color_idx = (x + (elapsed_ms / 300)) % 50;
         let color = rainbow.color_at(color_idx);
         print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
     }
