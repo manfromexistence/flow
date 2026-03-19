@@ -1,8 +1,8 @@
 [package]
 name = "dx-serializer"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.85"
+edition = "2024"
+rust-version = "1.94.0"
 description = "A token-efficient serialization format for LLM context windows with high-performance binary encoding"
 keywords = ["serialization", "parser", "format", "performance", "zero-copy"]
 categories = ["encoding", "parser-implementations", "asynchronous"]
