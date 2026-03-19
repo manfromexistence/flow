@@ -15,7 +15,7 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
     let selected_font = all_fonts.choose(&mut rng).unwrap_or(&"Block");
 
     // Render DX with the randomly selected font
-    let dx_figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(selected_font)
+    let dx_figlet_lines = if let Ok(font_data) = crate::font::read_font(selected_font)
         && let Ok(font_str) = String::from_utf8(font_data)
         && let Ok(font) = FIGfont::from_content(&font_str)
         && let Some(figure) = font.convert("DX")

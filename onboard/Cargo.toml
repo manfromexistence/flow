@@ -59,6 +59,7 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 once_cell = "1.20"
 ctrlc = "3.4"
+zstd = "0.13"
 
 # ASCII art and animations
 dx-font = { path = "../font" }
@@ -97,7 +98,7 @@ default = []
 # httpmock = "0.7"
 
 [build-dependencies]
-# serializer = { package = "dx-serializer", path = "../serializer" }
+zstd = "0.13"
 
 # ──────────────────────────────────────────────
 #  Profiles (merged from llm)

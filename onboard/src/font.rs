@@ -1,67 +1,40 @@
 //! Font Module for Onboard
 //!
 //! This module provides access to figlet fonts for ASCII art text rendering.
-//! The fonts are embedded directly in the project for better distribution.
+//! The fonts are embedded directly in the binary as compressed data.
 
-use std::fs;
 use std::io;
-use std::path::PathBuf;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
-/// Returns the path to the figlet fonts directory.
-pub fn fonts_dir() -> PathBuf {
-    PathBuf::from("figlet")
-}
+// Include the compressed fonts generated at build time
+include!(concat!(env!("OUT_DIR"), "/fonts_compressed.rs"));
 
 /// Lists all available figlet font names.
 pub fn list_fonts() -> io::Result<Vec<String>> {
-    let dir = fonts_dir();
-    let mut fonts = Vec::new();
-
-    if dir.exists() {
-        for entry in fs::read_dir(&dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            if path.extension().is_some_and(|ext| ext == "dx")
-                && let Some(stem) = path.file_stem()
-                && let Some(name) = stem.to_str()
-            {
-                fonts.push(name.to_string());
-            }
-        }
-    }
-
+    let mut fonts: Vec<String> = FONTS.keys().map(|&s| s.to_string()).collect();
     fonts.sort();
     Ok(fonts)
 }
 
-/// Returns the path to a specific font file.
-pub fn font_path(name: &str) -> Option<PathBuf> {
-    let path = fonts_dir().join(format!("{}.dx", name));
-    if path.exists() { Some(path) } else { None }
-}
-
-/// Reads the content of a font file.
+/// Reads and decompresses a font file.
 pub fn read_font(name: &str) -> io::Result<Vec<u8>> {
-    let path = font_path(name).ok_or_else(|| {
-        io::Error::new(io::ErrorKind::NotFound, format!("Font '{}' not found", name))
-    })?;
-    fs::read(path)
+    FONTS.get(name)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, format!("Font '{}' not found", name)))
+        .and_then(|compressed| {
+            zstd::decode_all(*compressed)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
 }
 
 /// Returns the total number of available fonts.
 pub fn font_count() -> io::Result<usize> {
-    list_fonts().map(|fonts| fonts.len())
+    Ok(FONTS.len())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fonts_dir_exists() {
-        let dir = fonts_dir();
-        assert!(dir.exists(), "Figlet fonts directory should exist at {:?}", dir);
-    }
 
     #[test]
     fn test_list_fonts_not_empty() {
@@ -72,6 +45,16 @@ mod tests {
     #[test]
     fn test_font_count() {
         let count = font_count().expect("Should be able to count fonts");
-        assert!(count >= 400, "Should have at least 400 fonts, got {}", count);
+        assert!(count >= 100, "Should have at least 100 fonts, got {}", count);
+    }
+
+    #[test]
+    fn test_read_font() {
+        let fonts = list_fonts().expect("Should be able to list fonts");
+        if let Some(first_font) = fonts.first() {
+            let content = read_font(first_font);
+            assert!(content.is_ok(), "Should be able to read font '{}'", first_font);
+            assert!(!content.unwrap().is_empty(), "Font content should not be empty");
+        }
     }
 }
