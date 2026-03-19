@@ -21,7 +21,7 @@ pub fn render(
     let all_fonts = get_valid_fonts();
     let current_font = all_fonts[font_index % all_fonts.len()];
 
-    let figlet_lines = if let Ok(font_data) = dx_font::figlet::read_font(current_font)
+    let figlet_lines = if let Ok(font_data) = crate::font::read_font(current_font)
         && let Ok(font_str) = String::from_utf8(font_data)
         && let Ok(font) = FIGfont::from_content(&font_str)
         && let Some(figure) = font.convert("DX")

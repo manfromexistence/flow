@@ -2,6 +2,8 @@ Please look at our onboard project and use the font code directly on the folder 
 
 And about the figlet fonts folder maybe in the splash screen there is a list of fonts like so. From the figlet folder only keep the fonts that are listed on that splash screen file as others are not supported by the figlet font renderer so those font files are completely useless anyway. And tell me a way so that we can include all these fonts in less than one megabyte.
 
+Good! Now in our on-board folder I have decided to not use the figlet fonts at all but we will use some hard-coded figlet font, our DX logo figlet font. Create a RAG script that shows the output of all hundred plus figlet fonts and name the figlet font. Render it with our title DX and from there I will choose ten figlet fonts with our logo rendered. You will hard-code it on our on-board project and from those ten hard-coded DX titles you will render a random title each time. 
+
 1. Missing Critical Files (2/10)
 No README.md - Instant red flag for any serious project
 No LICENSE - Legal nightmare waiting to happen
