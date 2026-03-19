@@ -244,7 +244,10 @@ mod tests {
         let dxs_files = find_dxs_files(&rules_dir).unwrap();
         assert_eq!(dxs_files.len(), 2);
 
-        let names: Vec<_> = dxs_files.iter().filter_map(|p| p.file_name()?.to_str()).collect();
+        let names: Vec<_> = dxs_files
+            .iter()
+            .filter_map(|p| p.file_name()?.to_str())
+            .collect();
         assert!(names.contains(&"js-rules.sr"));
         assert!(names.contains(&"py-rules.sr"));
     }

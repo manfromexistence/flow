@@ -153,7 +153,10 @@ impl Mappings {
     #[inline]
     pub fn expand_key(&self, key: &str) -> String {
         // NO CACHE NEEDED: HashMap lookup IS the cache (O(1))
-        self.expand.get(key).cloned().unwrap_or_else(|| key.to_string())
+        self.expand
+            .get(key)
+            .cloned()
+            .unwrap_or_else(|| key.to_string())
     }
 
     /// Compress full name to short key (human → machine)
@@ -186,7 +189,10 @@ impl Mappings {
     #[inline]
     pub fn compress_key(&self, key: &str) -> String {
         // NO CACHE NEEDED: HashMap lookup IS the cache (O(1))
-        self.compress.get(key).cloned().unwrap_or_else(|| key.to_string())
+        self.compress
+            .get(key)
+            .cloned()
+            .unwrap_or_else(|| key.to_string())
     }
 }
 

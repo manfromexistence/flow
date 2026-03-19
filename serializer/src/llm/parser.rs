@@ -239,8 +239,10 @@ impl<'a> DsrParser<'a> {
         self.skip_whitespace();
         if self.pos >= self.input.len() {
             // Just a name with no value - treat as empty string
-            doc.context.insert(name.clone(), DxLlmValue::Str(String::new()));
-            doc.entry_order.push(crate::llm::types::EntryRef::Context(name));
+            doc.context
+                .insert(name.clone(), DxLlmValue::Str(String::new()));
+            doc.entry_order
+                .push(crate::llm::types::EntryRef::Context(name));
             return Ok(());
         }
 
@@ -265,8 +267,10 @@ impl<'a> DsrParser<'a> {
 
                 if next_ch == Some('(') {
                     // Wrapped dataframe table: name[headers](rows)
-                    let schema: Vec<String> =
-                        bracket_content.split_whitespace().map(|s| s.to_string()).collect();
+                    let schema: Vec<String> = bracket_content
+                        .split_whitespace()
+                        .map(|s| s.to_string())
+                        .collect();
 
                     if schema.is_empty() {
                         return Err(ParseError::InvalidTable {
@@ -408,7 +412,8 @@ impl<'a> DsrParser<'a> {
                             // Not compact syntax, restore position and parse as regular value
                             self.pos = start_pos;
                             let value_str = self.parse_until_delimiter(&['\n', '\r'])?;
-                            doc.context.insert(name.clone(), LlmParser::parse_value(&value_str));
+                            doc.context
+                                .insert(name.clone(), LlmParser::parse_value(&value_str));
                         }
                     } else if self.peek_char() == Some('[') {
                         // It's an inline object with count: name:count[key=value key2=value2]
@@ -423,22 +428,30 @@ impl<'a> DsrParser<'a> {
                         // Auto-detect separator: comma (legacy) or space (new format)
                         let items: Vec<DxLlmValue> = if items_str.contains(',') {
                             // Comma-separated (legacy format)
-                            items_str.split(',').map(|s| LlmParser::parse_value(s.trim())).collect()
+                            items_str
+                                .split(',')
+                                .map(|s| LlmParser::parse_value(s.trim()))
+                                .collect()
                         } else {
                             // Space-separated (new format)
-                            items_str.split_whitespace().map(LlmParser::parse_value).collect()
+                            items_str
+                                .split_whitespace()
+                                .map(LlmParser::parse_value)
+                                .collect()
                         };
                         doc.context.insert(name.clone(), DxLlmValue::Arr(items));
                     } else {
                         // Not a table or inline object - restore position and parse as regular value
                         self.pos = start_pos;
                         let value_str = self.parse_until_delimiter(&['\n', '\r'])?;
-                        doc.context.insert(name.clone(), LlmParser::parse_value(&value_str));
+                        doc.context
+                            .insert(name.clone(), LlmParser::parse_value(&value_str));
                     }
                 } else {
                     // Standard or leaf value: name: value or name:: value
                     let value_str = self.parse_until_delimiter(&['\n', '\r'])?;
-                    doc.context.insert(name.clone(), LlmParser::parse_value(&value_str));
+                    doc.context
+                        .insert(name.clone(), LlmParser::parse_value(&value_str));
                 }
             }
             Some('|') => {
@@ -449,7 +462,8 @@ impl<'a> DsrParser<'a> {
             }
             _ => {
                 // No delimiter - might be end of line or next statement
-                doc.context.insert(name.clone(), DxLlmValue::Str(String::new()));
+                doc.context
+                    .insert(name.clone(), DxLlmValue::Str(String::new()));
             }
         }
 
@@ -598,10 +612,16 @@ impl<'a> DsrParser<'a> {
                     // Auto-detect separator: comma (legacy) or space (new format)
                     let items: Vec<DxLlmValue> = if items_str.contains(',') {
                         // Comma-separated (legacy format)
-                        items_str.split(',').map(|s| LlmParser::parse_value(s.trim())).collect()
+                        items_str
+                            .split(',')
+                            .map(|s| LlmParser::parse_value(s.trim()))
+                            .collect()
                     } else {
                         // Space-separated (new format)
-                        items_str.split_whitespace().map(LlmParser::parse_value).collect()
+                        items_str
+                            .split_whitespace()
+                            .map(LlmParser::parse_value)
+                            .collect()
                     };
                     fields.insert(key, DxLlmValue::Arr(items));
                 } else {
@@ -926,7 +946,10 @@ impl<'a> DsrParser<'a> {
         // Pair up tokens as key-value pairs
         if tokens.len() % 2 != 0 {
             return Err(ParseError::InvalidTable {
-                msg: format!("Compact syntax requires even number of tokens, got {}", tokens.len()),
+                msg: format!(
+                    "Compact syntax requires even number of tokens, got {}",
+                    tokens.len()
+                ),
             });
         }
 
@@ -959,7 +982,10 @@ impl<'a> DsrParser<'a> {
                 .filter(|s| !s.is_empty())
                 .collect()
         } else {
-            schema_str.split_whitespace().map(|s| s.to_string()).collect()
+            schema_str
+                .split_whitespace()
+                .map(|s| s.to_string())
+                .collect()
         };
 
         if schema.is_empty() {
@@ -1706,7 +1732,11 @@ impl<'a> DsrParser<'a> {
         let mut arr = Vec::new();
         for row in &section.rows {
             // Convert row to string representation
-            let row_str = row.iter().map(Self::value_to_string).collect::<Vec<_>>().join(",");
+            let row_str = row
+                .iter()
+                .map(Self::value_to_string)
+                .collect::<Vec<_>>()
+                .join(",");
             arr.push(DxLlmValue::Str(row_str));
         }
         DxLlmValue::Arr(arr)
@@ -1756,7 +1786,10 @@ mod tests {
         let doc = LlmParser::parse(input).unwrap();
 
         assert_eq!(doc.context.len(), 2);
-        assert_eq!(doc.context.get("environment").unwrap().as_str(), Some("development"));
+        assert_eq!(
+            doc.context.get("environment").unwrap().as_str(),
+            Some("development")
+        );
         assert_eq!(doc.context.get("version").unwrap().as_str(), Some("2.2.16"));
     }
 
@@ -1771,7 +1804,10 @@ mod tests {
             doc.context.get("forge.repository").unwrap().as_str(),
             Some("https://dx.vercel.app/user/repo")
         );
-        assert_eq!(doc.context.get("style.path").unwrap().as_str(), Some("@/style"));
+        assert_eq!(
+            doc.context.get("style.path").unwrap().as_str(),
+            Some("@/style")
+        );
     }
 
     #[test]
@@ -1786,7 +1822,10 @@ mod tests {
             doc.context.get("forge.repository").unwrap().as_str(),
             Some("https://example.com")
         );
-        assert_eq!(doc.context.get("editors.default").unwrap().as_str(), Some("neovim"));
+        assert_eq!(
+            doc.context.get("editors.default").unwrap().as_str(),
+            Some("neovim")
+        );
     }
 
     #[test]
@@ -1992,8 +2031,17 @@ mod tests {
         let input = "js.dependencies.react:: 19.0.1\npython.dependencies.django:: latest";
         let doc = LlmParser::parse(input).unwrap();
 
-        assert_eq!(doc.context.get("js.dependencies.react").unwrap().as_str(), Some("19.0.1"));
-        assert_eq!(doc.context.get("python.dependencies.django").unwrap().as_str(), Some("latest"));
+        assert_eq!(
+            doc.context.get("js.dependencies.react").unwrap().as_str(),
+            Some("19.0.1")
+        );
+        assert_eq!(
+            doc.context
+                .get("python.dependencies.django")
+                .unwrap()
+                .as_str(),
+            Some("latest")
+        );
     }
 
     #[test]

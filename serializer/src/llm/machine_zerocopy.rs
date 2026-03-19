@@ -321,6 +321,9 @@ fn read_value(
             Ok(DxLlmValue::Bool(b))
         }
         3 => Ok(DxLlmValue::Null),
-        _ => Err(ZeroCopyError::InvalidData(format!("Unknown type tag: {}", type_tag))),
+        _ => Err(ZeroCopyError::InvalidData(format!(
+            "Unknown type tag: {}",
+            type_tag
+        ))),
     }
 }

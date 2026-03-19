@@ -82,7 +82,10 @@ fn verify_size_claims() {
         .unwrap_or(0);
     let ratio = toon_bytes as f64 / llm_bytes as f64;
 
-    println!("\n  ✅ VERIFIED: DX LLM format is {:.2}x smaller than TOON!", ratio);
+    println!(
+        "\n  ✅ VERIFIED: DX LLM format is {:.2}x smaller than TOON!",
+        ratio
+    );
     if ratio >= 3.0 {
         println!("  🏆 CLAIM CONFIRMED: 3x+ smaller than TOON");
     } else {
@@ -192,6 +195,9 @@ fn print_summary() {
 
 fn estimate_tokens(text: &str) -> usize {
     let words = text.split_whitespace().count();
-    let symbols = text.chars().filter(|c| !c.is_alphanumeric() && !c.is_whitespace()).count();
+    let symbols = text
+        .chars()
+        .filter(|c| !c.is_alphanumeric() && !c.is_whitespace())
+        .count();
     (words as f64 * 1.33) as usize + (symbols / 2)
 }

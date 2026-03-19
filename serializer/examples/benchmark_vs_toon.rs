@@ -27,7 +27,10 @@ fn main() {
     // Benchmark each model
     for (model, model_name) in &models {
         println!("=== {} ===", model_name);
-        println!("{:<18} {:>8} {:>8} {:>10}", "Test Case", "TOON", "DX", "Savings");
+        println!(
+            "{:<18} {:>8} {:>8} {:>10}",
+            "Test Case", "TOON", "DX", "Savings"
+        );
         println!("{}", "-".repeat(46));
 
         let mut total_toon = 0usize;
@@ -52,7 +55,10 @@ fn main() {
 
             let savings = ((toon_tokens as f64 - dx_tokens as f64) / toon_tokens as f64) * 100.0;
 
-            println!("{:<18} {:>8} {:>8} {:>9.1}%", label, toon_tokens, dx_tokens, savings);
+            println!(
+                "{:<18} {:>8} {:>8} {:>9.1}%",
+                label, toon_tokens, dx_tokens, savings
+            );
 
             total_toon += toon_tokens;
             total_dx += dx_tokens;
@@ -60,13 +66,19 @@ fn main() {
 
         println!("{}", "-".repeat(46));
         let total_savings = ((total_toon as f64 - total_dx as f64) / total_toon as f64) * 100.0;
-        println!("{:<18} {:>8} {:>8} {:>9.1}%", "TOTAL", total_toon, total_dx, total_savings);
+        println!(
+            "{:<18} {:>8} {:>8} {:>9.1}%",
+            "TOTAL", total_toon, total_dx, total_savings
+        );
         println!();
     }
 
     // Summary table
     println!("=== SUMMARY (All Models) ===\n");
-    println!("{:<12} {:>10} {:>10} {:>10}", "Model", "TOON", "DX", "Savings");
+    println!(
+        "{:<12} {:>10} {:>10} {:>10}",
+        "Model", "TOON", "DX", "Savings"
+    );
     println!("{}", "-".repeat(44));
 
     for (model, model_name) in &models {
@@ -86,7 +98,10 @@ fn main() {
         }
 
         let savings = ((total_toon as f64 - total_dx as f64) / total_toon as f64) * 100.0;
-        println!("{:<12} {:>10} {:>10} {:>9.1}%", model_name, total_toon, total_dx, savings);
+        println!(
+            "{:<12} {:>10} {:>10} {:>9.1}%",
+            model_name, total_toon, total_dx, savings
+        );
     }
 
     // Calculate average across all models

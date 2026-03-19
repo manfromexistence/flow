@@ -10,7 +10,11 @@ fn test_zstd_basic() {
     let decompressed = decompress_zstd(&compressed).expect("decompression failed");
 
     assert_eq!(decompressed, original);
-    println!("Zstd test passed: {} bytes -> {} bytes", original.len(), compressed.len());
+    println!(
+        "Zstd test passed: {} bytes -> {} bytes",
+        original.len(),
+        compressed.len()
+    );
 }
 
 #[cfg(feature = "compression")]

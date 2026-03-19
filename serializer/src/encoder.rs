@@ -371,7 +371,10 @@ mod tests {
         assert!(encoded_str.contains("age:30"));
         // active is aliased to $k0 because it's >= 6 chars
         // Check that either active! or $k0! is present (aliased form)
-        assert!(encoded_str.contains("!"), "Expected boolean true to be encoded with !");
+        assert!(
+            encoded_str.contains("!"),
+            "Expected boolean true to be encoded with !"
+        );
     }
 
     #[test]

@@ -4,7 +4,10 @@ use serializer::{document_to_machine, llm_to_machine, machine_to_document};
 
 fn create_test_data() -> Vec<(&'static str, String)> {
     vec![
-        ("small", "name=John\nage=30\nemail=john@example.com".to_string()),
+        (
+            "small",
+            "name=John\nage=30\nemail=john@example.com".to_string(),
+        ),
         (
             "medium",
             format!(

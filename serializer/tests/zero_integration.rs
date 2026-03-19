@@ -269,7 +269,11 @@ fn test_unicode_strings() {
 
     // All should work with UTF-8
     // Header(4) + 3 slots(48) = 52 minimum
-    assert!(buffer.len() >= 52, "buffer.len() {} should be >= 52", buffer.len());
+    assert!(
+        buffer.len() >= 52,
+        "buffer.len() {} should be >= 52",
+        buffer.len()
+    );
 }
 
 #[test]
@@ -310,4 +314,3 @@ fn test_max_values() {
     // Verify max values stored
     assert_eq!(buffer[4], 255);
 }
-

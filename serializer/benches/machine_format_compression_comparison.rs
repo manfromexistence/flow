@@ -5,7 +5,10 @@ use serializer::machine::serialize;
 
 fn create_test_data() -> Vec<(&'static str, String)> {
     vec![
-        ("small", "name=John\nage=30\nemail=john@example.com".to_string()),
+        (
+            "small",
+            "name=John\nage=30\nemail=john@example.com".to_string(),
+        ),
         (
             "medium",
             format!(

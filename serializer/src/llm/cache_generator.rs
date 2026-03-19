@@ -134,8 +134,12 @@ impl CacheGenerator {
         let relative_str = relative.to_string_lossy().replace('\\', "/");
 
         // Build cache paths
-        let llm_path =
-            self.config.cache_root.join("llm").join(&relative_str).with_extension("dx.llm");
+        let llm_path = self
+            .config
+            .cache_root
+            .join("llm")
+            .join(&relative_str)
+            .with_extension("dx.llm");
 
         let machine_path = self
             .config
@@ -161,7 +165,10 @@ impl CacheGenerator {
         let content = fs::read_to_string(source_path)?;
 
         // Parse to document
-        let doc = self.parser.parse(&content).map_err(|e| CacheError::Parse(e.to_string()))?;
+        let doc = self
+            .parser
+            .parse(&content)
+            .map_err(|e| CacheError::Parse(e.to_string()))?;
 
         // Generate cache files
         self.generate_from_document(&doc, source_path, base_path)
@@ -340,12 +347,15 @@ mod tests {
 
         // Create a simple document
         let mut doc = DxDocument::new();
-        doc.context.insert("nm".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("nm".to_string(), DxLlmValue::Str("Test".to_string()));
 
         let source = Path::new("test.dx");
         let base = Path::new(".");
 
-        let result = generator.generate_from_document(&doc, source, base).unwrap();
+        let result = generator
+            .generate_from_document(&doc, source, base)
+            .unwrap();
 
         assert!(result.llm_generated);
         assert!(result.machine_generated);
@@ -376,12 +386,15 @@ mod tests {
         let generator = CacheGenerator::with_config(config);
 
         let mut doc = DxDocument::new();
-        doc.context.insert("nm".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("nm".to_string(), DxLlmValue::Str("Test".to_string()));
 
         let source = Path::new("test.dx");
         let base = Path::new(".");
 
-        let result = generator.generate_from_document(&doc, source, base).unwrap();
+        let result = generator
+            .generate_from_document(&doc, source, base)
+            .unwrap();
 
         assert!(result.llm_generated);
         assert!(!result.machine_generated);

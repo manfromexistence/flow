@@ -14,12 +14,18 @@ fn main() {
     let mut doc = DxDocument::new();
 
     // Context (simple key-value pairs)
-    doc.context
-        .insert("task".to_string(), DxLlmValue::Str("Our favorite hikes together".to_string()));
-    doc.context
-        .insert("location".to_string(), DxLlmValue::Str("Boulder".to_string()));
-    doc.context
-        .insert("season".to_string(), DxLlmValue::Str("spring_2025".to_string()));
+    doc.context.insert(
+        "task".to_string(),
+        DxLlmValue::Str("Our favorite hikes together".to_string()),
+    );
+    doc.context.insert(
+        "location".to_string(),
+        DxLlmValue::Str("Boulder".to_string()),
+    );
+    doc.context.insert(
+        "season".to_string(),
+        DxLlmValue::Str("spring_2025".to_string()),
+    );
 
     // Array
     doc.context.insert(
@@ -101,9 +107,18 @@ fn main() {
 
     // Create a simple DxValue for binary encoding
     let mut obj = DxObject::new();
-    obj.insert("task".to_string(), DxValue::String("Our favorite hikes together".to_string()));
-    obj.insert("location".to_string(), DxValue::String("Boulder".to_string()));
-    obj.insert("season".to_string(), DxValue::String("spring_2025".to_string()));
+    obj.insert(
+        "task".to_string(),
+        DxValue::String("Our favorite hikes together".to_string()),
+    );
+    obj.insert(
+        "location".to_string(),
+        DxValue::String("Boulder".to_string()),
+    );
+    obj.insert(
+        "season".to_string(),
+        DxValue::String("spring_2025".to_string()),
+    );
     obj.insert(
         "friends".to_string(),
         DxValue::Array(DxArray {

@@ -111,9 +111,13 @@ fn bench_serialize_50(c: &mut Criterion) {
     let mut group = c.benchmark_group("serialize_50");
     group.throughput(Throughput::Elements(50));
 
-    group.bench_function("rkyv", |b| b.iter(|| rkyv_serialize(black_box(&rkyv_items))));
+    group.bench_function("rkyv", |b| {
+        b.iter(|| rkyv_serialize(black_box(&rkyv_items)))
+    });
 
-    group.bench_function("arena", |b| b.iter(|| arena_serialize(black_box(&arena_items))));
+    group.bench_function("arena", |b| {
+        b.iter(|| arena_serialize(black_box(&arena_items)))
+    });
 
     group.finish();
 }
@@ -125,9 +129,13 @@ fn bench_serialize_100(c: &mut Criterion) {
     let mut group = c.benchmark_group("serialize_100");
     group.throughput(Throughput::Elements(100));
 
-    group.bench_function("rkyv", |b| b.iter(|| rkyv_serialize(black_box(&rkyv_items))));
+    group.bench_function("rkyv", |b| {
+        b.iter(|| rkyv_serialize(black_box(&rkyv_items)))
+    });
 
-    group.bench_function("arena", |b| b.iter(|| arena_serialize(black_box(&arena_items))));
+    group.bench_function("arena", |b| {
+        b.iter(|| arena_serialize(black_box(&arena_items)))
+    });
 
     group.finish();
 }
@@ -139,9 +147,13 @@ fn bench_serialize_1k(c: &mut Criterion) {
     let mut group = c.benchmark_group("serialize_1k");
     group.throughput(Throughput::Elements(1000));
 
-    group.bench_function("rkyv", |b| b.iter(|| rkyv_serialize(black_box(&rkyv_items))));
+    group.bench_function("rkyv", |b| {
+        b.iter(|| rkyv_serialize(black_box(&rkyv_items)))
+    });
 
-    group.bench_function("arena", |b| b.iter(|| arena_serialize(black_box(&arena_items))));
+    group.bench_function("arena", |b| {
+        b.iter(|| arena_serialize(black_box(&arena_items)))
+    });
 
     group.finish();
 }
@@ -153,9 +165,13 @@ fn bench_serialize_10k(c: &mut Criterion) {
     let mut group = c.benchmark_group("serialize_10k");
     group.throughput(Throughput::Elements(10_000));
 
-    group.bench_function("rkyv", |b| b.iter(|| rkyv_serialize(black_box(&rkyv_items))));
+    group.bench_function("rkyv", |b| {
+        b.iter(|| rkyv_serialize(black_box(&rkyv_items)))
+    });
 
-    group.bench_function("arena", |b| b.iter(|| arena_serialize(black_box(&arena_items))));
+    group.bench_function("arena", |b| {
+        b.iter(|| arena_serialize(black_box(&arena_items)))
+    });
 
     group.finish();
 }

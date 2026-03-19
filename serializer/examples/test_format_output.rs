@@ -16,9 +16,12 @@ fn main() {
     let mut doc = DxDocument::new();
 
     // Root scalars
+    doc.context.insert(
+        "name".to_string(),
+        DxLlmValue::Str("dx-test-project".to_string()),
+    );
     doc.context
-        .insert("name".to_string(), DxLlmValue::Str("dx-test-project".to_string()));
-    doc.context.insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
+        .insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
     doc.context.insert(
         "description".to_string(),
         DxLlmValue::Str("Testing DX serializer formats".to_string()),
@@ -35,8 +38,11 @@ fn main() {
     );
 
     // Table section
-    let mut section =
-        DxSection::new(vec!["id".to_string(), "name".to_string(), "version".to_string()]);
+    let mut section = DxSection::new(vec![
+        "id".to_string(),
+        "name".to_string(),
+        "version".to_string(),
+    ]);
     section.rows.push(vec![
         DxLlmValue::Num(1.0),
         DxLlmValue::Str("dx-core".to_string()),
@@ -94,7 +100,10 @@ fn main() {
 
     // Create DxValue for binary encoding
     let mut obj = DxObject::new();
-    obj.insert("name".to_string(), DxValue::String("dx-test-project".to_string()));
+    obj.insert(
+        "name".to_string(),
+        DxValue::String("dx-test-project".to_string()),
+    );
     obj.insert("version".to_string(), DxValue::String("1.0.0".to_string()));
     obj.insert(
         "description".to_string(),

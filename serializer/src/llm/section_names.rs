@@ -67,7 +67,10 @@ impl SectionNameDict {
     ///
     /// Returns the original ID if no mapping exists.
     pub fn id_to_name(&self, id: &str) -> String {
-        self.id_to_name.get(id).map(|s| s.to_string()).unwrap_or_else(|| id.to_string())
+        self.id_to_name
+            .get(id)
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| id.to_string())
     }
 
     /// Check if a section name exists in the dictionary

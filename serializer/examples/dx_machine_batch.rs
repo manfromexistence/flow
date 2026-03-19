@@ -62,7 +62,10 @@ fn main() {
     println!("\n--- Batch Serialization (DX-Machine) ---");
     let batch_bytes = serialize_batch(&people).unwrap();
     println!("Serialized {} items", batch_bytes.len());
-    println!("Total size: {} bytes", batch_bytes.iter().map(|b| b.len()).sum::<usize>());
+    println!(
+        "Total size: {} bytes",
+        batch_bytes.iter().map(|b| b.len()).sum::<usize>()
+    );
 
     // SAFETY: We just serialized this data, so it's valid
     let archived_batch = unsafe { deserialize_batch::<Person>(&batch_bytes) };

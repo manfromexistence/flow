@@ -123,12 +123,35 @@ fn test_batch_users_roundtrip() {
     // Verify each user
     for (i, (original, arch)) in users.iter().zip(archived.iter()).enumerate() {
         assert_eq!(arch.id, original.id, "User {} id mismatch", i);
-        assert_eq!(arch.username.as_str(), original.username, "User {} username mismatch", i);
-        assert_eq!(arch.email.as_str(), original.email, "User {} email mismatch", i);
+        assert_eq!(
+            arch.username.as_str(),
+            original.username,
+            "User {} username mismatch",
+            i
+        );
+        assert_eq!(
+            arch.email.as_str(),
+            original.email,
+            "User {} email mismatch",
+            i
+        );
         assert_eq!(arch.age, original.age, "User {} age mismatch", i);
-        assert_eq!(arch.is_active, original.is_active, "User {} is_active mismatch", i);
-        assert_eq!(arch.balance, original.balance, "User {} balance mismatch", i);
-        assert_eq!(arch.tags.len(), original.tags.len(), "User {} tags length mismatch", i);
+        assert_eq!(
+            arch.is_active, original.is_active,
+            "User {} is_active mismatch",
+            i
+        );
+        assert_eq!(
+            arch.balance, original.balance,
+            "User {} balance mismatch",
+            i
+        );
+        assert_eq!(
+            arch.tags.len(),
+            original.tags.len(),
+            "User {} tags length mismatch",
+            i
+        );
     }
 }
 
@@ -196,8 +219,16 @@ fn test_nested_order_roundtrip() {
             "Item {} product_id mismatch",
             i
         );
-        assert_eq!(arch_item.quantity, original_item.quantity, "Item {} quantity mismatch", i);
-        assert_eq!(arch_item.price, original_item.price, "Item {} price mismatch", i);
+        assert_eq!(
+            arch_item.quantity, original_item.quantity,
+            "Item {} quantity mismatch",
+            i
+        );
+        assert_eq!(
+            arch_item.price, original_item.price,
+            "Item {} price mismatch",
+            i
+        );
     }
 }
 

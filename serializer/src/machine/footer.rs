@@ -155,7 +155,10 @@ impl fmt::Debug for DxFooter {
         f.debug_struct("DxFooter")
             .field(
                 "magic",
-                &format!("{:?}", std::str::from_utf8(&self.magic).unwrap_or("<invalid>")),
+                &format!(
+                    "{:?}",
+                    std::str::from_utf8(&self.magic).unwrap_or("<invalid>")
+                ),
             )
             .field("version", &self.version)
             .field("flags", &format!("0b{:08b}", self.flags))
@@ -233,10 +236,18 @@ impl fmt::Display for FooterError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BufferTooSmall => {
-                write!(f, "Buffer too small to contain footer (need {} bytes)", FOOTER_SIZE)
+                write!(
+                    f,
+                    "Buffer too small to contain footer (need {} bytes)",
+                    FOOTER_SIZE
+                )
             }
             Self::InvalidMagic { expected, found } => {
-                write!(f, "Invalid magic bytes: expected {:?}, found {:?}", expected, found)
+                write!(
+                    f,
+                    "Invalid magic bytes: expected {:?}, found {:?}",
+                    expected, found
+                )
             }
             Self::UnsupportedVersion { supported, found } => write!(
                 f,
@@ -296,7 +307,10 @@ mod tests {
 
         // Invalid magic
         let bytes = [0x00, 0x00, 0x00, 0x00, FOOTER_VERSION, 0, 0, 0];
-        assert!(matches!(DxFooter::from_bytes(&bytes), Err(FooterError::InvalidMagic { .. })));
+        assert!(matches!(
+            DxFooter::from_bytes(&bytes),
+            Err(FooterError::InvalidMagic { .. })
+        ));
 
         // Wrong version
         let bytes = [b'D', b'X', b'M', 0x00, 0x99, 0, 0, 0];

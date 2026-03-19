@@ -135,9 +135,12 @@ impl PrettyPrinter {
     /// Validate that the output can be parsed back
     fn validate_output(&self, output: &str, original: &DxDocument) -> Result<(), PrettyPrintError> {
         // Try to parse the output
-        let parsed = self.parser.parse(output).map_err(|e| PrettyPrintError::ValidationFailed {
-            msg: format!("Failed to parse formatted output: {}", e),
-        })?;
+        let parsed = self
+            .parser
+            .parse(output)
+            .map_err(|e| PrettyPrintError::ValidationFailed {
+                msg: format!("Failed to parse formatted output: {}", e),
+            })?;
 
         // Check round-trip consistency if enabled
         if self.config.check_round_trip {
@@ -218,8 +221,11 @@ impl PrettyPrinter {
                 }
 
                 // Check each row
-                for (row_idx, (orig_row, parsed_row)) in
-                    section.rows.iter().zip(parsed_section.rows.iter()).enumerate()
+                for (row_idx, (orig_row, parsed_row)) in section
+                    .rows
+                    .iter()
+                    .zip(parsed_section.rows.iter())
+                    .enumerate()
                 {
                     if orig_row.len() != parsed_row.len() {
                         return Err(PrettyPrintError::RoundTripFailed {
@@ -285,13 +291,16 @@ fn values_equal(a: &crate::llm::types::DxLlmValue, b: &crate::llm::types::DxLlmV
             if arr1.len() != arr2.len() {
                 return false;
             }
-            arr1.iter().zip(arr2.iter()).all(|(v1, v2)| values_equal(v1, v2))
+            arr1.iter()
+                .zip(arr2.iter())
+                .all(|(v1, v2)| values_equal(v1, v2))
         }
         (DxLlmValue::Obj(obj1), DxLlmValue::Obj(obj2)) => {
             if obj1.len() != obj2.len() {
                 return false;
             }
-            obj1.iter().all(|(k, v1)| obj2.get(k).is_some_and(|v2| values_equal(v1, v2)))
+            obj1.iter()
+                .all(|(k, v1)| obj2.get(k).is_some_and(|v2| values_equal(v1, v2)))
         }
         _ => false,
     }
@@ -317,8 +326,10 @@ mod tests {
         let config = PrettyPrinterConfig::new().with_validation(false);
         let printer = PrettyPrinter::with_config(config);
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
-        doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("count".to_string(), DxLlmValue::Num(42.0));
 
         let result = printer.format(&doc);
         assert!(result.is_ok());
@@ -336,12 +347,14 @@ mod tests {
         let mut doc = DxDocument::new();
 
         let mut section = DxSection::new(vec!["id".to_string(), "name".to_string()]);
-        section
-            .rows
-            .push(vec![DxLlmValue::Num(1.0), DxLlmValue::Str("Alpha".to_string())]);
-        section
-            .rows
-            .push(vec![DxLlmValue::Num(2.0), DxLlmValue::Str("Beta".to_string())]);
+        section.rows.push(vec![
+            DxLlmValue::Num(1.0),
+            DxLlmValue::Str("Alpha".to_string()),
+        ]);
+        section.rows.push(vec![
+            DxLlmValue::Num(2.0),
+            DxLlmValue::Str("Beta".to_string()),
+        ]);
         doc.sections.insert('d', section);
 
         let result = printer.format(&doc);
@@ -358,26 +371,35 @@ mod tests {
         let config = PrettyPrinterConfig::new().with_validation(false);
         let printer = PrettyPrinter::with_config(config);
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
-        doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-        doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("count".to_string(), DxLlmValue::Num(42.0));
+        doc.context
+            .insert("active".to_string(), DxLlmValue::Bool(true));
 
         let mut section = DxSection::new(vec!["id".to_string(), "vl".to_string()]);
-        section
-            .rows
-            .push(vec![DxLlmValue::Num(1.0), DxLlmValue::Str("Alpha".to_string())]);
+        section.rows.push(vec![
+            DxLlmValue::Num(1.0),
+            DxLlmValue::Str("Alpha".to_string()),
+        ]);
         doc.sections.insert('d', section);
 
         // Format without validation
         let result = printer.format(&doc);
-        assert!(result.is_ok(), "Pretty printer should succeed: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Pretty printer should succeed: {:?}",
+            result.err()
+        );
     }
 
     #[test]
     fn test_pretty_printer_unchecked() {
         let printer = PrettyPrinter::new();
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
 
         // Unchecked format should always succeed
         let output = printer.format_unchecked(&doc);
@@ -391,7 +413,8 @@ mod tests {
         let printer = PrettyPrinter::with_config(config);
 
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
 
         let result = printer.format(&doc);
         assert!(result.is_ok());
@@ -434,11 +457,20 @@ mod tests {
 
         // Numbers
         assert!(values_equal(&DxLlmValue::Num(42.0), &DxLlmValue::Num(42.0)));
-        assert!(!values_equal(&DxLlmValue::Num(42.0), &DxLlmValue::Num(43.0)));
+        assert!(!values_equal(
+            &DxLlmValue::Num(42.0),
+            &DxLlmValue::Num(43.0)
+        ));
 
         // Booleans
-        assert!(values_equal(&DxLlmValue::Bool(true), &DxLlmValue::Bool(true)));
-        assert!(!values_equal(&DxLlmValue::Bool(true), &DxLlmValue::Bool(false)));
+        assert!(values_equal(
+            &DxLlmValue::Bool(true),
+            &DxLlmValue::Bool(true)
+        ));
+        assert!(!values_equal(
+            &DxLlmValue::Bool(true),
+            &DxLlmValue::Bool(false)
+        ));
 
         // Null
         assert!(values_equal(&DxLlmValue::Null, &DxLlmValue::Null));
@@ -454,7 +486,10 @@ mod tests {
         ));
 
         // Different types
-        assert!(!values_equal(&DxLlmValue::Num(42.0), &DxLlmValue::Str("42".to_string())));
+        assert!(!values_equal(
+            &DxLlmValue::Num(42.0),
+            &DxLlmValue::Str("42".to_string())
+        ));
     }
 }
 

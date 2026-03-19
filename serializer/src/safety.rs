@@ -81,7 +81,11 @@ impl fmt::Display for SafetyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::BufferTooSmall { needed, actual } => {
-                write!(f, "buffer too small: needed {} bytes, got {}", needed, actual)
+                write!(
+                    f,
+                    "buffer too small: needed {} bytes, got {}",
+                    needed, actual
+                )
             }
             Self::Misaligned { needed, actual } => {
                 write!(
@@ -186,7 +190,9 @@ pub fn check_slice_bounds<T>(
     count: usize,
     length: usize,
 ) -> Result<(), SafetyError> {
-    let size = size_of::<T>().checked_mul(count).ok_or(SafetyError::Overflow)?;
+    let size = size_of::<T>()
+        .checked_mul(count)
+        .ok_or(SafetyError::Overflow)?;
     check_bounds(offset, size, length)
 }
 
@@ -362,7 +368,10 @@ mod tests {
 
     #[test]
     fn test_check_bounds_overflow() {
-        assert!(matches!(check_bounds(usize::MAX, 1, 100), Err(SafetyError::Overflow)));
+        assert!(matches!(
+            check_bounds(usize::MAX, 1, 100),
+            Err(SafetyError::Overflow)
+        ));
     }
 
     #[test]
@@ -423,7 +432,10 @@ mod tests {
             needed: 8,
             actual: 3,
         };
-        assert_eq!(err.to_string(), "pointer misaligned: needed 8 byte alignment, offset is 3");
+        assert_eq!(
+            err.to_string(),
+            "pointer misaligned: needed 8 byte alignment, offset is 3"
+        );
 
         let err = SafetyError::OffsetOutOfBounds {
             offset: 10,

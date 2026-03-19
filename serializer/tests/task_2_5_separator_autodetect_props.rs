@@ -520,7 +520,11 @@ mod unit_tests {
         let doc = LlmParser::parse(input).unwrap();
 
         let section = doc.sections.values().next().unwrap();
-        assert_eq!(section.rows.len(), 3, "Should detect comma separator and parse 3 rows");
+        assert_eq!(
+            section.rows.len(),
+            3,
+            "Should detect comma separator and parse 3 rows"
+        );
     }
 
     #[test]
@@ -529,7 +533,11 @@ mod unit_tests {
         let doc = LlmParser::parse(input).unwrap();
 
         let section = doc.sections.values().next().unwrap();
-        assert_eq!(section.rows.len(), 2, "Should detect semicolon separator and parse 2 rows");
+        assert_eq!(
+            section.rows.len(),
+            2,
+            "Should detect semicolon separator and parse 2 rows"
+        );
     }
 
     #[test]
@@ -538,7 +546,11 @@ mod unit_tests {
         let doc = LlmParser::parse(input).unwrap();
 
         let section = doc.sections.values().next().unwrap();
-        assert_eq!(section.rows.len(), 2, "Should detect colon separator and parse 2 rows");
+        assert_eq!(
+            section.rows.len(),
+            2,
+            "Should detect colon separator and parse 2 rows"
+        );
     }
 
     #[test]
@@ -547,7 +559,11 @@ mod unit_tests {
         let doc = LlmParser::parse(input).unwrap();
 
         let section = doc.sections.values().next().unwrap();
-        assert_eq!(section.rows.len(), 3, "Should detect newline separator and parse 3 rows");
+        assert_eq!(
+            section.rows.len(),
+            3,
+            "Should detect newline separator and parse 3 rows"
+        );
     }
 
     #[test]
@@ -559,7 +575,11 @@ mod unit_tests {
         assert_eq!(doc.sections.len(), 2, "Should parse both tables");
 
         let sections: Vec<_> = doc.sections.values().collect();
-        assert_eq!(sections[0].rows.len(), 2, "First table should have 2 rows (comma separator)");
+        assert_eq!(
+            sections[0].rows.len(),
+            2,
+            "First table should have 2 rows (comma separator)"
+        );
         assert_eq!(
             sections[1].rows.len(),
             2,
@@ -607,6 +627,10 @@ mod unit_tests {
         let doc = LlmParser::parse(input).unwrap();
 
         let section = doc.sections.values().next().unwrap();
-        assert_eq!(section.rows.len(), 2, "Should detect comma as row separator");
+        assert_eq!(
+            section.rows.len(),
+            2,
+            "Should detect comma as row separator"
+        );
     }
 }

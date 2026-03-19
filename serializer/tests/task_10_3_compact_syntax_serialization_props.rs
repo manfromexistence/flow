@@ -6,9 +6,9 @@
 //! For any object marked for compact serialization, the serializer should output
 //! the format `section:count@=[key value key value]`.
 
+use indexmap::IndexMap;
 use proptest::prelude::*;
 use serializer::llm::{DxDocument, DxLlmValue, LlmSerializer, SerializerConfig};
-use indexmap::IndexMap;
 
 /// Generate an arbitrary object with simple values
 fn arb_simple_object() -> impl Strategy<Value = IndexMap<String, DxLlmValue>> {
@@ -20,7 +20,8 @@ fn arb_simple_object() -> impl Strategy<Value = IndexMap<String, DxLlmValue>> {
             "[a-zA-Z0-9]{1,10}".prop_map(|s| DxLlmValue::Str(s)),
         ],
         1..5,
-    ).prop_map(|hm| hm.into_iter().collect())
+    )
+    .prop_map(|hm| hm.into_iter().collect())
 }
 
 proptest! {

@@ -122,7 +122,10 @@ fn bench_compression_ratios(c: &mut Criterion) {
             uncompressed.data.len(),
             compressed.data.len()
         );
-        println!("  Compression ratio: {:.1}% | Space savings: {:.1}%", ratio, savings);
+        println!(
+            "  Compression ratio: {:.1}% | Space savings: {:.1}%",
+            ratio, savings
+        );
     }
     println!("==============================\n");
 }

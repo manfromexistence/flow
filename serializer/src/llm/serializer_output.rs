@@ -305,7 +305,10 @@ mod tests {
         let paths = output.get_paths(Path::new("rules/javascript-lint.sr"));
 
         assert_eq!(paths.llm.file_name().unwrap(), "javascript-lint.llm");
-        assert_eq!(paths.machine.file_name().unwrap(), "javascript-lint.machine");
+        assert_eq!(
+            paths.machine.file_name().unwrap(),
+            "javascript-lint.machine"
+        );
     }
 
     #[test]

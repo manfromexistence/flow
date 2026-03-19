@@ -20,10 +20,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a document with the simplified API
     println!("1. Creating a DxDocument");
     let mut doc = DxDocument::new();
-    doc.context.insert("name".to_string(), DxLlmValue::Str("MyApp".to_string()));
-    doc.context.insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
-    doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-    doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+    doc.context
+        .insert("name".to_string(), DxLlmValue::Str("MyApp".to_string()));
+    doc.context
+        .insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
+    doc.context
+        .insert("count".to_string(), DxLlmValue::Num(42.0));
+    doc.context
+        .insert("active".to_string(), DxLlmValue::Bool(true));
     println!("   Created document with {} fields", doc.context.len());
 
     // Serialize to LLM format (text)
@@ -55,7 +59,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let DxValue::Object(obj) = &data {
         println!("   Name: {}", obj.get("name").unwrap().as_str().unwrap());
         println!("   Age: {}", obj.get("age").unwrap().as_int().unwrap());
-        println!("   Active: {}", obj.get("active").unwrap().as_bool().unwrap());
+        println!(
+            "   Active: {}",
+            obj.get("active").unwrap().as_bool().unwrap()
+        );
     }
 
     // Parse arrays with stream operator

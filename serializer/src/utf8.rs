@@ -98,7 +98,10 @@ pub fn validate_utf8_detailed(bytes: &[u8]) -> std::result::Result<&str, Utf8Val
             return Err(Utf8ValidationError::new(
                 i,
                 Some(byte),
-                format!("Unexpected continuation byte 0x{:02X} at position {}", byte, i),
+                format!(
+                    "Unexpected continuation byte 0x{:02X} at position {}",
+                    byte, i
+                ),
             ));
         } else {
             // Invalid start byte
@@ -172,7 +175,10 @@ pub fn validate_utf8_detailed(bytes: &[u8]) -> std::result::Result<&str, Utf8Val
                 return Err(Utf8ValidationError::new(
                     i,
                     Some(byte),
-                    format!("Invalid surrogate code point U+{:04X} at position {}", code_point, i),
+                    format!(
+                        "Invalid surrogate code point U+{:04X} at position {}",
+                        code_point, i
+                    ),
                 ));
             }
         } else if seq_len == 4 {

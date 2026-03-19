@@ -314,7 +314,10 @@ mod tests {
         let data = b"123456789012345"; // 15 bytes (too large)
         let result = DxMachineSlot::inline_from_bytes(data);
 
-        assert!(matches!(result, Err(SlotError::DataTooLarge { size: 15, max: 14 })));
+        assert!(matches!(
+            result,
+            Err(SlotError::DataTooLarge { size: 15, max: 14 })
+        ));
     }
 
     #[test]

@@ -412,7 +412,11 @@ impl DxSerializer {
                 format!("Unclosed bracket '{}'", ch),
                 line,
                 col,
-                format!("Add a closing '{}' to match the opening '{}'", matching_close(ch), ch),
+                format!(
+                    "Add a closing '{}' to match the opening '{}'",
+                    matching_close(ch),
+                    ch
+                ),
             );
         }
 
@@ -627,8 +631,14 @@ pub fn count_tokens_all(text: &str) -> AllTokenCountsResult {
 
     AllTokenCountsResult {
         gpt4o: counts.get(&ModelType::Gpt4o).map(|i| i.count).unwrap_or(0),
-        claude: counts.get(&ModelType::ClaudeSonnet4).map(|i| i.count).unwrap_or(0),
-        gemini: counts.get(&ModelType::Gemini3).map(|i| i.count).unwrap_or(0),
+        claude: counts
+            .get(&ModelType::ClaudeSonnet4)
+            .map(|i| i.count)
+            .unwrap_or(0),
+        gemini: counts
+            .get(&ModelType::Gemini3)
+            .map(|i| i.count)
+            .unwrap_or(0),
         other: counts.get(&ModelType::Other).map(|i| i.count).unwrap_or(0),
     }
 }
@@ -805,7 +815,11 @@ fn dx_value_to_yaml_impl(
                 || s.ends_with(' ')
             {
                 output.push('"');
-                output.push_str(&s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n"));
+                output.push_str(
+                    &s.replace('\\', "\\\\")
+                        .replace('"', "\\\"")
+                        .replace('\n', "\\n"),
+                );
                 output.push('"');
             } else {
                 output.push_str(s);
@@ -877,7 +891,10 @@ fn dx_value_to_toml(value: &DxValue) -> Result<String, String> {
         DxValue::Object(obj) => {
             // First pass: simple key-value pairs
             for (k, v) in obj.iter() {
-                if !matches!(v, DxValue::Object(_) | DxValue::Array(_) | DxValue::Table(_)) {
+                if !matches!(
+                    v,
+                    DxValue::Object(_) | DxValue::Array(_) | DxValue::Table(_)
+                ) {
                     output.push_str(k);
                     output.push_str(" = ");
                     dx_value_to_toml_value(v, &mut output)?;
@@ -1076,7 +1093,10 @@ mod tests {
     #[test]
     fn test_smart_quote_both() {
         // Strings with both should escape double quotes
-        assert_eq!(smart_quote("don't say \"hello\""), "\"don't say \\\"hello\\\"\"");
+        assert_eq!(
+            smart_quote("don't say \"hello\""),
+            "\"don't say \\\"hello\\\"\""
+        );
     }
 
     #[test]
@@ -1198,7 +1218,9 @@ mod property_tests {
             prop::collection::vec(valid_abbrev_key(), 2..4), // schema columns
             prop::collection::vec(simple_value(), 2..4),  // row values
         )
-            .prop_filter("schema and row same length", |(_, schema, row)| schema.len() == row.len())
+            .prop_filter("schema and row same length", |(_, schema, row)| {
+                schema.len() == row.len()
+            })
             .prop_map(|(id, schema, row)| {
                 let schema_str = schema.join("|");
                 let row_str = row.join("|");

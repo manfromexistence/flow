@@ -458,10 +458,14 @@ active:+";
     fn test_serialize_deserialize_convenience() {
         // Test the simplified API
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
-        doc.context.insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
-        doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-        doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
+        doc.context
+            .insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
+        doc.context
+            .insert("count".to_string(), DxLlmValue::Num(42.0));
+        doc.context
+            .insert("active".to_string(), DxLlmValue::Bool(true));
 
         // Serialize
         let text = serialize(&doc);

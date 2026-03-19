@@ -9,14 +9,19 @@ fn create_test_document(size: &str) -> DxDocument {
 
     match size {
         "small" => {
-            doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
-            doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-            doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+            doc.context
+                .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+            doc.context
+                .insert("count".to_string(), DxLlmValue::Num(42.0));
+            doc.context
+                .insert("active".to_string(), DxLlmValue::Bool(true));
         }
         "medium" => {
             for i in 0..50 {
-                doc.context
-                    .insert(format!("field_{}", i), DxLlmValue::Str(format!("value_{}", i)));
+                doc.context.insert(
+                    format!("field_{}", i),
+                    DxLlmValue::Str(format!("value_{}", i)),
+                );
             }
         }
         "large" => {

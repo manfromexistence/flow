@@ -90,7 +90,11 @@ fn main() {
         let dir = Path::new(&input_path);
         match serializer.process_directory(dir) {
             Ok(results) => {
-                println!("Processed {} files (compression: {}):", results.len(), compression_name);
+                println!(
+                    "Processed {} files (compression: {}):",
+                    results.len(),
+                    compression_name
+                );
                 for result in results {
                     println!(
                         "  {} -> {}",
@@ -115,7 +119,11 @@ fn main() {
                     source.display(),
                     compression_name
                 );
-                println!("  LLM:     {} ({} bytes)", result.paths.llm.display(), result.llm_size);
+                println!(
+                    "  LLM:     {} ({} bytes)",
+                    result.paths.llm.display(),
+                    result.llm_size
+                );
                 println!(
                     "  Machine: {} ({} bytes)",
                     result.paths.machine.display(),

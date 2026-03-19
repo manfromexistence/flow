@@ -648,7 +648,11 @@ mod tests {
         for (&abbrev, &full) in dict.global_mappings() {
             let compressed = dict.compress(full);
             let expanded = dict.expand(&compressed, "");
-            assert_eq!(expanded, full, "Round-trip failed for {} -> {}", abbrev, full);
+            assert_eq!(
+                expanded, full,
+                "Round-trip failed for {} -> {}",
+                abbrev, full
+            );
         }
     }
 
@@ -715,6 +719,10 @@ mod tests {
         let avg = dict.average_compression_ratio();
 
         // Average should be significantly less than 1.0 (good compression)
-        assert!(avg < 0.6, "Expected average compression ratio < 0.6, got {}", avg);
+        assert!(
+            avg < 0.6,
+            "Expected average compression ratio < 0.6, got {}",
+            avg
+        );
     }
 }

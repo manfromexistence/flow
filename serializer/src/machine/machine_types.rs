@@ -67,7 +67,9 @@ impl From<&crate::llm::types::DxDocument> for MachineDocument {
                     .rows
                     .iter()
                     .map(|row| {
-                        row.iter().map(|cell| add_value_to_arena(cell, &mut value_arena)).collect()
+                        row.iter()
+                            .map(|cell| add_value_to_arena(cell, &mut value_arena))
+                            .collect()
                     })
                     .collect();
                 (*k, MachineSection { schema, rows })
@@ -76,9 +78,17 @@ impl From<&crate::llm::types::DxDocument> for MachineDocument {
 
         Self {
             context,
-            refs: doc.refs.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
+            refs: doc
+                .refs
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
             sections,
-            section_names: doc.section_names.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            section_names: doc
+                .section_names
+                .iter()
+                .map(|(k, v)| (*k, v.clone()))
+                .collect(),
             entry_order: doc
                 .entry_order
                 .iter()
@@ -102,13 +112,17 @@ fn add_value_to_arena(v: &crate::llm::types::DxLlmValue, arena: &mut Vec<Machine
         DxLlmValue::Bool(b) => arena.push(MachineValue::Bool(*b)),
         DxLlmValue::Null => arena.push(MachineValue::Null),
         DxLlmValue::Arr(items) => {
-            let indices: Vec<usize> =
-                items.iter().map(|item| add_value_to_arena(item, arena)).collect();
+            let indices: Vec<usize> = items
+                .iter()
+                .map(|item| add_value_to_arena(item, arena))
+                .collect();
             arena.push(MachineValue::Arr(indices));
         }
         DxLlmValue::Obj(fields) => {
-            let pairs: Vec<(String, usize)> =
-                fields.iter().map(|(k, v)| (k.clone(), add_value_to_arena(v, arena))).collect();
+            let pairs: Vec<(String, usize)> = fields
+                .iter()
+                .map(|(k, v)| (k.clone(), add_value_to_arena(v, arena)))
+                .collect();
             arena.push(MachineValue::Obj(pairs));
         }
         DxLlmValue::Ref(r) => arena.push(MachineValue::Ref(r.clone())),
@@ -143,7 +157,11 @@ impl From<&MachineDocument> for crate::llm::types::DxDocument {
             doc.sections.insert(*k, dx_section);
         }
 
-        doc.section_names = m.section_names.iter().map(|(k, v)| (*k, v.clone())).collect();
+        doc.section_names = m
+            .section_names
+            .iter()
+            .map(|(k, v)| (*k, v.clone()))
+            .collect();
         doc.entry_order = m
             .entry_order
             .iter()
@@ -166,8 +184,10 @@ fn get_value_from_arena(idx: usize, arena: &[MachineValue]) -> crate::llm::types
         MachineValue::Bool(b) => DxLlmValue::Bool(*b),
         MachineValue::Null => DxLlmValue::Null,
         MachineValue::Arr(indices) => {
-            let items: Vec<DxLlmValue> =
-                indices.iter().map(|i| get_value_from_arena(*i, arena)).collect();
+            let items: Vec<DxLlmValue> = indices
+                .iter()
+                .map(|i| get_value_from_arena(*i, arena))
+                .collect();
             DxLlmValue::Arr(items)
         }
         MachineValue::Obj(pairs) => {

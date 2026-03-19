@@ -43,7 +43,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create data to encode
     let mut obj = DxObject::new();
-    obj.insert("project".to_string(), DxValue::String("LargeData".to_string()));
+    obj.insert(
+        "project".to_string(),
+        DxValue::String("LargeData".to_string()),
+    );
     obj.insert("records".to_string(), DxValue::Int(50000));
     obj.insert("compressed".to_string(), DxValue::Bool(true));
     let value = DxValue::Object(obj);
@@ -89,7 +92,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let parse_elapsed = start.elapsed();
 
     if let DxValue::Object(obj) = &parsed {
-        println!("   Parsed {} fields in {:?}", obj.fields.len(), parse_elapsed);
+        println!(
+            "   Parsed {} fields in {:?}",
+            obj.fields.len(),
+            parse_elapsed
+        );
         println!(
             "   Throughput: {:.2} MB/s",
             (kv_data.len() as f64 / 1_000_000.0) / parse_elapsed.as_secs_f64()
@@ -112,8 +119,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut doc = DxDocument::new();
 
     // Add metadata
-    doc.context.insert("type".to_string(), DxLlmValue::Str("batch".to_string()));
-    doc.context.insert("version".to_string(), DxLlmValue::Str("1.0".to_string()));
+    doc.context
+        .insert("type".to_string(), DxLlmValue::Str("batch".to_string()));
+    doc.context
+        .insert("version".to_string(), DxLlmValue::Str("1.0".to_string()));
 
     // Add many items incrementally
     let item_count = 1000;
@@ -123,14 +132,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let build_elapsed = start.elapsed();
-    println!("   Built document with {} fields in {:?}", doc.context.len(), build_elapsed);
+    println!(
+        "   Built document with {} fields in {:?}",
+        doc.context.len(),
+        build_elapsed
+    );
 
     // Serialize the large document
     let start = Instant::now();
     let serialized = serializer::serialize(&doc);
     let serialize_elapsed = start.elapsed();
 
-    println!("   Serialized to {} bytes in {:?}", serialized.len(), serialize_elapsed);
+    println!(
+        "   Serialized to {} bytes in {:?}",
+        serialized.len(),
+        serialize_elapsed
+    );
 
     // =========================================================================
     // Part 5: Buffered File I/O Pattern
@@ -141,7 +158,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create sample data
     let mut data = DxObject::new();
-    data.insert("config".to_string(), DxValue::String("production".to_string()));
+    data.insert(
+        "config".to_string(),
+        DxValue::String("production".to_string()),
+    );
     data.insert("workers".to_string(), DxValue::Int(8));
     data.insert("timeout".to_string(), DxValue::Int(30000));
     let value = DxValue::Object(data);
@@ -160,7 +180,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let reader = BufReader::new(Cursor::new(&output_buffer));
     let reparsed = parse_stream(reader)?;
 
-    println!("   Buffered read: round-trip successful = {}", value == reparsed);
+    println!(
+        "   Buffered read: round-trip successful = {}",
+        value == reparsed
+    );
 
     // =========================================================================
     // Part 6: Streaming with Real Files (Optional)
@@ -178,7 +201,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = BufWriter::new(file);
 
         let mut obj = DxObject::new();
-        obj.insert("source".to_string(), DxValue::String("file_example".to_string()));
+        obj.insert(
+            "source".to_string(),
+            DxValue::String("file_example".to_string()),
+        );
         obj.insert("timestamp".to_string(), DxValue::Int(1234567890));
         let value = DxValue::Object(obj);
 

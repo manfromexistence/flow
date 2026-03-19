@@ -73,8 +73,12 @@ impl HumanFormatter {
     fn write_header(&mut self) {
         let line = "─".repeat(70);
         writeln!(self.output, "┌{}┐", line).unwrap();
-        writeln!(self.output, "│  DX HUMAN VIEW  •  Enhanced Readability Mode{}│", " ".repeat(31))
-            .unwrap();
+        writeln!(
+            self.output,
+            "│  DX HUMAN VIEW  •  Enhanced Readability Mode{}│",
+            " ".repeat(31)
+        )
+        .unwrap();
         writeln!(self.output, "└{}┘", line).unwrap();
         writeln!(self.output).unwrap();
     }

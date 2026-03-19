@@ -70,7 +70,10 @@ fn main() {
     println!("├─────────────────────┼──────────┼──────────┼──────────┼──────────┤");
 
     for (name, bytes, chars, gpt4o, claude) in &results {
-        println!("│ {:<19} │ {:>8} │ {:>8} │ {:>8} │ {:>8} │", name, bytes, chars, gpt4o, claude);
+        println!(
+            "│ {:<19} │ {:>8} │ {:>8} │ {:>8} │ {:>8} │",
+            name, bytes, chars, gpt4o, claude
+        );
     }
     println!("└─────────────────────┴──────────┴──────────┴──────────┴──────────┘\n");
 
@@ -104,7 +107,10 @@ fn main() {
             "Equal".to_string()
         };
 
-        println!("│ {:<19} │ {:>14} │ {:>14} │", name, gpt4o_savings, claude_savings);
+        println!(
+            "│ {:<19} │ {:>14} │ {:>14} │",
+            name, gpt4o_savings, claude_savings
+        );
     }
     println!("└─────────────────────┴────────────────┴────────────────┘\n");
 
@@ -123,10 +129,22 @@ fn main() {
     let yaml_gpt4o_savings = ((yaml_result.3 - dx_gpt4o) as f64 / yaml_result.3 as f64) * 100.0;
     let toml_gpt4o_savings = ((toml_result.3 - dx_gpt4o) as f64 / toml_result.3 as f64) * 100.0;
 
-    println!("DX vs JSON:     {:.1}% fewer tokens (GPT-4o)", json_gpt4o_savings);
-    println!("DX vs TOON:     {:.1}% fewer tokens (GPT-4o)", toon_gpt4o_savings);
-    println!("DX vs YAML:     {:.1}% fewer tokens (GPT-4o)", yaml_gpt4o_savings);
-    println!("DX vs TOML:     {:.1}% fewer tokens (GPT-4o)", toml_gpt4o_savings);
+    println!(
+        "DX vs JSON:     {:.1}% fewer tokens (GPT-4o)",
+        json_gpt4o_savings
+    );
+    println!(
+        "DX vs TOON:     {:.1}% fewer tokens (GPT-4o)",
+        toon_gpt4o_savings
+    );
+    println!(
+        "DX vs YAML:     {:.1}% fewer tokens (GPT-4o)",
+        yaml_gpt4o_savings
+    );
+    println!(
+        "DX vs TOML:     {:.1}% fewer tokens (GPT-4o)",
+        toml_gpt4o_savings
+    );
     println!();
 
     // Winner announcement

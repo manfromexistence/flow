@@ -31,7 +31,10 @@ impl TypeHint {
             b'b' => Ok(TypeHint::Bool),
             b'x' => Ok(TypeHint::Base62),
             b'#' => Ok(TypeHint::AutoIncrement),
-            _ => Err(DxError::InvalidTypeHint(format!("Unknown type hint: {}", b as char))),
+            _ => Err(DxError::InvalidTypeHint(format!(
+                "Unknown type hint: {}",
+                b as char
+            ))),
         }
     }
 
@@ -140,7 +143,9 @@ impl Schema {
         }
 
         if schema.columns.is_empty() {
-            return Err(DxError::SchemaError("Schema must have at least one column".to_string()));
+            return Err(DxError::SchemaError(
+                "Schema must have at least one column".to_string(),
+            ));
         }
 
         Ok(schema)

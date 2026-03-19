@@ -838,7 +838,10 @@ $c.task:Mission";
 
         let result = parse(input).unwrap();
         if let DxValue::Object(obj) = result {
-            assert_eq!(obj.get("context.task"), Some(&DxValue::String("Mission".to_string())));
+            assert_eq!(
+                obj.get("context.task"),
+                Some(&DxValue::String("Mission".to_string()))
+            );
         }
     }
 
@@ -881,7 +884,10 @@ _ Bob";
         let result = parse(b"");
         assert!(result.is_ok(), "Empty input should parse successfully");
         if let Ok(DxValue::Object(obj)) = result {
-            assert!(obj.fields.is_empty(), "Empty input should produce empty object");
+            assert!(
+                obj.fields.is_empty(),
+                "Empty input should produce empty object"
+            );
         }
     }
 
@@ -927,13 +933,17 @@ _ Bob";
             })
             .collect();
 
-        let results: Vec<_> =
-            handles.into_iter().map(|h| h.join().expect("Thread panicked")).collect();
+        let results: Vec<_> = handles
+            .into_iter()
+            .map(|h| h.join().expect("Thread panicked"))
+            .collect();
 
         // All results should be identical
         let first = results[0].as_ref().expect("First parse failed");
         for (i, result) in results.iter().enumerate().skip(1) {
-            let value = result.as_ref().unwrap_or_else(|_| panic!("Parse {} failed", i));
+            let value = result
+                .as_ref()
+                .unwrap_or_else(|_| panic!("Parse {} failed", i));
             assert_eq!(first, value, "Thread {} produced different result", i);
         }
     }

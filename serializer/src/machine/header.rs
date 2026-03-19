@@ -177,7 +177,10 @@ impl Default for DxMachineHeader {
 impl fmt::Debug for DxMachineHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("DxMachineHeader")
-            .field("magic", &format!("0x{:02X} 0x{:02X}", self.magic[0], self.magic[1]))
+            .field(
+                "magic",
+                &format!("0x{:02X} 0x{:02X}", self.magic[0], self.magic[1]),
+            )
             .field("version", &self.version)
             .field("flags", &format!("0b{:08b}", self.flags))
             .field("has_heap", &self.has_heap())
@@ -207,7 +210,11 @@ impl fmt::Display for HeaderError {
         match self {
             Self::BufferTooSmall => write!(f, "Buffer too small to contain header (need 4 bytes)"),
             Self::InvalidMagic { expected, found } => {
-                write!(f, "Invalid magic bytes: expected {:02X?}, found {:02X?}", expected, found)
+                write!(
+                    f,
+                    "Invalid magic bytes: expected {:02X?}, found {:02X?}",
+                    expected, found
+                )
             }
             Self::UnsupportedVersion { supported, found } => write!(
                 f,

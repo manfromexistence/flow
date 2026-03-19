@@ -328,7 +328,9 @@ impl SerializerBuilder {
 
         // Build output config
         let output_config = SerializerOutputConfig {
-            output_dir: self.output_dir.unwrap_or_else(|| PathBuf::from(".dx/serializer")),
+            output_dir: self
+                .output_dir
+                .unwrap_or_else(|| PathBuf::from(".dx/serializer")),
             generate_llm: self.generate_llm,
             generate_machine: self.generate_machine,
             compression: crate::llm::convert::CompressionAlgorithm::default(),
@@ -521,8 +523,10 @@ mod tests {
     #[test]
     fn test_serializer_basic_usage() {
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
-        doc.context.insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
+        doc.context
+            .insert("version".to_string(), DxLlmValue::Str("1.0.0".to_string()));
 
         let serializer = SerializerBuilder::new().build();
 
@@ -540,7 +544,8 @@ mod tests {
     #[test]
     fn test_serializer_human_format() {
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
         doc.context.insert(
             "editor".to_string(),
             DxLlmValue::Arr(vec![
@@ -559,7 +564,8 @@ mod tests {
     #[test]
     fn test_serializer_compact_format() {
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("TestApp".to_string()));
         doc.context.insert(
             "editor".to_string(),
             DxLlmValue::Arr(vec![
@@ -571,7 +577,10 @@ mod tests {
         let serializer = SerializerBuilder::new().for_compact().build();
 
         let human_text = serializer.format_human_unchecked(&doc);
-        assert!(!human_text.is_empty(), "Compact format should produce output");
+        assert!(
+            !human_text.is_empty(),
+            "Compact format should produce output"
+        );
     }
 
     #[test]
@@ -579,12 +588,14 @@ mod tests {
         let mut doc = DxDocument::new();
 
         let mut section = DxSection::new(vec!["id".to_string(), "name".to_string()]);
-        section
-            .rows
-            .push(vec![DxLlmValue::Num(1.0), DxLlmValue::Str("Alpha".to_string())]);
-        section
-            .rows
-            .push(vec![DxLlmValue::Num(2.0), DxLlmValue::Str("Beta".to_string())]);
+        section.rows.push(vec![
+            DxLlmValue::Num(1.0),
+            DxLlmValue::Str("Alpha".to_string()),
+        ]);
+        section.rows.push(vec![
+            DxLlmValue::Num(2.0),
+            DxLlmValue::Str("Beta".to_string()),
+        ]);
         doc.sections.insert('d', section);
 
         let serializer = SerializerBuilder::new().for_tables().build();

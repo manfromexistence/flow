@@ -246,7 +246,10 @@ pub fn human_to_machine(human_input: &str) -> Result<MachineFormat, ConvertError
 pub fn human_to_machine_uncompressed(human_input: &str) -> Result<MachineFormat, ConvertError> {
     let parser = HumanParser::new();
     let doc = parser.parse(human_input)?;
-    Ok(document_to_machine_with_compression(&doc, CompressionAlgorithm::None))
+    Ok(document_to_machine_with_compression(
+        &doc,
+        CompressionAlgorithm::None,
+    ))
 }
 
 /// Convert Human format to Machine format with specific compression
@@ -329,7 +332,7 @@ pub fn machine_to_document(machine: &MachineFormat) -> Result<DxDocument, Conver
     let doc_data = {
         // Check cache first - use a scope to drop the borrow before potentially borrowing mutably
         let has_cached = machine.cached.borrow().is_some();
-        
+
         if has_cached {
             machine.cached.borrow().as_ref().unwrap().clone()
         } else {
@@ -420,16 +423,25 @@ mod tests {
     #[test]
     fn test_machine_format_round_trip() {
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
-        doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-        doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("Test".to_string()));
+        doc.context
+            .insert("count".to_string(), DxLlmValue::Num(42.0));
+        doc.context
+            .insert("active".to_string(), DxLlmValue::Bool(true));
 
         let machine = document_to_machine(&doc);
         let round_trip_doc = machine_to_document(&machine).unwrap();
 
         assert_eq!(doc.context.len(), round_trip_doc.context.len());
-        assert_eq!(round_trip_doc.context.get("name").unwrap().as_str(), Some("Test"));
-        assert_eq!(round_trip_doc.context.get("count").unwrap().as_num(), Some(42.0));
+        assert_eq!(
+            round_trip_doc.context.get("name").unwrap().as_str(),
+            Some("Test")
+        );
+        assert_eq!(
+            round_trip_doc.context.get("count").unwrap().as_num(),
+            Some(42.0)
+        );
     }
 
     #[test]

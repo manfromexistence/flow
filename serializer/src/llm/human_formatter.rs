@@ -163,8 +163,11 @@ impl HumanFormatter {
 
             for id in section_ids {
                 if let Some(section) = doc.sections.get(id) {
-                    let section_name =
-                        doc.section_names.get(id).cloned().unwrap_or_else(|| id.to_string());
+                    let section_name = doc
+                        .section_names
+                        .get(id)
+                        .cloned()
+                        .unwrap_or_else(|| id.to_string());
 
                     let section_output = if self.is_tabular_section(section) {
                         self.format_tabular_section_multi_row(&section_name, section)
@@ -405,10 +408,14 @@ mod tests {
     fn test_format_scalar_values() {
         let formatter = HumanFormatter::new();
         let mut doc = DxDocument::new();
-        doc.context.insert("name".to_string(), DxLlmValue::Str("dx".to_string()));
-        doc.context.insert("version".to_string(), DxLlmValue::Str("0.0.1".to_string()));
-        doc.context.insert("count".to_string(), DxLlmValue::Num(42.0));
-        doc.context.insert("active".to_string(), DxLlmValue::Bool(true));
+        doc.context
+            .insert("name".to_string(), DxLlmValue::Str("dx".to_string()));
+        doc.context
+            .insert("version".to_string(), DxLlmValue::Str("0.0.1".to_string()));
+        doc.context
+            .insert("count".to_string(), DxLlmValue::Num(42.0));
+        doc.context
+            .insert("active".to_string(), DxLlmValue::Bool(true));
 
         let output = formatter.format(&doc);
         assert!(output.contains("name"));

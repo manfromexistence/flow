@@ -63,7 +63,10 @@ fn size_comparison() {
     if machine_bytes.len() < rkyv_bytes.len() {
         let diff = rkyv_bytes.len() - machine_bytes.len();
         let pct = (diff as f64 / rkyv_bytes.len() as f64) * 100.0;
-        println!("  ✅ Machine WINS by {} bytes ({:.1}% smaller)\n", diff, pct);
+        println!(
+            "  ✅ Machine WINS by {} bytes ({:.1}% smaller)\n",
+            diff, pct
+        );
     } else if machine_bytes.len() > rkyv_bytes.len() {
         let diff = machine_bytes.len() - rkyv_bytes.len();
         let pct = (diff as f64 / machine_bytes.len() as f64) * 100.0;

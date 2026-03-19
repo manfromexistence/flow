@@ -199,7 +199,10 @@ impl TableWrapper {
             .iter()
             .enumerate()
             .map(|(i, content)| {
-                let max_width = col_widths.get(i).copied().unwrap_or(self.config.min_col_width);
+                let max_width = col_widths
+                    .get(i)
+                    .copied()
+                    .unwrap_or(self.config.min_col_width);
                 self.wrap_cell(content, max_width)
             })
             .collect();
@@ -213,7 +216,10 @@ impl TableWrapper {
             let mut line_cells = Vec::new();
             for (col_idx, wrapped) in wrapped_cells.iter().enumerate() {
                 let cell_content = wrapped.get(line_idx).cloned().unwrap_or_default();
-                let width = col_widths.get(col_idx).copied().unwrap_or(self.config.min_col_width);
+                let width = col_widths
+                    .get(col_idx)
+                    .copied()
+                    .unwrap_or(self.config.min_col_width);
 
                 // Pad to width
                 let padding = width.saturating_sub(cell_content.chars().count());
@@ -307,7 +313,9 @@ mod tests {
 
     #[test]
     fn test_calculate_widths_with_shrink() {
-        let config = TableWrapperConfig::new().with_max_width(50).with_min_col_width(3);
+        let config = TableWrapperConfig::new()
+            .with_max_width(50)
+            .with_min_col_width(3);
         let wrapper = TableWrapper::with_config(config);
 
         let section = DxSection::new(vec!["col1".to_string(), "col2".to_string()]);

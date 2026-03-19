@@ -105,7 +105,12 @@ criterion_group!(compression_benches, bench_compressed);
 criterion_group!(arena_benches, bench_arena);
 
 #[cfg(all(feature = "parallel", feature = "compression", feature = "arena"))]
-criterion_main!(benches, parallel_benches, compression_benches, arena_benches);
+criterion_main!(
+    benches,
+    parallel_benches,
+    compression_benches,
+    arena_benches
+);
 
 #[cfg(all(feature = "parallel", feature = "compression", not(feature = "arena")))]
 criterion_main!(benches, parallel_benches, compression_benches);

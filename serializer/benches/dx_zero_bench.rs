@@ -111,8 +111,11 @@ fn bench_dx_zero_serialize(c: &mut Criterion) {
     c.bench_function("dx_zero_serialize", |b| {
         b.iter(|| {
             let mut buffer = Vec::new();
-            let mut builder =
-                DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
+            let mut builder = DxMachineBuilder::new(
+                &mut buffer,
+                UserDxMachine::FIXED_SIZE,
+                UserDxMachine::SLOT_COUNT,
+            );
 
             builder.write_u64(0, user.id);
             builder.write_u32(8, user.age);
@@ -132,8 +135,11 @@ fn bench_dx_zero_deserialize(c: &mut Criterion) {
     let user = User::sample();
 
     let mut buffer = Vec::new();
-    let mut builder =
-        DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
+    let mut builder = DxMachineBuilder::new(
+        &mut buffer,
+        UserDxMachine::FIXED_SIZE,
+        UserDxMachine::SLOT_COUNT,
+    );
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -155,8 +161,11 @@ fn bench_dx_zero_field_access(c: &mut Criterion) {
     let user = User::sample();
 
     let mut buffer = Vec::new();
-    let mut builder =
-        DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
+    let mut builder = DxMachineBuilder::new(
+        &mut buffer,
+        UserDxMachine::FIXED_SIZE,
+        UserDxMachine::SLOT_COUNT,
+    );
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -194,8 +203,11 @@ fn bench_size_comparison(c: &mut Criterion) {
 
     // DX-Zero
     let mut dx_buffer = Vec::new();
-    let mut builder =
-        DxMachineBuilder::new(&mut dx_buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
+    let mut builder = DxMachineBuilder::new(
+        &mut dx_buffer,
+        UserDxMachine::FIXED_SIZE,
+        UserDxMachine::SLOT_COUNT,
+    );
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -282,4 +294,3 @@ criterion_group!(
 );
 
 criterion_main!(benches);
-

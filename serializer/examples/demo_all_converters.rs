@@ -101,7 +101,10 @@ where
             println!("   Input:   {} bytes", input.len());
             println!("   Output:  {} bytes", dx.len());
             println!("   Saved:   {} bytes ({:.1}% smaller)", savings, percent);
-            println!("   Ratio:   {:.2}x compression\n", input.len() as f64 / dx.len() as f64);
+            println!(
+                "   Ratio:   {:.2}x compression\n",
+                input.len() as f64 / dx.len() as f64
+            );
 
             println!("📝 DX ULTRA OUTPUT:");
             println!("─────────────────────────────────────────────────────────");

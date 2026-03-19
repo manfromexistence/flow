@@ -131,8 +131,10 @@ impl TokenCounter {
             use tiktoken_rs::o200k_base;
             if let Ok(bpe) = o200k_base() {
                 let tokens = bpe.encode_with_special_tokens(text);
-                let decoded: Vec<String> =
-                    tokens.iter().filter_map(|&id| bpe.decode(vec![id]).ok()).collect();
+                let decoded: Vec<String> = tokens
+                    .iter()
+                    .filter_map(|&id| bpe.decode(vec![id]).ok())
+                    .collect();
                 return TokenInfo::new(tokens.len(), tokens, decoded, model);
             }
         }
@@ -148,8 +150,10 @@ impl TokenCounter {
             use tiktoken_rs::cl100k_base;
             if let Ok(bpe) = cl100k_base() {
                 let tokens = bpe.encode_with_special_tokens(text);
-                let decoded: Vec<String> =
-                    tokens.iter().filter_map(|&id| bpe.decode(vec![id]).ok()).collect();
+                let decoded: Vec<String> = tokens
+                    .iter()
+                    .filter_map(|&id| bpe.decode(vec![id]).ok())
+                    .collect();
                 return TokenInfo::new(tokens.len(), tokens, decoded, model);
             }
         }
@@ -173,8 +177,11 @@ impl TokenCounter {
                 if let Ok(tokenizer) = Tokenizer::from_file(path) {
                     if let Ok(encoding) = tokenizer.encode(text, false) {
                         let ids: Vec<u32> = encoding.get_ids().to_vec();
-                        let tokens: Vec<String> =
-                            encoding.get_tokens().iter().map(|s| s.to_string()).collect();
+                        let tokens: Vec<String> = encoding
+                            .get_tokens()
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect();
                         return TokenInfo::new(ids.len(), ids, tokens, model);
                     }
                 }
@@ -202,8 +209,11 @@ impl TokenCounter {
                 if let Ok(tokenizer) = Tokenizer::from_file(path) {
                     if let Ok(encoding) = tokenizer.encode(text, false) {
                         let ids: Vec<u32> = encoding.get_ids().to_vec();
-                        let tokens: Vec<String> =
-                            encoding.get_tokens().iter().map(|s| s.to_string()).collect();
+                        let tokens: Vec<String> = encoding
+                            .get_tokens()
+                            .iter()
+                            .map(|s| s.to_string())
+                            .collect();
                         return TokenInfo::new(ids.len(), ids, tokens, model);
                     }
                 }
@@ -243,7 +253,10 @@ impl TokenCounter {
             ModelType::Other,
         ];
 
-        models.iter().map(|&model| (model, self.count(text, model))).collect()
+        models
+            .iter()
+            .map(|&model| (model, self.count(text, model)))
+            .collect()
     }
 
     /// Count tokens for the 4 primary models (OpenAI, Claude, Gemini, Other)
@@ -262,7 +275,10 @@ impl TokenCounter {
             ModelType::Other,         // Generic model
         ];
 
-        models.iter().map(|&model| (model, self.count(text, model))).collect()
+        models
+            .iter()
+            .map(|&model| (model, self.count(text, model)))
+            .collect()
     }
 
     /// Get a summary of token counts for all models
@@ -412,7 +428,11 @@ mod tests {
         let counter = TokenCounter::new();
         let info = counter.count("", ModelType::Gpt4o);
         // Empty string may return 0 or 1 token depending on tiktoken version
-        assert!(info.count <= 1, "Empty string should return 0 or 1 token, got {}", info.count);
+        assert!(
+            info.count <= 1,
+            "Empty string should return 0 or 1 token, got {}",
+            info.count
+        );
     }
 
     #[test]

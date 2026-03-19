@@ -203,7 +203,9 @@ pub(crate) fn lz4_decompress_fast(input: &[u8]) -> Result<Vec<u8>> {
 fn lz4_decompress_fast(input: &[u8]) -> Result<Vec<u8>> {
     // Fallback: assume first 4 bytes are size
     if input.len() < 4 {
-        return Err(DxMachineError::DecompressionFailed("Input too short".into()));
+        return Err(DxMachineError::DecompressionFailed(
+            "Input too short".into(),
+        ));
     }
     let size = u32::from_le_bytes([input[0], input[1], input[2], input[3]]) as usize;
     lz4_decompress(&input[4..], size)
@@ -236,7 +238,9 @@ fn zstd_decompress(input: &[u8]) -> Result<Vec<u8>> {
     // Fallback to LZ4 if zstd not enabled
     // Assume original size is stored in first 4 bytes
     if input.len() < 4 {
-        return Err(DxMachineError::DecompressionFailed("Input too short".into()));
+        return Err(DxMachineError::DecompressionFailed(
+            "Input too short".into(),
+        ));
     }
     let size = u32::from_le_bytes([input[0], input[1], input[2], input[3]]) as usize;
     lz4_decompress(&input[4..], size)
@@ -328,7 +332,9 @@ fn lz4_decompress(input: &[u8], expected_size: usize) -> Result<Vec<u8>> {
             // Literal sequence
             let lit_len = marker as usize;
             if i + lit_len > input.len() {
-                return Err(DxMachineError::InvalidData("Truncated literal sequence".into()));
+                return Err(DxMachineError::InvalidData(
+                    "Truncated literal sequence".into(),
+                ));
             }
             output.extend_from_slice(&input[i..i + lit_len]);
             i += lit_len;
@@ -405,7 +411,11 @@ impl StreamCompressor {
 
     /// Get total compressed size
     pub fn total_compressed_size(&self) -> usize {
-        self.chunks.iter().map(|c| c.compressed_size()).sum::<usize>() + self.buffer.len()
+        self.chunks
+            .iter()
+            .map(|c| c.compressed_size())
+            .sum::<usize>()
+            + self.buffer.len()
         // Current uncompressed buffer
     }
 }

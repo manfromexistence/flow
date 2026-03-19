@@ -74,9 +74,13 @@ fn bench_person_100(c: &mut Criterion) {
     let mut group = c.benchmark_group("person_batch_100");
     group.throughput(Throughput::Elements(100));
 
-    group.bench_function("rkyv_default", |b| b.iter(|| serialize_rkyv_batch(black_box(&items))));
+    group.bench_function("rkyv_default", |b| {
+        b.iter(|| serialize_rkyv_batch(black_box(&items)))
+    });
 
-    group.bench_function("dx_arena", |b| b.iter(|| serialize_dx_arena(black_box(&items))));
+    group.bench_function("dx_arena", |b| {
+        b.iter(|| serialize_dx_arena(black_box(&items)))
+    });
 
     group.finish();
 }
@@ -86,9 +90,13 @@ fn bench_person_1k(c: &mut Criterion) {
     let mut group = c.benchmark_group("person_batch_1k");
     group.throughput(Throughput::Elements(1000));
 
-    group.bench_function("rkyv_default", |b| b.iter(|| serialize_rkyv_batch(black_box(&items))));
+    group.bench_function("rkyv_default", |b| {
+        b.iter(|| serialize_rkyv_batch(black_box(&items)))
+    });
 
-    group.bench_function("dx_arena", |b| b.iter(|| serialize_dx_arena(black_box(&items))));
+    group.bench_function("dx_arena", |b| {
+        b.iter(|| serialize_dx_arena(black_box(&items)))
+    });
 
     group.finish();
 }
@@ -98,9 +106,13 @@ fn bench_person_10k(c: &mut Criterion) {
     let mut group = c.benchmark_group("person_batch_10k");
     group.throughput(Throughput::Elements(10_000));
 
-    group.bench_function("rkyv_default", |b| b.iter(|| serialize_rkyv_batch(black_box(&items))));
+    group.bench_function("rkyv_default", |b| {
+        b.iter(|| serialize_rkyv_batch(black_box(&items)))
+    });
 
-    group.bench_function("dx_arena", |b| b.iter(|| serialize_dx_arena(black_box(&items))));
+    group.bench_function("dx_arena", |b| {
+        b.iter(|| serialize_dx_arena(black_box(&items)))
+    });
 
     group.finish();
 }
@@ -111,9 +123,13 @@ fn bench_person_100k(c: &mut Criterion) {
     group.throughput(Throughput::Elements(100_000));
     group.sample_size(20);
 
-    group.bench_function("rkyv_default", |b| b.iter(|| serialize_rkyv_batch(black_box(&items))));
+    group.bench_function("rkyv_default", |b| {
+        b.iter(|| serialize_rkyv_batch(black_box(&items)))
+    });
 
-    group.bench_function("dx_arena", |b| b.iter(|| serialize_dx_arena(black_box(&items))));
+    group.bench_function("dx_arena", |b| {
+        b.iter(|| serialize_dx_arena(black_box(&items)))
+    });
 
     group.finish();
 }
