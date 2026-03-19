@@ -142,6 +142,16 @@ pub fn render_dx_logo(rainbow: &RainbowEffect) -> io::Result<()> {
     }
     
     println!();
+    
+    // Description text with rainbow colors
+    let description = "Enhanced Development Experience";
+    for (char_idx, ch) in description.chars().enumerate() {
+        let color_idx = char_idx + 50;
+        let color = rainbow.color_at(color_idx);
+        print!("{}", ch.to_string().truecolor(color.r, color.g, color.b));
+    }
+    println!();
+    
     io::stdout().flush()?;
     Ok(())
 }
