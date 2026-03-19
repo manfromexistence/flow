@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo test --package serializer --test dx_format_spec
 
-use serializer::zero::DxZeroBuilder;
+use serializer::machine::DxMachineBuilder;
 use serializer::{
     DxDocument, DxLlmValue, DxSection, document_to_llm, document_to_machine, human_to_llm,
     llm_to_document, llm_to_human, machine_to_document,
@@ -345,8 +345,8 @@ mod zero_copy_format {
 
     #[test]
     fn spec_direct_memory_access() {
-        let mut buffer = Vec::new();
-        let mut builder = DxZeroBuilder::new(&mut buffer, 16, 0);
+        let mut buffer: Vec<u8> = Vec::new();
+        let mut builder = DxMachineBuilder::new(&mut buffer, 16, 0);
 
         builder.write_i32(0, 12345);
         builder.write_f64(4, 3.14159);

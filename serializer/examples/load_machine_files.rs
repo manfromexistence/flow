@@ -49,7 +49,7 @@ fn main() {
         println!("  ✓ Format: RKYV + LZ4");
 
         // Create MachineFormat
-        let machine = MachineFormat { data: binary_data };
+        let machine = MachineFormat::new(binary_data);
 
         // Deserialize to document
         let doc = match machine_to_document(&machine) {

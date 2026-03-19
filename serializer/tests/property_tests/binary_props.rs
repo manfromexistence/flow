@@ -4,8 +4,8 @@
 //! Tests Properties 12-13 from the design document
 
 use proptest::prelude::*;
-use serializer::zero::{
-    DxZeroHeader, HeaderError, MAGIC, VERSION,
+use serializer::machine::{
+    DxMachineHeader, HeaderError, MAGIC, VERSION,
     FLAG_LITTLE_ENDIAN, FLAG_HAS_HEAP, FLAG_HAS_INTERN, FLAG_HAS_LENGTH_TABLE,
 };
 
@@ -67,7 +67,7 @@ proptest! {
     /// any data field access.
     #[test]
     fn prop_header_validation_invalid_magic(bytes in invalid_magic_bytes()) {
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         
         prop_assert!(
             result.is_err(),
@@ -94,7 +94,7 @@ proptest! {
 
     #[test]
     fn prop_header_validation_invalid_version(bytes in invalid_version_bytes()) {
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         
         prop_assert!(
             result.is_err(),
@@ -109,7 +109,7 @@ proptest! {
 
     #[test]
     fn prop_header_validation_reserved_flags(bytes in reserved_flags_bytes()) {
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         
         prop_assert!(
             result.is_err(),
@@ -124,7 +124,7 @@ proptest! {
 
     #[test]
     fn prop_header_validation_valid(bytes in valid_header_bytes()) {
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         
         prop_assert!(
             result.is_ok(),
@@ -160,7 +160,7 @@ proptest! {
         let is_out_of_bounds = end_offset > buffer_size;
         
         // The header should parse successfully
-        let header_result = DxZeroHeader::from_bytes(&buffer);
+        let header_result = DxMachineHeader::from_bytes(&buffer);
         prop_assert!(header_result.is_ok());
         
         // Verify the bounds check logic
@@ -186,12 +186,12 @@ proptest! {
         if has_intern { flags |= FLAG_HAS_INTERN; }
         if has_length_table { flags |= FLAG_HAS_LENGTH_TABLE; }
         
-        let header = DxZeroHeader::with_flags(flags);
+        let header = DxMachineHeader::with_flags(flags);
         
         let mut bytes = [0u8; 4];
         header.write_to(&mut bytes);
         
-        let parsed = DxZeroHeader::from_bytes(&bytes);
+        let parsed = DxMachineHeader::from_bytes(&bytes);
         prop_assert!(parsed.is_ok());
         
         let parsed = parsed.unwrap();
@@ -210,49 +210,49 @@ mod unit_tests {
     #[test]
     fn test_valid_header() {
         let bytes = [MAGIC[0], MAGIC[1], VERSION, FLAG_LITTLE_ENDIAN];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_invalid_magic_first_byte() {
         let bytes = [0x00, MAGIC[1], VERSION, FLAG_LITTLE_ENDIAN];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::InvalidMagic { .. })));
     }
 
     #[test]
     fn test_invalid_magic_second_byte() {
         let bytes = [MAGIC[0], 0x00, VERSION, FLAG_LITTLE_ENDIAN];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::InvalidMagic { .. })));
     }
 
     #[test]
     fn test_unsupported_version() {
         let bytes = [MAGIC[0], MAGIC[1], 0x99, FLAG_LITTLE_ENDIAN];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::UnsupportedVersion { .. })));
     }
 
     #[test]
     fn test_reserved_flags() {
         let bytes = [MAGIC[0], MAGIC[1], VERSION, FLAG_LITTLE_ENDIAN | 0b1000_0000];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::ReservedFlagsSet)));
     }
 
     #[test]
     fn test_buffer_too_small() {
         let bytes = [MAGIC[0], MAGIC[1]]; // Only 2 bytes
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::BufferTooSmall)));
     }
 
     #[test]
     fn test_empty_buffer() {
         let bytes: [u8; 0] = [];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(matches!(result, Err(HeaderError::BufferTooSmall)));
     }
 
@@ -260,7 +260,7 @@ mod unit_tests {
     fn test_header_with_all_valid_flags() {
         let flags = FLAG_LITTLE_ENDIAN | FLAG_HAS_HEAP | FLAG_HAS_INTERN | FLAG_HAS_LENGTH_TABLE;
         let bytes = [MAGIC[0], MAGIC[1], VERSION, flags];
-        let result = DxZeroHeader::from_bytes(&bytes);
+        let result = DxMachineHeader::from_bytes(&bytes);
         assert!(result.is_ok());
         
         let header = result.unwrap();
@@ -269,3 +269,4 @@ mod unit_tests {
         assert!(header.has_length_table());
     }
 }
+

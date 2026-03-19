@@ -58,7 +58,7 @@
 //! ```rust
 //! use serializer::{DxDocument, DxLlmValue};
 //! use serializer::{document_to_llm, llm_to_document};  // LLM format
-//! use serializer::zero::DxZeroBuilder;                  // Machine format
+//! use serializer::machine::DxMachineBuilder;             // Machine format
 //!
 //! // Create a document
 //! let mut doc = DxDocument::new();

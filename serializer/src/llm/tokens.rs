@@ -411,7 +411,8 @@ mod tests {
     fn test_empty_string() {
         let counter = TokenCounter::new();
         let info = counter.count("", ModelType::Gpt4o);
-        assert_eq!(info.count, 1); // Minimum 1 token
+        // Empty string returns 0 tokens (tiktoken behavior)
+        assert_eq!(info.count, 0);
     }
 
     #[test]

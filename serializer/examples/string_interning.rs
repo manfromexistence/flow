@@ -1,7 +1,16 @@
-//! String interning example
+//! String interning example (DISABLED - feature not yet implemented)
 //!
 //! Demonstrates how string interning reduces serialized size for data with repeated strings.
 
+// NOTE: InterningSerializer and InterningDeserializer are not yet implemented in the machine module
+// This example is disabled until those features are added
+
+fn main() {
+    println!("String interning example is currently disabled.");
+    println!("The InterningSerializer and InterningDeserializer features are not yet implemented.");
+}
+
+/*
 use serializer::machine::{InterningDeserializer, InterningSerializer};
 
 fn main() {
@@ -94,3 +103,5 @@ fn main() {
     println!("  • Database exports (repeated enum values)");
     println!("\nExpected size reduction: 50-90% for typical workloads");
 }
+
+*/

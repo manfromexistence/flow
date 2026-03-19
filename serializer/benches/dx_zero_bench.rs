@@ -4,7 +4,7 @@
 //! across multiple binary formats.
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use serializer::zero::{DxZeroBuilder, DxZeroSlot};
+use serializer::machine::{DxMachineBuilder, DxMachineSlot};
 
 /// Test data structure
 struct User {
@@ -46,7 +46,7 @@ impl User {
 
 /// DX-Zero struct layout
 #[repr(C, packed)]
-struct UserDxZero {
+struct UserDxMachine {
     _header: [u8; 4],
     id: u64,
     age: u32,
@@ -57,7 +57,7 @@ struct UserDxZero {
     bio_slot: [u8; 16],
 }
 
-impl UserDxZero {
+impl UserDxMachine {
     const HEADER_SIZE: usize = 4;
     const FIXED_SIZE: usize = 21; // id(8) + age(4) + active(1) + score(8)
     const SLOT_COUNT: usize = 3;
@@ -86,7 +86,7 @@ impl UserDxZero {
 
     #[inline(always)]
     fn name(&self) -> &str {
-        let slot = unsafe { &*(self.name_slot.as_ptr() as *const DxZeroSlot) };
+        let slot = unsafe { &*(self.name_slot.as_ptr() as *const DxMachineSlot) };
         if slot.is_inline() {
             slot.inline_str()
         } else {
@@ -112,7 +112,7 @@ fn bench_dx_zero_serialize(c: &mut Criterion) {
         b.iter(|| {
             let mut buffer = Vec::new();
             let mut builder =
-                DxZeroBuilder::new(&mut buffer, UserDxZero::FIXED_SIZE, UserDxZero::SLOT_COUNT);
+                DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
 
             builder.write_u64(0, user.id);
             builder.write_u32(8, user.age);
@@ -133,7 +133,7 @@ fn bench_dx_zero_deserialize(c: &mut Criterion) {
 
     let mut buffer = Vec::new();
     let mut builder =
-        DxZeroBuilder::new(&mut buffer, UserDxZero::FIXED_SIZE, UserDxZero::SLOT_COUNT);
+        DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -145,7 +145,7 @@ fn bench_dx_zero_deserialize(c: &mut Criterion) {
 
     c.bench_function("dx_zero_deserialize", |b| {
         b.iter(|| {
-            let user = UserDxZero::from_bytes(&buffer);
+            let user = UserDxMachine::from_bytes(&buffer);
             black_box(user);
         });
     });
@@ -156,7 +156,7 @@ fn bench_dx_zero_field_access(c: &mut Criterion) {
 
     let mut buffer = Vec::new();
     let mut builder =
-        DxZeroBuilder::new(&mut buffer, UserDxZero::FIXED_SIZE, UserDxZero::SLOT_COUNT);
+        DxMachineBuilder::new(&mut buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -166,7 +166,7 @@ fn bench_dx_zero_field_access(c: &mut Criterion) {
     builder.write_string(53, &user.bio);
     builder.finish();
 
-    let user_zero = UserDxZero::from_bytes(&buffer);
+    let user_zero = UserDxMachine::from_bytes(&buffer);
 
     let mut group = c.benchmark_group("dx_zero_field_access");
 
@@ -195,7 +195,7 @@ fn bench_size_comparison(c: &mut Criterion) {
     // DX-Zero
     let mut dx_buffer = Vec::new();
     let mut builder =
-        DxZeroBuilder::new(&mut dx_buffer, UserDxZero::FIXED_SIZE, UserDxZero::SLOT_COUNT);
+        DxMachineBuilder::new(&mut dx_buffer, UserDxMachine::FIXED_SIZE, UserDxMachine::SLOT_COUNT);
     builder.write_u64(0, user.id);
     builder.write_u32(8, user.age);
     builder.write_bool(12, user.active);
@@ -240,11 +240,11 @@ fn bench_inline_vs_heap(c: &mut Criterion) {
     // Inline string (8 bytes)
     {
         let mut buffer = Vec::new();
-        let mut builder = DxZeroBuilder::new(&mut buffer, 0, 1);
+        let mut builder = DxMachineBuilder::new(&mut buffer, 0, 1);
         builder.write_string(0, "John Doe");
         builder.finish();
 
-        let user = UserDxZero::from_bytes(&buffer);
+        let user = UserDxMachine::from_bytes(&buffer);
 
         group.bench_function("inline_8bytes", |b| {
             b.iter(|| black_box(user.name()));
@@ -254,11 +254,11 @@ fn bench_inline_vs_heap(c: &mut Criterion) {
     // Heap string (20 bytes)
     {
         let mut buffer = Vec::new();
-        let mut builder = DxZeroBuilder::new(&mut buffer, 0, 1);
+        let mut builder = DxMachineBuilder::new(&mut buffer, 0, 1);
         builder.write_string(0, "john.doe@example.com");
         builder.finish();
 
-        let user = UserDxZero::from_bytes(&buffer);
+        let user = UserDxMachine::from_bytes(&buffer);
 
         group.bench_function("heap_20bytes", |b| {
             b.iter(|| black_box(user.name()));
@@ -282,3 +282,4 @@ criterion_group!(
 );
 
 criterion_main!(benches);
+

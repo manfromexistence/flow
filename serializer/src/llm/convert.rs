@@ -327,9 +327,11 @@ pub fn machine_to_document(machine: &MachineFormat) -> Result<DxDocument, Conver
 
     #[cfg(feature = "compression")]
     let doc_data = {
-        // Check cache first
-        if let Some(cached) = machine.cached.borrow().as_ref() {
-            cached.clone()
+        // Check cache first - use a scope to drop the borrow before potentially borrowing mutably
+        let has_cached = machine.cached.borrow().is_some();
+        
+        if has_cached {
+            machine.cached.borrow().as_ref().unwrap().clone()
         } else {
             // Try decompression (auto-detect format)
             let decompressed = decompress_auto(&machine.data)?;

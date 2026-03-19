@@ -1,12 +1,10 @@
 [package]
 name = "dx-serializer-derive"
 version = "0.1.0"
-edition.workspace = true
-rust-version = "1.85"
-authors.workspace = true
+edition = "2024"
+rust-version = "1.94.0"
 description = "Derive macros for dx-serializer"
-repository.workspace = true
-license.workspace = true
+license = "MIT OR Apache-2.0"
 
 [lib]
 proc-macro = true

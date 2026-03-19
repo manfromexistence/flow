@@ -8,10 +8,10 @@
 
 use proptest::prelude::*;
 use serializer::llm::{DxDocument, DxLlmValue, LlmSerializer, SerializerConfig};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 /// Generate an arbitrary object with simple values
-fn arb_simple_object() -> impl Strategy<Value = HashMap<String, DxLlmValue>> {
+fn arb_simple_object() -> impl Strategy<Value = IndexMap<String, DxLlmValue>> {
     prop::collection::hash_map(
         "[a-z]{3,8}",
         prop_oneof![
@@ -20,7 +20,7 @@ fn arb_simple_object() -> impl Strategy<Value = HashMap<String, DxLlmValue>> {
             "[a-zA-Z0-9]{1,10}".prop_map(|s| DxLlmValue::Str(s)),
         ],
         1..5,
-    )
+    ).prop_map(|hm| hm.into_iter().collect())
 }
 
 proptest! {
