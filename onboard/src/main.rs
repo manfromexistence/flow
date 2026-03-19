@@ -4,6 +4,7 @@
 mod prompts;
 mod effects;
 mod splash;
+mod font;
 
 use anyhow::Result;
 use argon2::Argon2;
