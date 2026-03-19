@@ -585,6 +585,20 @@ fn async_main() -> Result<()> {
         }
         Err(e) => {
             eprintln!("❌ Setup failed: {}", e);
+            
+            // Show train animation on error exit too
+            let rainbow = RainbowEffect::new();
+            println!();
+            println!("🚂 Exiting DX...");
+            println!();
+            
+            print!("\x1B[2J\x1B[H"); // Clear screen
+            for frame in 0..15 {
+                print!("\x1B[H"); // Move cursor to top
+                let _ = render_train_animation(&rainbow, frame);
+                thread::sleep(Duration::from_millis(200));
+            }
+            
             std::process::exit(1);
         }
     }
