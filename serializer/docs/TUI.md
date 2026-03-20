@@ -2,7 +2,7 @@
 
 ## Overview
 
-The TOON Format includes a full-featured, interactive Terminal User Interface (TUI) powered by [Ratatui](https://github.com/ratatui/ratatui). This provides a powerful, real-time environment for working with TOON format conversions.
+The Serializer includes a full-featured, interactive Terminal User Interface (TUI) powered by [Ratatui](https://github.com/ratatui/ratatui). This provides a powerful, real-time environment for working with TOON format conversions.
 
 ## Launching the TUI
 

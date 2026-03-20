@@ -1,4 +1,4 @@
-# TOON Format for Rust
+# Serializer for Rust
 
 [![Crates.io](https://img.shields.io/crates/v/toon-format.svg)](https://crates.io/crates/toon-format)
 [![Documentation](https://docs.rs/toon-format/badge.svg)](https://docs.rs/toon-format)

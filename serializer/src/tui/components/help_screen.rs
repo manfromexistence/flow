@@ -51,7 +51,7 @@ impl HelpScreen {
 
         let title = Paragraph::new(vec![
             Line::from(Span::styled(
-                "TOON Format - Interactive TUI",
+                "Serializer - Interactive TUI",
                 theme.title_style(),
             )),
             Line::from(Span::styled(

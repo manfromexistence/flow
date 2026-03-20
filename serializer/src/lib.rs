@@ -1,4 +1,4 @@
-//! # TOON Format for Rust
+//! # Serializer for Rust
 //!
 //! Token-Oriented Object Notation (TOON) is a compact, human-readable format
 //! designed for passing structured data to Large Language Models with

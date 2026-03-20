@@ -39,7 +39,7 @@ use serializer::{
     version = env!("CARGO_PKG_VERSION"),
     author = env!("CARGO_PKG_AUTHORS"),
     about = "Encode JSON to TOON or decode TOON to JSON",
-    long_about = "TOON Format CLI - Token-efficient JSON alternative for LLMs
+    long_about = "Serializer CLI - Token-efficient JSON alternative for LLMs
 
 EXAMPLES:
   toon --interactive                       # Launch interactive TUI
