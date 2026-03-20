@@ -1,7 +1,7 @@
 [package]
 name = "toon-format"
-version = "0.4.4"
-edition = "2021"
+version = "0.5.0"
+edition = "2024"
 authors = [
     "Johann Schopplich <hello@johannschopplich.com>",
     "Shreyas K S <ks.shreyas0@gmail.com>",
