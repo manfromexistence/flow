@@ -305,7 +305,7 @@ pub fn safe_read<T: Copy>(slice: &[u8]) -> Result<&T, SafetyError> {
 ///
 /// // Create a properly aligned buffer
 /// let values: [u32; 4] = [1, 2, 3, 4];
-/// let bytes: &[u8] = bytemuck::cast_slice(&values);
+/// let bytes: &[u8] = unsafe { std::slice::from_raw_parts(values.as_ptr() as *const u8, 16) };
 /// let read_values: &[u32] = safe_read_slice(bytes, 4).unwrap();
 /// assert_eq!(read_values, &[1, 2, 3, 4]);
 /// ```

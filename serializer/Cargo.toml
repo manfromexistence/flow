@@ -18,7 +18,6 @@ crate-type = ["rlib"]
 
 [dependencies]
 dx-serializer-derive = { path = "derive", optional = true }
-bytemuck = { version = "1.18", features = ["derive"] }
 rustc-hash = "1.1"
 memchr = "2.7"
 thiserror = "2.0"
@@ -38,6 +37,9 @@ lz4_flex = { version = "0.11", optional = true }
 
 # Parallel processing
 rayon = { version = "1.10", optional = true }
+
+# Memory-mapped files
+memmap2 = { version = "0.9", optional = true }
 
 # Token counting for LLM models
 tiktoken-rs = { version = "0.6", optional = true }
@@ -70,11 +72,12 @@ compression-lz4 = ["lz4_flex"]
 compression-zstd = ["zstd"]
 watch = ["notify"]
 parallel = ["rayon"]
+mmap = ["memmap2"]
 tiktoken = ["tiktoken-rs"]
 tokenizers-hf = ["tokenizers"]
 token-counting = ["tiktoken", "tokenizers-hf"]
 derive = ["dx-serializer-derive"]
-full = ["converters", "compression", "watch", "token-counting", "derive", "parallel"]
+full = ["converters", "compression", "watch", "token-counting", "derive", "parallel", "mmap"]
 
 [[bin]]
 name = "dx-serialize"
