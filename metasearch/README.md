@@ -190,11 +190,22 @@ This is a **production-ready metasearch engine** with:
 
 **The engines that don't work are mostly due to external factors (bot protection, configuration) or need minor fixes.**
 
-## 📚 Learn More
+## 📚 Documentation
 
+### For Users & Integrators
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete guide for using metasearch in your Rust projects
+- **[USAGE_SUMMARY.md](USAGE_SUMMARY.md)** - Quick reference and 3-step integration
+- **[QUICK_START.md](QUICK_START.md)** - Getting started with the server
+
+### For Developers
 - **AI_GUIDELINES.md** - Comprehensive development guide
 - **FINAL_SUMMARY.md** - Detailed analysis
 - **BRUTAL_TRUTH_FINAL_REPORT.md** - Complete test results
+
+### Examples
+- `examples/simple_search.rs` - Basic search example
+- `examples/parallel_search.rs` - Fast parallel search
+- `examples/category_search.rs` - Search by category
 
 ## 🎯 Next Steps
 
