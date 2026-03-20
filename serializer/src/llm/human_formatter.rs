@@ -85,12 +85,11 @@ impl HumanFormatter {
             // First, collect root scalars
             let mut root_scalar_keys = Vec::new();
             for entry_ref in &doc.entry_order {
-                if let crate::llm::types::EntryRef::Context(key) = entry_ref {
-                    if let Some(value) = doc.context.get(key) {
-                        if !matches!(value, DxLlmValue::Obj(_) | DxLlmValue::Arr(_)) {
-                            root_scalar_keys.push(key.clone());
-                        }
-                    }
+                if let crate::llm::types::EntryRef::Context(key) = entry_ref
+                    && let Some(value) = doc.context.get(key)
+                    && !matches!(value, DxLlmValue::Obj(_) | DxLlmValue::Arr(_))
+                {
+                    root_scalar_keys.push(key.clone());
                 }
             }
 

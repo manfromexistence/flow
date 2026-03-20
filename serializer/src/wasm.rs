@@ -395,15 +395,13 @@ impl DxSerializer {
         }
 
         // Check for unclosed strings
-        if in_string {
-            if let Some((line, col)) = string_start {
-                return ValidationResult::invalid(
-                    format!("Unclosed string starting with '{}'", string_char),
-                    line,
-                    col,
-                    format!("Add a closing '{}' to complete the string", string_char),
-                );
-            }
+        if in_string && let Some((line, col)) = string_start {
+            return ValidationResult::invalid(
+                format!("Unclosed string starting with '{}'", string_char),
+                line,
+                col,
+                format!("Add a closing '{}' to complete the string", string_char),
+            );
         }
 
         // Check for unclosed brackets

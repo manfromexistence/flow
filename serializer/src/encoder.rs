@@ -214,23 +214,23 @@ impl Encoder {
             }
 
             // Use ditto if value matches previous row
-            if self.config.use_ditto {
-                if let Some(prev) = &self.prev_row {
-                    if i < prev.len() && &prev[i] == value {
-                        write!(writer, "_")?;
-                        continue;
-                    }
-                }
+            if self.config.use_ditto
+                && let Some(prev) = &self.prev_row
+                && i < prev.len()
+                && &prev[i] == value
+            {
+                write!(writer, "_")?;
+                continue;
             }
 
             // Use Base62 encoding if column type is Base62
-            if i < schema.columns.len() && schema.columns[i].type_hint == TypeHint::Base62 {
-                if let DxValue::Int(n) = value {
-                    if *n >= 0 {
-                        write!(writer, "{}", encode_base62(*n as u64))?;
-                        continue;
-                    }
-                }
+            if i < schema.columns.len()
+                && schema.columns[i].type_hint == TypeHint::Base62
+                && let DxValue::Int(n) = value
+                && *n >= 0
+            {
+                write!(writer, "{}", encode_base62(*n as u64))?;
+                continue;
             }
 
             self.encode_value(value, writer)?;

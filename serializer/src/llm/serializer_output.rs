@@ -232,18 +232,16 @@ impl SerializerOutput {
             let entry = entry?;
             let path = entry.path();
 
-            if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    if ext == "sr"
-                        || ext == "dx"
-                        || path.file_name().and_then(|n| n.to_str()) == Some("dx")
-                    {
-                        match self.process_file(&path) {
-                            Ok(result) => results.push(result),
-                            Err(e) => {
-                                eprintln!("Warning: Failed to process {}: {}", path.display(), e);
-                            }
-                        }
+            if path.is_file()
+                && let Some(ext) = path.extension()
+                && (ext == "sr"
+                    || ext == "dx"
+                    || path.file_name().and_then(|n| n.to_str()) == Some("dx"))
+            {
+                match self.process_file(&path) {
+                    Ok(result) => results.push(result),
+                    Err(e) => {
+                        eprintln!("Warning: Failed to process {}: {}", path.display(), e);
                     }
                 }
             }

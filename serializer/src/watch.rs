@@ -85,10 +85,10 @@ impl DxWatcher {
 
         RecommendedWatcher::new(
             move |res: Result<Event, notify::Error>| {
-                if let Ok(event) = res {
-                    if let Some(change) = Self::process_event(event) {
-                        let _ = tx.send(change);
-                    }
+                if let Ok(event) = res
+                    && let Some(change) = Self::process_event(event)
+                {
+                    let _ = tx.send(change);
                 }
             },
             config,
@@ -178,10 +178,10 @@ pub fn find_dxs_files<P: AsRef<Path>>(dir: P) -> Result<Vec<PathBuf>, std::io::E
         let path = entry.path();
 
         if path.is_file() {
-            if let Some(ext) = path.extension() {
-                if ext == "sr" {
-                    dxs_files.push(path);
-                }
+            if let Some(ext) = path.extension()
+                && ext == "sr"
+            {
+                dxs_files.push(path);
             }
         } else if path.is_dir() {
             // Recursively search subdirectories

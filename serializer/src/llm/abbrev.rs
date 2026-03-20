@@ -484,10 +484,10 @@ impl AbbrevDict {
         }
 
         // Try default context for single-letter keys
-        if abbrev.len() == 1 {
-            if let Some(&full) = self.contextual.get(&(abbrev, "default")) {
-                return full.to_string();
-            }
+        if abbrev.len() == 1
+            && let Some(&full) = self.contextual.get(&(abbrev, "default"))
+        {
+            return full.to_string();
         }
 
         // Fall back to global dictionary

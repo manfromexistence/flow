@@ -190,8 +190,10 @@ pub fn get_manifest(config: &BinaryConfig) -> std::io::Result<Vec<(String, PathB
                 let file_entry = file_entry?;
                 let file_path = file_entry.path();
 
-                if file_path.extension().map(|e| e == "dx").unwrap_or(false) && hash.is_some() {
-                    manifest.push((hash.as_ref().unwrap().clone(), file_path));
+                if file_path.extension().map(|e| e == "dx").unwrap_or(false) {
+                    if let Some(h) = &hash {
+                        manifest.push((h.clone(), file_path));
+                    }
                 }
             }
         }

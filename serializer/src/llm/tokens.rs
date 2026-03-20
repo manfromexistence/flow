@@ -174,16 +174,16 @@ impl TokenCounter {
             ];
 
             for path in &paths {
-                if let Ok(tokenizer) = Tokenizer::from_file(path) {
-                    if let Ok(encoding) = tokenizer.encode(text, false) {
-                        let ids: Vec<u32> = encoding.get_ids().to_vec();
-                        let tokens: Vec<String> = encoding
-                            .get_tokens()
-                            .iter()
-                            .map(|s| s.to_string())
-                            .collect();
-                        return TokenInfo::new(ids.len(), ids, tokens, model);
-                    }
+                if let Ok(tokenizer) = Tokenizer::from_file(path)
+                    && let Ok(encoding) = tokenizer.encode(text, false)
+                {
+                    let ids: Vec<u32> = encoding.get_ids().to_vec();
+                    let tokens: Vec<String> = encoding
+                        .get_tokens()
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect();
+                    return TokenInfo::new(ids.len(), ids, tokens, model);
                 }
             }
         }
@@ -206,16 +206,16 @@ impl TokenCounter {
             ];
 
             for path in &paths {
-                if let Ok(tokenizer) = Tokenizer::from_file(path) {
-                    if let Ok(encoding) = tokenizer.encode(text, false) {
-                        let ids: Vec<u32> = encoding.get_ids().to_vec();
-                        let tokens: Vec<String> = encoding
-                            .get_tokens()
-                            .iter()
-                            .map(|s| s.to_string())
-                            .collect();
-                        return TokenInfo::new(ids.len(), ids, tokens, model);
-                    }
+                if let Ok(tokenizer) = Tokenizer::from_file(path)
+                    && let Ok(encoding) = tokenizer.encode(text, false)
+                {
+                    let ids: Vec<u32> = encoding.get_ids().to_vec();
+                    let tokens: Vec<String> = encoding
+                        .get_tokens()
+                        .iter()
+                        .map(|s| s.to_string())
+                        .collect();
+                    return TokenInfo::new(ids.len(), ids, tokens, model);
                 }
             }
         }

@@ -246,12 +246,11 @@ impl LlmSerializer {
     /// Format: name[col1 col2 col3](rows)
     fn serialize_section_with_name(&self, section_name: &str, section: &DxSection) -> String {
         // Check if prefix elimination is enabled
-        if self.config.prefix_elimination {
-            if let Some(output) =
+        if self.config.prefix_elimination
+            && let Some(output) =
                 self.try_serialize_with_prefix_elimination_named(section_name, section)
-            {
-                return output;
-            }
+        {
+            return output;
         }
 
         // Fall back to regular serialization

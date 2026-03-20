@@ -111,24 +111,25 @@ pub fn is_dsr_format(input: &str) -> bool {
         if line.contains(':') && line.contains('=') {
             let colon_pos = line.find(':');
             let eq_pos = line.find('=');
-            if let (Some(cp), Some(ep)) = (colon_pos, eq_pos) {
-                if cp < ep {
-                    has_dsr_indicators = true;
-                    continue;
-                }
+            if let (Some(cp), Some(ep)) = (colon_pos, eq_pos)
+                && cp < ep
+            {
+                has_dsr_indicators = true;
+                continue;
             }
         }
 
         // Check for compact key=value (NO spaces around =) - DSR format
-        if line.contains('=') && !line.contains(" = ") {
-            if let Some(eq_pos) = line.find('=') {
-                let before = &line[..eq_pos];
-                let after = &line[eq_pos + 1..];
-                // DSR has no trailing space before = and no leading space after =
-                if !before.ends_with(' ') && !after.starts_with(' ') {
-                    has_dsr_indicators = true;
-                    continue;
-                }
+        if line.contains('=')
+            && !line.contains(" = ")
+            && let Some(eq_pos) = line.find('=')
+        {
+            let before = &line[..eq_pos];
+            let after = &line[eq_pos + 1..];
+            // DSR has no trailing space before = and no leading space after =
+            if !before.ends_with(' ') && !after.starts_with(' ') {
+                has_dsr_indicators = true;
+                continue;
             }
         }
     }

@@ -321,16 +321,15 @@ impl HumanParser {
         let without_colon = &line[..line.len() - 1];
 
         // Find the [n] part
-        if let Some(bracket_start) = without_colon.rfind('[') {
-            if let Some(bracket_end) = without_colon.rfind(']') {
-                if bracket_end > bracket_start {
-                    let key = without_colon[..bracket_start].trim();
-                    let count_str = &without_colon[bracket_start + 1..bracket_end];
+        if let Some(bracket_start) = without_colon.rfind('[')
+            && let Some(bracket_end) = without_colon.rfind(']')
+            && bracket_end > bracket_start
+        {
+            let key = without_colon[..bracket_start].trim();
+            let count_str = &without_colon[bracket_start + 1..bracket_end];
 
-                    if let Ok(count) = count_str.parse::<usize>() {
-                        return Some((key.to_string(), count));
-                    }
-                }
+            if let Ok(count) = count_str.parse::<usize>() {
+                return Some((key.to_string(), count));
             }
         }
 
