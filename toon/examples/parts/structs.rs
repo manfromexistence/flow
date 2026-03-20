@@ -2,7 +2,7 @@ use serde::{
     Deserialize,
     Serialize,
 };
-use toon_format::{
+use serializer::{
     decode_default,
     encode_default,
 };

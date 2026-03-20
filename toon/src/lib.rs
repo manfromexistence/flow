@@ -16,12 +16,12 @@
 //! ## Example Usage (Future)
 //!
 //! ```ignore
-//! use toon_format::{encode, decode};
+//! use serializer::{encode, decode};
 //!
 //! let data = json!({"name": "Alice", "age": 30});
 //! let toon_string = encode(&data)?;
 //! let decoded = decode(&toon_string)?;
-//! # Ok::<(), toon_format::ToonError>(())
+//! # Ok::<(), serializer::ToonError>(())
 //! ```
 #![warn(rustdoc::missing_crate_level_docs)]
 

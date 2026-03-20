@@ -1,5 +1,5 @@
 use serde_json::Value;
-use toon_format::{
+use serializer::{
     decode,
     DecodeOptions,
 };

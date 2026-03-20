@@ -3,7 +3,7 @@ use serde::{
     Serialize,
 };
 use serde_json::json;
-use toon_format::encode_default;
+use serializer::encode_default;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Item {

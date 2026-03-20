@@ -1,5 +1,5 @@
 use serde_json::json;
-use toon_format::{
+use serializer::{
     encode,
     Delimiter,
     EncodeOptions,

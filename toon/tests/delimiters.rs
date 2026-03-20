@@ -2,7 +2,7 @@ use serde_json::{
     json,
     Value,
 };
-use toon_format::{
+use serializer::{
     decode_default,
     encode,
     encode_default,

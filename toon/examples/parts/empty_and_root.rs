@@ -1,5 +1,5 @@
 use serde_json::json;
-use toon_format::encode_default;
+use serializer::encode_default;
 
 pub fn empty_and_root() {
     // Empty containers

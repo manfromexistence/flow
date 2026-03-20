@@ -20,7 +20,7 @@ use clap::Parser;
 use comfy_table::Table;
 use serde::Serialize;
 use tiktoken_rs::cl100k_base;
-use toon_format::{
+use serializer::{
     decode,
     encode,
     types::{
@@ -383,6 +383,6 @@ fn main() -> Result<()> {
 }
 
 fn run_interactive() -> Result<()> {
-    toon_format::tui::run().context("Failed to run interactive TUI")?;
+    serializer::tui::run().context("Failed to run interactive TUI")?;
     Ok(())
 }

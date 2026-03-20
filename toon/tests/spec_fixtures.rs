@@ -1,7 +1,7 @@
 use datatest_stable::Utf8Path;
 use serde::Deserialize;
 use serde_json::Value;
-use toon_format::{
+use serializer::{
     decode,
     encode,
     types::{
