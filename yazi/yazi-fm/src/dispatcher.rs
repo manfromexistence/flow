@@ -69,10 +69,66 @@ impl<'a> Dispatcher<'a> {
 	#[inline]
 	fn dispatch_key(&mut self, key: KeyEvent) -> Result<Data> {
 		use crossterm::event::KeyCode;
+		use crate::chat_tui::input::InputAction;
 		
 		// If in animation mode, handle arrow keys for navigation
 		if self.app.bridge.chat_state.animation_mode {
 			let animations = crate::chat_tui::AnimationType::all();
+			let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
+			
+			// Handle TachyonDemo special keys
+			if current_anim == crate::chat_tui::AnimationType::TachyonDemo {
+				match key.code {
+					KeyCode::Backspace => {
+						self.app.bridge.chat_state.tachyon_demo.prev_effect();
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Enter => {
+						self.app.bridge.chat_state.tachyon_demo.next_effect();
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Char(' ') => {
+						self.app.bridge.chat_state.tachyon_demo.restart_effect();
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Char('r') => {
+						self.app.bridge.chat_state.tachyon_demo.random_effect(&mut self.app.bridge.chat_state.tachyon_rng);
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Char('s') => {
+						self.app.bridge.chat_state.tachyon_demo.scramble_effect();
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Left => {
+						// Previous animation
+						if self.app.bridge.chat_state.current_animation_index == 0 {
+							self.app.bridge.chat_state.current_animation_index = animations.len() - 1;
+						} else {
+							self.app.bridge.chat_state.current_animation_index -= 1;
+						}
+						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Right => {
+						// Next animation
+						self.app.bridge.chat_state.current_animation_index = 
+							(self.app.bridge.chat_state.current_animation_index + 1) % animations.len();
+						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					_ => {
+						// Ignore other keys in TachyonDemo
+						succ!();
+					}
+				}
+			}
 			
 			// Handle Left/Right arrow keys for screen navigation (even on Yazi screen)
 			match key.code {
@@ -97,7 +153,6 @@ impl<'a> Dispatcher<'a> {
 				}
 				_ => {
 					// Other keys: only route to yazi if on Yazi screen
-					let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
 					if current_anim != crate::chat_tui::AnimationType::Yazi {
 						// Not on Yazi screen, ignore other keys
 						succ!();
@@ -107,8 +162,75 @@ impl<'a> Dispatcher<'a> {
 			}
 		}
 		
-		Router::new(self.app).route(Key::from(key))?;
-		succ!();
+		// Handle chat input when in Chat mode or FilePicker mode (chat input is visible)
+		if self.app.bridge.mode == crate::chat_tui::AppMode::Chat 
+			|| self.app.bridge.mode == crate::chat_tui::AppMode::FilePicker 
+		{
+			// Handle scrolling when messages exist and input is empty
+			if !self.app.bridge.chat_state.messages.is_empty() 
+				&& self.app.bridge.chat_state.input.content.is_empty() 
+			{
+				match key.code {
+					KeyCode::Up => {
+						self.app.bridge.chat_state.chat_scroll_offset = 
+							self.app.bridge.chat_state.chat_scroll_offset.saturating_sub(1);
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Down => {
+						self.app.bridge.chat_state.chat_scroll_offset += 1;
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					_ => {}
+				}
+			}
+			
+			// Handle thinking accordion toggle with '0' key
+			if key.code == KeyCode::Char('0') && !self.app.bridge.chat_state.messages.is_empty() {
+				// Toggle thinking expansion for the last assistant message
+				for msg in self.app.bridge.chat_state.messages.iter_mut().rev() {
+					if msg.role == crate::chat_tui::MessageRole::Assistant {
+						msg.thinking_expanded = !msg.thinking_expanded;
+						break;
+					}
+				}
+				NEED_RENDER.store(1, Ordering::Relaxed);
+				succ!();
+			}
+			
+			// Route key to chat input
+			let action = self.app.bridge.chat_state.input.handle_key(key);
+			
+			match action {
+				InputAction::Submit(msg) => {
+					// Add message to chat
+					self.app.bridge.chat_state.add_user_message(msg);
+					NEED_RENDER.store(1, Ordering::Relaxed);
+					succ!();
+				}
+				InputAction::Exit => {
+					// Exit the application
+					std::process::exit(0);
+				}
+				InputAction::Changed => {
+					NEED_RENDER.store(1, Ordering::Relaxed);
+					succ!();
+				}
+				InputAction::PreviousHistory | InputAction::NextHistory => {
+					// TODO: Implement history navigation
+					succ!();
+				}
+				InputAction::None => {
+					NEED_RENDER.store(1, Ordering::Relaxed);
+					succ!();
+				}
+			}
+		} else {
+			// Route to yazi's normal key handling
+			Router::new(self.app).route(Key::from(key))?;
+			succ!();
+		}
 	}
 
 	#[inline]

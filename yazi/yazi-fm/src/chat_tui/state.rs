@@ -212,4 +212,17 @@ impl ChatState {
     pub fn toggle_file_picker(&mut self) {
         self.show_file_picker = !self.show_file_picker;
     }
+    
+    pub fn add_user_message(&mut self, content: String) {
+        let message = Message::user(content);
+        self.messages.push(message);
+        
+        // Exit animation mode when first message is sent
+        if self.animation_mode {
+            self.animation_mode = false;
+        }
+        
+        // Reset scroll to bottom
+        self.chat_scroll_offset = 0;
+    }
 }

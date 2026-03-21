@@ -20,3 +20,4 @@ pub mod animations;
 // Re-exports for convenience
 pub use state::{ChatState, AnimationType};
 pub use bridge::{YaziChatBridge, AppMode};
+pub use components::MessageRole;
