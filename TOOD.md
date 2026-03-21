@@ -1,0 +1,1 @@
+Please look at the root yaji folder and merge the yaji files and copy and merge it to our main CLI tui project as a screen like the yaji tui. Make that our tui is a screen like other screens like effect. Yes make that another stream. Get another stream on our main tui by copying it and connecting and merging it correctly.
