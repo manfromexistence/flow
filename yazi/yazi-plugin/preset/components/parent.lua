@@ -43,17 +43,6 @@ function Parent:click(event, up)
 	end
 end
 
-function Parent:scroll(event, step)
-	if not self._folder then
-		return
-	end
-	
-	-- Calculate new offset for parent folder
-	local offset = self._folder.offset or 0
-	local new_offset = math.max(0, offset + step)
-	
-	-- Emit parent-arrow to update the parent folder's offset
-	ya.emit("parent-arrow", { step = step })
-end
+function Parent:scroll(event, step) end
 
 function Parent:touch(event, step) end
