@@ -93,6 +93,14 @@ impl App {
 		let cx = &mut Ctx::active(&mut self.core, &mut self.term);
 		act!(app:bootstrap, cx)?;
 
+		// Initialize LLM in background
+		let llm = self.bridge.chat_state.llm.clone();
+		tokio::spawn(async move {
+			if let Err(e) = llm.initialize().await {
+				eprintln!("Failed to initialize LLM: {}", e);
+			}
+		});
+
 		self.render(false)
 	}
 }

@@ -233,6 +233,9 @@ impl<'a> Dispatcher<'a> {
 		// Timer tick for animations - just trigger a render
 		// The effects are time-based and will automatically show updated colors
 		
+		// Update chat state (process LLM responses)
+		self.app.bridge.chat_state.update();
+		
 		// Update splash font cycling (every 3 seconds)
 		if self.app.bridge.chat_state.animation_mode 
 			&& self.app.bridge.chat_state.last_font_change.elapsed() >= Duration::from_secs(3)

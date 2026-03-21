@@ -214,7 +214,7 @@ impl ChatState {
     }
     
     pub fn add_user_message(&mut self, content: String) {
-        let message = Message::user(content);
+        let message = Message::user(content.clone());
         self.messages.push(message);
         
         // Exit animation mode when first message is sent
@@ -224,5 +224,60 @@ impl ChatState {
         
         // Reset scroll to bottom
         self.chat_scroll_offset = 0;
+        
+        // Start loading and add empty assistant message
+        self.is_loading = true;
+        self.messages.push(Message::assistant(String::new()));
+        
+        // Call LLM in background
+        let llm = self.llm.clone();
+        let tx = self.llm_tx.clone();
+        
+        tokio::spawn(async move {
+            let tx_clone = tx.clone();
+            match llm
+                .generate_stream(&content, move |chunk| {
+                    let _ = tx_clone.send(chunk);
+                })
+                .await
+            {
+                Ok(_) => {
+                    let _ = tx.send("\n__END__".to_string());
+                }
+                Err(e) => {
+                    let _ = tx.send(format!("Error: {}", e));
+                    let _ = tx.send("\n__END__".to_string());
+                }
+            }
+        });
+    }
+    
+    pub fn update(&mut self) {
+        // Process LLM response chunks
+        if let Ok(chunk) = self.llm_rx.try_recv() {
+            if chunk == "\n__END__" {
+                self.is_loading = false;
+                // When streaming ends, collapse thinking accordion if </think> tag is present
+                if let Some(last_msg) = self.messages.last_mut() {
+                    if last_msg.content.contains("</think>") {
+                        last_msg.thinking_expanded = false;
+                    }
+                }
+            } else if let Some(last_msg) = self.messages.last_mut() {
+                last_msg.content.push_str(&chunk);
+                
+                // Keep thinking expanded while streaming, but collapse once </think> is received
+                if last_msg.content.contains("</think>") {
+                    last_msg.thinking_expanded = false;
+                } else if last_msg.content.contains("<think>") {
+                    last_msg.thinking_expanded = true;
+                }
+            }
+        }
+        
+        // Update typing indicator when loading
+        if self.is_loading {
+            self.typing_indicator.update();
+        }
     }
 }
