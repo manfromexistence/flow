@@ -159,29 +159,15 @@ impl ChatState {
 
         self.input_area = chunks[1];
 
-        if self.messages.is_empty() {
-            super::splash::render(
-                chunks[0],
-                buf,
-                &self.theme,
-                self.splash_font_index,
-                &self.rainbow_animation,
-            );
-
-            // Show TachyonFX modal on top of splash screen
-            if self.show_tachyon_modal {
-                // TachyonDemo needs Frame, skip for now
-            }
-        } else {
-            MessageList::with_effects(
-                &self.messages,
-                &self.theme,
-                self.chat_scroll_offset,
-                &self.shimmer,
-                &self.typing_indicator,
-            )
-            .render(chunks[0], buf);
-        }
+        // Always render messages (even if empty) instead of splash screen
+        MessageList::with_effects(
+            &self.messages,
+            &self.theme,
+            self.chat_scroll_offset,
+            &self.shimmer,
+            &self.typing_indicator,
+        )
+        .render(chunks[0], buf);
 
         self.render_input_box(chunks[1], buf);
 
@@ -197,16 +183,28 @@ impl ChatState {
     }
     
     pub fn render_dimmed(&mut self, area: Rect, buf: &mut Buffer) {
-        // Render chat but dimmed (for when file picker is open)
-        self.render(area, buf);
-        
-        // Add a semi-transparent overlay
-        use ratatui::style::{Color, Style};
-        use ratatui::widgets::{Block, Borders};
-        
-        Block::default()
-            .style(Style::default().bg(Color::Rgb(0, 0, 0)))
-            .render(area, buf);
+        // Simplified render for FilePicker mode - just show input box and controls
+        // Split into input (most space) and controls (1 line)
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Min(3),      // Input box
+                Constraint::Length(1),   // Bottom controls
+            ])
+            .split(area);
+
+        self.input_area = chunks[0];
+
+        // Render input box
+        self.render_input_box(chunks[0], buf);
+
+        // Render bottom controls
+        let (plan_area, model_area, _token_area, local_area) =
+            self.render_bottom_controls(chunks[1], buf);
+
+        self.plan_button_area = plan_area;
+        self.model_button_area = model_area;
+        self.local_button_area = local_area;
     }
 }
 

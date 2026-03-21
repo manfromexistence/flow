@@ -91,5 +91,5 @@ fn main() {
 
     fs::write(&dest_path, output).expect("Failed to write compressed fonts");
 
-    println!("cargo:warning=Fonts compressed and embedded successfully");
+    // Fonts compressed successfully (removed warning output)
 }

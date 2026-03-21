@@ -5,3 +5,5 @@ Awesome now then copy our code from the main src folder and please use our main 
 Awesome now please do it!!!
 
 Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now
+
+Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now

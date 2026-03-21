@@ -74,18 +74,19 @@ impl InputState {
                 self.select_all();
                 InputAction::None
             }
-            (KeyCode::Char('v'), KeyModifiers::CONTROL) => {
-                // Paste from clipboard
-                if let Ok(clipboard_content) = cli_clipboard::get_contents() {
-                    if self.has_selection() {
-                        self.delete_selection();
-                    }
-                    for c in clipboard_content.chars() {
-                        self.insert_char(c);
-                    }
-                }
-                InputAction::Changed
-            }
+            // COMMENTED OUT - clipboard feature disabled to reduce binary size
+            // (KeyCode::Char('v'), KeyModifiers::CONTROL) => {
+            //     // Paste from clipboard
+            //     if let Ok(clipboard_content) = cli_clipboard::get_contents() {
+            //         if self.has_selection() {
+            //             self.delete_selection();
+            //         }
+            //         for c in clipboard_content.chars() {
+            //             self.insert_char(c);
+            //         }
+            //     }
+            //     InputAction::Changed
+            // }
             (KeyCode::Backspace, KeyModifiers::CONTROL) => {
                 // Clear all text
                 self.content.clear();

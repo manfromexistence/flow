@@ -17,8 +17,8 @@ path = "src/bin/benchmark.rs"
 ratatui = "0.30"
 crossterm = "0.28"
 
-# Async Runtime
-tokio = { version = "1.42", features = ["full"] }
+# Async Runtime (minimal features for smaller binary)
+tokio = { version = "1.42", features = ["rt-multi-thread", "macros", "sync"] }
 
 # LLM
 llama-cpp-2 = "0.1"
@@ -41,8 +41,8 @@ tachyonfx = { path = "./tachyonfx" }
 palette = "0.7"
 rand = "0.8"
 
-# Clipboard
-cli-clipboard = "0.4"
+# Clipboard (COMMENTED OUT - not essential, reduces binary size)
+# cli-clipboard = "0.4"
 
 # FIGlet rendering
 figlet-rs = "0.1"
@@ -50,21 +50,21 @@ figlet-rs = "0.1"
 # Token counting
 tiktoken-rs = "0.9"
 
-# Yazi file manager - all required dependencies
-yazi-core = { path = "./yazi/yazi-core" }
-yazi-config = { path = "./yazi/yazi-config" }
-yazi-shared = { path = "./yazi/yazi-shared" }
-yazi-fs = { path = "./yazi/yazi-fs" }
-yazi-plugin = { path = "./yazi/yazi-plugin" }
-yazi-binding = { path = "./yazi/yazi-binding" }
-yazi-adapter = { path = "./yazi/yazi-adapter" }
-yazi-boot = { path = "./yazi/yazi-boot" }
-yazi-dds = { path = "./yazi/yazi-dds" }
-yazi-proxy = { path = "./yazi/yazi-proxy" }
-yazi-term = { path = "./yazi/yazi-term" }
-yazi-tty = { path = "./yazi/yazi-tty" }
-yazi-watcher = { path = "./yazi/yazi-watcher" }
-mlua = { version = "0.11.6", features = ["vendored"] }
+# Yazi file manager - all required dependencies (COMMENTED OUT - integration on hold)
+# yazi-core = { path = "./yazi/yazi-core" }
+# yazi-config = { path = "./yazi/yazi-config" }
+# yazi-shared = { path = "./yazi/yazi-shared" }
+# yazi-fs = { path = "./yazi/yazi-fs" }
+# yazi-plugin = { path = "./yazi/yazi-plugin" }
+# yazi-binding = { path = "./yazi/yazi-binding" }
+# yazi-adapter = { path = "./yazi/yazi-adapter" }
+# yazi-boot = { path = "./yazi/yazi-boot" }
+# yazi-dds = { path = "./yazi/yazi-dds" }
+# yazi-proxy = { path = "./yazi/yazi-proxy" }
+# yazi-term = { path = "./yazi/yazi-term" }
+# yazi-tty = { path = "./yazi/yazi-tty" }
+# yazi-watcher = { path = "./yazi/yazi-watcher" }
+# mlua = { version = "0.11.6", features = ["vendored"] }
 
 [build-dependencies]
 zstd = "0.13"
