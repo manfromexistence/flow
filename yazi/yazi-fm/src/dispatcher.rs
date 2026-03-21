@@ -160,6 +160,11 @@ impl<'a> Dispatcher<'a> {
 			}
 		}
 		
+		// Update TachyonDemo timing
+		let elapsed = self.app.bridge.chat_state.last_frame_instant.elapsed();
+		self.app.bridge.chat_state.tachyon_demo.update(elapsed);
+		self.app.bridge.chat_state.last_frame_instant = Instant::now();
+		
 		NEED_RENDER.store(1, Ordering::Relaxed);
 		succ!();
 	}

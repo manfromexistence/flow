@@ -14,3 +14,5 @@ Now here is the main problem. Currently the yazi is using Lua and previously our
 Oh got it. Now previously in the src root folder we are using our own event timer, right? Among ten how hard is it to create our custom event timer to get our custom events on the age project? Is it hard or easy to do it? 
 
 Now remember the left panel not scrollable problem - now its being scrollbar but when left panel changes the center items should updated the left panels content so please do it currently it not updating center panel hence both cener and rigth panel based on the left panel change so please do it!!! And please do it fast, just implement the fix and don't test anything as you don't much limit so do it as fast as possible and first just out the plan to fix it without testing anything or what so ever!!!
+
+Please make sure that the root hrc folder, as it has the message list screen in our app, also has the message list working correctly with all the features like the hrc root folder message list screen.

@@ -120,14 +120,9 @@ impl ChatState {
                     self.render_dvdlogo_animation_in_area(chunks[0], buf);
                 }
                 AnimationType::TachyonDemo => {
-                    // TachyonDemo needs Frame, skip for now
-                    super::splash::render(
-                        chunks[0],
-                        buf,
-                        &self.theme,
-                        self.splash_font_index,
-                        &self.rainbow_animation,
-                    );
+                    // TachyonDemo is rendered directly in app/render.rs with Frame access
+                    // This code path should not be reached, but just in case, show nothing
+                    // The actual rendering happens in app/render.rs before Widget rendering
                 }
                 AnimationType::Fire => {
                     self.render_fire_animation_in_area(chunks[0], buf);

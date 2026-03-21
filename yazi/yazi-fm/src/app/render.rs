@@ -29,6 +29,20 @@ impl App {
 		let collision = COLLISION.swap(false, Ordering::Relaxed);
 		let preview_rect = LAYOUT.get().preview;
 		let frame = term.draw(|f| {
+			// Check if we're in TachyonDemo animation mode
+			if self.bridge.chat_state.animation_mode {
+				use crate::chat_tui::state::AnimationType;
+				let animations = AnimationType::all();
+				let current_anim = animations[self.bridge.chat_state.current_animation_index];
+				
+				if current_anim == AnimationType::TachyonDemo {
+					// Render TachyonDemo directly with Frame access
+					self.bridge.chat_state.tachyon_demo.render(f);
+					return;
+				}
+			}
+			
+			// Normal rendering path
 			_ = Lives::scope(&self.core, || {
 				runtime_scope!(LUA, "root", Ok(f.render_widget(Root::new(&self.core, &mut self.bridge), f.area())))
 			});
