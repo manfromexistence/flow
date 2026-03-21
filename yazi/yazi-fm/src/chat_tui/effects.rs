@@ -11,8 +11,8 @@ pub struct RgbColor {
 impl From<Color> for RgbColor {
     fn from(color: Color) -> Self {
         match color {
-            Color::Rgb(r, g, b) => RgbColor { r, g, b },
-            _ => RgbColor {
+            Color::Rgb(r, g, b) => Self { r, g, b },
+            _ => Self {
                 r: 255,
                 g: 255,
                 b: 255,

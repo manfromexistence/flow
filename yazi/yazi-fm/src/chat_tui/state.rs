@@ -2,7 +2,7 @@ use crate::chat_tui::{
     autocomplete::Autocomplete,
     components::Message,
     effects::{RainbowEffect, ShimmerEffect, TypingIndicator},
-    input::{InputAction, InputState},
+    input::InputState,
     llm::LocalLlm,
     perf::PerfMonitor,
     tachyonfx_demo::TachyonDemo,
@@ -258,11 +258,10 @@ impl ChatState {
             if chunk == "\n__END__" {
                 self.is_loading = false;
                 // When streaming ends, collapse thinking accordion if </think> tag is present
-                if let Some(last_msg) = self.messages.last_mut() {
-                    if last_msg.content.contains("</think>") {
+                if let Some(last_msg) = self.messages.last_mut()
+                    && last_msg.content.contains("</think>") {
                         last_msg.thinking_expanded = false;
                     }
-                }
             } else if let Some(last_msg) = self.messages.last_mut() {
                 last_msg.content.push_str(&chunk);
                 

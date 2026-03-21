@@ -88,7 +88,7 @@ pub fn read_font(name: &str) -> io::Result<Vec<u8>> {
 /// Lists all available figlet font names.
 #[allow(dead_code)]
 pub fn list_fonts() -> io::Result<Vec<String>> {
-    let mut fonts: Vec<String> = FONTS.keys().map(|s| s.to_string()).collect();
+    let mut fonts: Vec<String> = FONTS.keys().cloned().collect();
     fonts.sort();
     Ok(fonts)
 }

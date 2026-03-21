@@ -532,7 +532,7 @@ impl ChatState {
         };
 
         // Build content lines
-        let mut lines = vec![
+        let lines = vec![
             Line::from(vec![
                 Span::styled("⚡ ", Style::default().fg(ratatui::style::Color::Yellow)),
                 Span::styled(

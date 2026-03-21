@@ -174,6 +174,8 @@ impl<'a> Dispatcher<'a> {
 					return succ!();
 				}
 				InputAction::Exit => {
+					// Show farewell train animation
+					crate::chat_tui::exit_animation::show_train_farewell();
 					// Exit the application
 					std::process::exit(0);
 				}

@@ -10,6 +10,7 @@ pub mod autocomplete;
 pub mod tachyonfx_demo;
 pub mod modal;
 pub mod font;
+pub mod exit_animation;
 
 // Integration with yazi
 pub mod state;
@@ -18,6 +19,6 @@ pub mod render;
 pub mod animations;
 
 // Re-exports for convenience
-pub use state::{ChatState, AnimationType};
+pub use state::AnimationType;
 pub use bridge::{YaziChatBridge, AppMode};
 pub use components::MessageRole;
