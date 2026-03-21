@@ -77,7 +77,7 @@ impl LocalLlm {
         let mut backend = LlamaBackend::init().context("Failed to initialize llama backend")?;
         backend.void_logs();
 
-        let model_params = LlamaModelParams::default();
+        let model_params = LlamaModelParams::default().with_n_gpu_layers(999);
         let model = LlamaModel::load_from_file(&backend, MODEL_PATH, &model_params)
             .context(format!("Failed to load model from path: {}", MODEL_PATH))?;
 
@@ -115,10 +115,17 @@ impl LocalLlm {
             .with_n_threads_batch(n_threads)
             .with_flash_attention_policy(1);
 
-        let mut ctx = inner
-            .model
-            .new_context(&inner.backend, ctx_params)
-            .context("Failed to create inference context")?;
+        let mut ctx = inner.model.new_context(&inner.backend, ctx_params.clone()).or_else(|e| {
+            #[cfg(debug_assertions)]
+            eprintln!("Warning: Flash attention context creation failed, falling back to standard attention ({})", e);
+            let fallback_params = LlamaContextParams::default()
+                .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
+                .with_n_batch(PROMPT_BATCH_SIZE as u32)
+                .with_n_threads(n_threads)
+                .with_n_threads_batch(n_threads)
+                .with_flash_attention_policy(0);
+            inner.model.new_context(&inner.backend, fallback_params)
+        }).context("Failed to create inference context")?;
 
         ctx.clear_kv_cache();
 
@@ -166,7 +173,14 @@ impl LocalLlm {
         let mut generated_text = String::with_capacity(max_tokens * 4);
         let mut gen_batch = LlamaBatch::new(1, 1);
 
-        for _ in 0..max_tokens {
+        let mut hit_limit = false;
+        let mut extra_tokens = 0;
+        let max_loop = max_tokens + 50;
+
+        for i in 0..max_loop {
+            if i >= max_tokens {
+                hit_limit = true;
+            }
             if n_cur >= INFERENCE_CONTEXT_TOKENS as i32 {
                 break;
             }
@@ -189,6 +203,19 @@ impl LocalLlm {
             n_cur += 1;
 
             ctx.decode(&mut gen_batch)?;
+
+            if hit_limit {
+                let last_char = piece.chars().last().unwrap_or(' ');
+                if last_char == '.' || last_char == '?' || last_char == '!' || piece.contains('\n')
+                {
+                    break;
+                }
+                extra_tokens += 1;
+                if extra_tokens >= 50 {
+                    generated_text.push_str("...");
+                    break;
+                }
+            }
         }
 
         let answer = generated_text.trim().to_string();
@@ -229,10 +256,17 @@ impl LocalLlm {
             .with_n_threads_batch(n_threads)
             .with_flash_attention_policy(1);
 
-        let mut ctx = inner
-            .model
-            .new_context(&inner.backend, ctx_params)
-            .context("Failed to create inference context")?;
+        let mut ctx = inner.model.new_context(&inner.backend, ctx_params.clone()).or_else(|e| {
+            #[cfg(debug_assertions)]
+            eprintln!("Warning: Flash attention context creation failed, falling back to standard attention ({})", e);
+            let fallback_params = LlamaContextParams::default()
+                .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
+                .with_n_batch(PROMPT_BATCH_SIZE as u32)
+                .with_n_threads(n_threads)
+                .with_n_threads_batch(n_threads)
+                .with_flash_attention_policy(0);
+            inner.model.new_context(&inner.backend, fallback_params)
+        }).context("Failed to create inference context")?;
 
         ctx.clear_kv_cache();
 
@@ -280,7 +314,14 @@ impl LocalLlm {
         let mut generated_text = String::with_capacity(max_tokens * 4);
         let mut gen_batch = LlamaBatch::new(1, 1);
 
-        for _ in 0..max_tokens {
+        let mut hit_limit = false;
+        let mut extra_tokens = 0;
+        let max_loop = max_tokens + 50;
+
+        for i in 0..max_loop {
+            if i >= max_tokens {
+                hit_limit = true;
+            }
             if n_cur >= INFERENCE_CONTEXT_TOKENS as i32 {
                 break;
             }
@@ -306,6 +347,20 @@ impl LocalLlm {
             n_cur += 1;
 
             ctx.decode(&mut gen_batch)?;
+
+            if hit_limit {
+                let last_char = piece.chars().last().unwrap_or(' ');
+                if last_char == '.' || last_char == '?' || last_char == '!' || piece.contains('\n')
+                {
+                    break;
+                }
+                extra_tokens += 1;
+                if extra_tokens >= 50 {
+                    callback("...".to_string());
+                    generated_text.push_str("...");
+                    break;
+                }
+            }
         }
 
         let answer = generated_text.trim().to_string();

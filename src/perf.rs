@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Performance monitoring and benchmarking for chat input rendering
 //!
 //! This module tracks and reports rendering performance metrics to ensure
@@ -9,8 +10,8 @@
 //! - Full frame render: <33ms (30 FPS minimum)
 //! - TTFT (Time to First Token): <300ms (responsive), <100ms (instant)
 
-use std::time::{Duration, Instant};
 use std::collections::VecDeque;
+use std::time::{Duration, Instant};
 
 /// Performance metrics for input rendering
 #[derive(Debug, Clone)]
@@ -69,29 +70,30 @@ impl PerfMonitor {
 
     /// Record input render time
     pub fn record_input_render(&mut self) -> Duration {
-        let duration = self.operation_start
+        let duration = self
+            .operation_start
             .map(|start| start.elapsed())
             .unwrap_or_default();
-        
+
         self.operation_start = None;
         duration
     }
 
     /// Record keystroke latency
     pub fn record_keystroke(&mut self) -> Duration {
-        let duration = self.operation_start
+        let duration = self
+            .operation_start
             .map(|start| start.elapsed())
             .unwrap_or_default();
-        
+
         self.operation_start = None;
         duration
     }
 
     /// Record full frame render time
-    pub fn record_frame_render(&mut self, 
-                                input_time: Duration, 
-                                keystroke_time: Duration) {
-        let frame_time = self.operation_start
+    pub fn record_frame_render(&mut self, input_time: Duration, keystroke_time: Duration) {
+        let frame_time = self
+            .operation_start
             .map(|start| start.elapsed())
             .unwrap_or_default();
 
@@ -147,7 +149,11 @@ impl PerfMonitor {
         self.stats = PerfStats {
             avg_input_render_ms: input_sum / count,
             max_input_render_ms: input_max,
-            min_input_render_ms: if input_min == f64::MAX { 0.0 } else { input_min },
+            min_input_render_ms: if input_min == f64::MAX {
+                0.0
+            } else {
+                input_min
+            },
             avg_keystroke_latency_ms: keystroke_sum / count,
             max_keystroke_latency_ms: keystroke_max,
             avg_frame_render_ms: frame_sum / count,
@@ -188,14 +194,16 @@ impl PerfMonitor {
     /// Get performance status indicator
     fn get_performance_status(&self) -> &'static str {
         let s = &self.stats;
-        
-        if s.avg_input_render_ms < 16.0 
-            && s.avg_keystroke_latency_ms < 50.0 
-            && s.avg_frame_render_ms < 33.0 {
+
+        if s.avg_input_render_ms < 16.0
+            && s.avg_keystroke_latency_ms < 50.0
+            && s.avg_frame_render_ms < 33.0
+        {
             "✓ EXCELLENT - Faster than target"
-        } else if s.avg_input_render_ms < 33.0 
-            && s.avg_keystroke_latency_ms < 100.0 
-            && s.avg_frame_render_ms < 50.0 {
+        } else if s.avg_input_render_ms < 33.0
+            && s.avg_keystroke_latency_ms < 100.0
+            && s.avg_frame_render_ms < 50.0
+        {
             "○ GOOD - Within acceptable range"
         } else {
             "✗ NEEDS OPTIMIZATION"
@@ -207,17 +215,15 @@ impl PerfMonitor {
         let s = &self.stats;
         format!(
             "⚡ Input:{:.1}ms Key:{:.1}ms Frame:{:.1}ms",
-            s.avg_input_render_ms,
-            s.avg_keystroke_latency_ms,
-            s.avg_frame_render_ms
+            s.avg_input_render_ms, s.avg_keystroke_latency_ms, s.avg_frame_render_ms
         )
     }
 
     /// Check if performance is meeting targets
     pub fn is_meeting_targets(&self) -> bool {
         let s = &self.stats;
-        s.avg_input_render_ms < 16.0 
-            && s.avg_keystroke_latency_ms < 50.0 
+        s.avg_input_render_ms < 16.0
+            && s.avg_keystroke_latency_ms < 50.0
             && s.avg_frame_render_ms < 33.0
     }
 
@@ -251,10 +257,10 @@ impl PerfMonitor {
             s.max_keystroke_latency_ms,
             s.avg_frame_render_ms,
             s.max_frame_render_ms,
-            if s.avg_frame_render_ms > 0.0 { 
-                (2000.0 / s.avg_frame_render_ms) as u32 
-            } else { 
-                0 
+            if s.avg_frame_render_ms > 0.0 {
+                (2000.0 / s.avg_frame_render_ms) as u32
+            } else {
+                0
             },
             if self.is_meeting_targets() {
                 "🏆 LEADING PERFORMANCE - Fastest in class"

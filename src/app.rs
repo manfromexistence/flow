@@ -255,12 +255,10 @@ impl ChatApp {
             // Start timing frame render
             self.perf_monitor.start_timing();
             terminal.draw(|f| self.render(f))?;
-            
+
             // Record frame render time with previous input and keystroke times
-            self.perf_monitor.record_frame_render(
-                self.last_input_render_time,
-                self.last_keystroke_time
-            );
+            self.perf_monitor
+                .record_frame_render(self.last_input_render_time, self.last_keystroke_time);
 
             if self.should_quit {
                 break;
@@ -292,15 +290,14 @@ impl ChatApp {
     fn handle_key(&mut self, key: event::KeyEvent) {
         // Start timing keystroke handling
         self.perf_monitor.start_timing();
-        
+
         // Toggle performance overlay with Ctrl+P
-        if key.code == KeyCode::Char('p') 
-            && key.modifiers.contains(event::KeyModifiers::CONTROL) {
+        if key.code == KeyCode::Char('p') && key.modifiers.contains(event::KeyModifiers::CONTROL) {
             self.show_perf_overlay = !self.show_perf_overlay;
             self.last_keystroke_time = self.perf_monitor.record_keystroke();
             return;
         }
-        
+
         // Handle autocomplete navigation when suggestions are visible
         // if self.handle_suggestion_navigation(key.code) {
         //     return;
@@ -412,10 +409,10 @@ impl ChatApp {
         }
 
         let action = self.input.handle_key(key);
-        
+
         // Record keystroke latency
         self.last_keystroke_time = self.perf_monitor.record_keystroke();
-        
+
         match action {
             InputAction::Submit(msg) => {
                 self.send_message(msg);

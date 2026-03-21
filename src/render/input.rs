@@ -14,7 +14,7 @@ impl ChatApp {
     pub fn render_input_box(&mut self, area: Rect, buf: &mut Buffer) {
         // Start timing input render
         self.perf_monitor.start_timing();
-        
+
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(self.theme.border))
@@ -34,7 +34,7 @@ impl ChatApp {
 
         self.render_input_text(padded_inner, buf);
         self.render_input_cursor(padded_inner, buf);
-        
+
         // Record input render time
         self.last_input_render_time = self.perf_monitor.record_input_render();
     }

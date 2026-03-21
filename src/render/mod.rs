@@ -204,7 +204,7 @@ impl ChatApp {
         self.plan_button_area = plan_area;
         self.model_button_area = model_area;
         self.local_button_area = local_area;
-        
+
         // Render performance overlay if enabled
         self.render_perf_overlay(frame.area(), frame.buffer_mut());
     }
