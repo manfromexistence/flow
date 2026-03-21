@@ -41,12 +41,14 @@ impl TachyonDemo {
         self.last_tick = Duration::from_millis(elapsed.as_millis() as u32);
     }
 
+    #[allow(dead_code)]
     pub fn next_effect(&mut self) {
         let fx_idx = (self.active_effect_idx + 1) % self.effects.len();
         self.active_effect = self.effects.get_effect(fx_idx);
         self.active_effect_idx = fx_idx;
     }
 
+    #[allow(dead_code)]
     pub fn prev_effect(&mut self) {
         let fx_idx = if self.active_effect_idx == 0 {
             self.effects.len() - 1

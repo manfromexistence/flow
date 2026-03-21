@@ -60,6 +60,7 @@ impl AnimationType {
         ]
     }
 
+    #[allow(dead_code)]
     pub fn name(&self) -> &'static str {
         match self {
             Self::Splash => "Splash Screen",
@@ -101,7 +102,9 @@ pub struct ChatState {
     pub rainbow_cursor: RainbowEffect,
     pub shimmer: ShimmerEffect,
     pub last_render: Instant,
+    #[allow(dead_code)]
     pub tachyon_last_tick: Duration,
+    #[allow(dead_code)]
     pub show_effects_demo_modal: bool,
     pub show_train_animation: bool,
     pub show_matrix_animation: bool,
@@ -111,28 +114,40 @@ pub struct ChatState {
     pub local_button_area: ratatui::layout::Rect,
     pub show_dx_splash: bool,
     pub chat_scroll_offset: usize,
+    #[allow(dead_code)]
     pub audio_processing: bool,
+    #[allow(dead_code)]
     pub last_shortcut_pressed: Option<String>,
+    #[allow(dead_code)]
     pub last_shortcut_time: Instant,
+    #[allow(dead_code)]
     pub focus: u8,
     pub shortcut_index: usize,
+    #[allow(dead_code)]
     pub mode: u8,
     pub selected_local_mode: String,
     pub selected_model: String,
+    #[allow(dead_code)]
     pub autocomplete: Autocomplete,
+    #[allow(dead_code)]
     pub last_input_change: Instant,
+    #[allow(dead_code)]
     pub last_input_content: String,
     pub tachyon_demo: TachyonDemo,
     pub tachyon_rng: SimpleRng,
     pub last_frame_instant: Instant,
+    #[allow(dead_code)]
     pub show_tachyon_modal: bool,
     pub perf_monitor: PerfMonitor,
     pub show_perf_overlay: bool,
+    #[allow(dead_code)]
     pub last_keystroke_time: Duration,
     pub last_input_render_time: Duration,
     
     // NEW: File picker integration
+    #[allow(dead_code)]
     pub show_file_picker: bool,
+    #[allow(dead_code)]
     pub selected_file: Option<PathBuf>,
 }
 
@@ -196,12 +211,14 @@ impl ChatState {
         }
     }
     
+    #[allow(dead_code)]
     pub async fn initialize_llm(&self) {
         if let Err(e) = self.llm.initialize().await {
             eprintln!("Failed to initialize LLM: {}", e);
         }
     }
     
+    #[allow(dead_code)]
     pub fn insert_file_path(&mut self, path: PathBuf) {
         let path_str = path.to_string_lossy();
         self.input.content.push_str(&path_str);
@@ -209,6 +226,7 @@ impl ChatState {
         self.selected_file = Some(path);
     }
     
+    #[allow(dead_code)]
     pub fn toggle_file_picker(&mut self) {
         self.show_file_picker = !self.show_file_picker;
     }

@@ -130,12 +130,11 @@ impl ChatState {
         let smoke_frame_idx = ((elapsed_ms / 200) as usize) % smoke_frames.len();
         let smoke = smoke_frames[smoke_frame_idx];
 
-        let y_start = (area
-            .height
-            .saturating_sub((train.len() + smoke.len()) as u16))
-            / 2;
+        // Position at the top with minimal padding
+        let y_start = 2;
         let mut lines = vec![];
 
+        // Add empty lines at the top
         for _ in 0..y_start {
             lines.push(Line::from(""));
         }
@@ -225,6 +224,11 @@ impl ChatState {
             track_spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
         }
         lines.push(Line::from(track_spans));
+
+        // Fill the rest of the screen with empty lines to clear everything
+        while lines.len() < area.height as usize {
+            lines.push(Line::from(""));
+        }
 
         Paragraph::new(lines)
             .style(Style::default().bg(bg_color))

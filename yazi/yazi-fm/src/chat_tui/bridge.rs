@@ -20,24 +20,29 @@ impl YaziChatBridge {
         }
     }
     
+    #[allow(dead_code)]
     pub fn is_chat_mode(&self) -> bool {
         matches!(self.mode, AppMode::Chat)
     }
     
+    #[allow(dead_code)]
     pub fn is_file_picker_mode(&self) -> bool {
         matches!(self.mode, AppMode::FilePicker)
     }
     
+    #[allow(dead_code)]
     pub fn enter_file_picker(&mut self) {
         self.mode = AppMode::FilePicker;
         self.chat_state.show_file_picker = true;
     }
     
+    #[allow(dead_code)]
     pub fn exit_file_picker(&mut self) {
         self.mode = AppMode::Chat;
         self.chat_state.show_file_picker = false;
     }
     
+    #[allow(dead_code)]
     pub fn select_file(&mut self, core: &Core) {
         // Get the currently selected file from yazi
         let tab = core.active();

@@ -82,22 +82,21 @@ impl<'a> Dispatcher<'a> {
 					KeyCode::Char(' ') => {
 						self.app.bridge.chat_state.tachyon_demo.restart_effect();
 						NEED_RENDER.store(1, Ordering::Relaxed);
-						return succ!();
+						succ!()
 					}
 					KeyCode::Char('r') => {
 						self.app.bridge.chat_state.tachyon_demo.random_effect(&mut self.app.bridge.chat_state.tachyon_rng);
 						NEED_RENDER.store(1, Ordering::Relaxed);
-						return succ!();
+						succ!()
 					}
 					KeyCode::Char('s') => {
 						self.app.bridge.chat_state.tachyon_demo.scramble_effect();
 						NEED_RENDER.store(1, Ordering::Relaxed);
-						return succ!();
+						succ!()
 					}
 					_ => {}
 				}
 			}
-			
 			// Handle navigation keys for animation carousel
 			match key.code {
 				KeyCode::Left | KeyCode::Backspace => {
@@ -109,7 +108,7 @@ impl<'a> Dispatcher<'a> {
 					}
 					self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
 					NEED_RENDER.store(1, Ordering::Relaxed);
-					return succ!();
+					succ!()
 				}
 				KeyCode::Right => {
 					// Next animation (but not Enter - Enter submits input)
@@ -117,7 +116,7 @@ impl<'a> Dispatcher<'a> {
 						(self.app.bridge.chat_state.current_animation_index + 1) % animations.len();
 					self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
 					NEED_RENDER.store(1, Ordering::Relaxed);
-					return succ!();
+					succ!()
 				}
 				_ => {
 					// For other keys, fall through to handle input
@@ -125,7 +124,6 @@ impl<'a> Dispatcher<'a> {
 				}
 			}
 		}
-		
 		// Handle chat input when in Chat mode or FilePicker mode (chat input is visible)
 		if self.app.bridge.mode == crate::chat_tui::AppMode::Chat 
 			|| self.app.bridge.mode == crate::chat_tui::AppMode::FilePicker 
@@ -139,17 +137,16 @@ impl<'a> Dispatcher<'a> {
 						self.app.bridge.chat_state.chat_scroll_offset = 
 							self.app.bridge.chat_state.chat_scroll_offset.saturating_sub(1);
 						NEED_RENDER.store(1, Ordering::Relaxed);
-						return succ!();
+						succ!()
 					}
 					KeyCode::Down => {
 						self.app.bridge.chat_state.chat_scroll_offset += 1;
 						NEED_RENDER.store(1, Ordering::Relaxed);
-						return succ!();
+						succ!()
 					}
 					_ => {}
 				}
 			}
-			
 			// Handle thinking accordion toggle with '0' key
 			if key.code == KeyCode::Char('0') && !self.app.bridge.chat_state.messages.is_empty() {
 				// Toggle thinking expansion for the last assistant message
@@ -160,9 +157,8 @@ impl<'a> Dispatcher<'a> {
 					}
 				}
 				NEED_RENDER.store(1, Ordering::Relaxed);
-				return succ!();
+				succ!()
 			}
-			
 			// Route key to chat input
 			let action = self.app.bridge.chat_state.input.handle_key(key);
 			
@@ -171,7 +167,7 @@ impl<'a> Dispatcher<'a> {
 					// Add message to chat - this exits animation mode
 					self.app.bridge.chat_state.add_user_message(msg);
 					NEED_RENDER.store(1, Ordering::Relaxed);
-					return succ!();
+					succ!()
 				}
 				InputAction::Exit => {
 					// Show farewell train animation
@@ -181,19 +177,18 @@ impl<'a> Dispatcher<'a> {
 				}
 				InputAction::Changed => {
 					NEED_RENDER.store(1, Ordering::Relaxed);
-					return succ!();
+					succ!()
 				}
 				InputAction::PreviousHistory | InputAction::NextHistory => {
 					// TODO: Implement history navigation
-					return succ!();
+					succ!()
 				}
 				InputAction::None => {
 					NEED_RENDER.store(1, Ordering::Relaxed);
-					return succ!();
+					succ!()
 				}
 			}
 		}
-		
 		// Route to yazi's normal key handling
 		Router::new(self.app).route(Key::from(key))?;
 		succ!();

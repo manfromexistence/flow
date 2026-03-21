@@ -68,6 +68,4 @@ fn main() {
         writeln!(rs_output).unwrap();
     }
     writeln!(rs_output, "];").unwrap();
-
-    println!("cargo:warning=Fonts compressed and embedded successfully");
 }

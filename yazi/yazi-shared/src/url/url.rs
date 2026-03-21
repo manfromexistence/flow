@@ -1,3 +1,5 @@
+#![allow(unstable_name_collisions)]
+
 use std::{borrow::Cow, ffi::OsStr, fmt::{Debug, Formatter}, path::{Path, PathBuf}};
 
 use anyhow::Result;
