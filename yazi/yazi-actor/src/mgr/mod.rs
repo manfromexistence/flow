@@ -26,6 +26,7 @@ yazi_macro::mod_flat!(
 	link
 	open
 	open_do
+	parent_arrow
 	paste
 	peek
 	quit

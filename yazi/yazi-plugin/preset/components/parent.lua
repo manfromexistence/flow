@@ -43,6 +43,13 @@ function Parent:click(event, up)
 	end
 end
 
-function Parent:scroll(event, step) end
+function Parent:scroll(event, step)
+	if not self._folder then
+		return
+	end
+	
+	-- Emit parent-arrow event to scroll the parent folder
+	ya.emit("parent-arrow", { step = step })
+end
 
 function Parent:touch(event, step) end
