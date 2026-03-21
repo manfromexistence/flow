@@ -23,8 +23,21 @@ impl<'a> Root<'a> {
 
 impl Widget for Root<'_> {
 	fn render(self, area: Rect, buf: &mut Buffer) {
+		// Split area: yazi on top, chat at bottom (3 lines for chat)
+		let chunks = ratatui::layout::Layout::default()
+			.direction(ratatui::layout::Direction::Vertical)
+			.constraints([
+				ratatui::layout::Constraint::Min(10),      // Yazi file manager
+				ratatui::layout::Constraint::Length(3),    // Chat input
+			])
+			.split(area);
+		
+		let yazi_area = chunks[0];
+		let chat_area = chunks[1];
+		
+		// Render yazi in the top area
 		let mut f = || {
-			let area = yazi_binding::elements::Rect::from(area);
+			let area = yazi_binding::elements::Rect::from(yazi_area);
 			let root = LUA.globals().raw_get::<Table>("Root")?.call_method::<Table>("new", area)?;
 
 			render_once(root.call_method("redraw", ())?, buf, |p| self.core.mgr.area(p));
@@ -34,39 +47,52 @@ impl Widget for Root<'_> {
 			error!("Failed to redraw the `Root` component:\n{e}");
 		}
 
-		mgr::Preview::new(self.core).render(area, buf);
-		mgr::Modal::new(self.core).render(area, buf);
+		mgr::Preview::new(self.core).render(yazi_area, buf);
+		mgr::Modal::new(self.core).render(yazi_area, buf);
 
 		if self.core.tasks.visible {
-			tasks::Tasks::new(self.core).render(area, buf);
+			tasks::Tasks::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.active().spot.visible() {
-			spot::Spot::new(self.core).render(area, buf);
+			spot::Spot::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.pick.visible {
-			pick::Pick::new(self.core).render(area, buf);
+			pick::Pick::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.input.visible {
-			input::Input::new(self.core).render(area, buf);
+			input::Input::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.confirm.visible {
-			confirm::Confirm::new(self.core).render(area, buf);
+			confirm::Confirm::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.help.visible {
-			help::Help::new(self.core).render(area, buf);
+			help::Help::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.cmp.visible {
-			cmp::Cmp::new(self.core).render(area, buf);
+			cmp::Cmp::new(self.core).render(yazi_area, buf);
 		}
 
 		if self.core.which.active {
-			which::Which::new(self.core).render(area, buf);
+			which::Which::new(self.core).render(yazi_area, buf);
 		}
+		
+		// Render chat at the bottom
+		use ratatui::widgets::{Block, Borders, Paragraph};
+		use ratatui::style::{Style, Color};
+		
+		let chat_widget = Paragraph::new("> Type your message here...")
+			.block(Block::default()
+				.borders(Borders::ALL)
+				.title(" AI Chat ")
+				.style(Style::default().fg(Color::Cyan)))
+			.style(Style::default().fg(Color::DarkGray));
+		
+		chat_widget.render(chat_area, buf);
 	}
 }

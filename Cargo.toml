@@ -50,6 +50,22 @@ figlet-rs = "0.1"
 # Token counting
 tiktoken-rs = "0.9"
 
+# Yazi file manager - all required dependencies
+yazi-core = { path = "./yazi/yazi-core" }
+yazi-config = { path = "./yazi/yazi-config" }
+yazi-shared = { path = "./yazi/yazi-shared" }
+yazi-fs = { path = "./yazi/yazi-fs" }
+yazi-plugin = { path = "./yazi/yazi-plugin" }
+yazi-binding = { path = "./yazi/yazi-binding" }
+yazi-adapter = { path = "./yazi/yazi-adapter" }
+yazi-boot = { path = "./yazi/yazi-boot" }
+yazi-dds = { path = "./yazi/yazi-dds" }
+yazi-proxy = { path = "./yazi/yazi-proxy" }
+yazi-term = { path = "./yazi/yazi-term" }
+yazi-tty = { path = "./yazi/yazi-tty" }
+yazi-watcher = { path = "./yazi/yazi-watcher" }
+mlua = { version = "0.11.6", features = ["vendored"] }
+
 [build-dependencies]
 zstd = "0.13"
 

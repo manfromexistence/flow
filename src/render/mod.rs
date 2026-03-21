@@ -4,6 +4,7 @@ mod animations;
 mod controls;
 mod input;
 mod perf_overlay;
+mod yazi;
 // mod suggestions; // Commented out - autocomplete disabled
 
 use ratatui::{
@@ -124,6 +125,9 @@ impl ChatApp {
                 }
                 AnimationType::Fireworks => {
                     self.render_fireworks_animation_in_area(chunks[0], frame);
+                }
+                AnimationType::Yazi => {
+                    self.render_yazi_in_area(chunks[0], frame);
                 }
             }
 

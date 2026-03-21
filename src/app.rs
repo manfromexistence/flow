@@ -42,6 +42,7 @@ pub enum AnimationType {
     Spinners,
     Waves,
     Fireworks,
+    Yazi,
 }
 
 impl AnimationType {
@@ -62,6 +63,7 @@ impl AnimationType {
             Self::Spinners,
             Self::Waves,
             Self::Fireworks,
+            Self::Yazi,
         ]
     }
 
@@ -83,6 +85,7 @@ impl AnimationType {
             Self::Spinners => "Spinners",
             Self::Waves => "Ocean Waves",
             Self::Fireworks => "Fireworks",
+            Self::Yazi => "Yazi File Manager",
         }
     }
 }
@@ -162,12 +165,36 @@ pub struct ChatApp {
     pub show_perf_overlay: bool,
     pub last_keystroke_time: std::time::Duration,
     pub last_input_render_time: std::time::Duration,
+    // Yazi file manager
+    pub yazi_core: Option<yazi_core::Core>,
 }
 
 impl ChatApp {
     pub fn new() -> Self {
         let (llm_tx, llm_rx) = channel();
         let theme = ChatTheme::dark_fallback();
+
+        // Initialize yazi subsystems in the CORRECT order (dependencies matter!)
+        yazi_shared::init(); // Must be first
+        yazi_tty::init(); // Initialize TTY before config (config uses TTY)
+        yazi_fs::init(); // Initialize CWD before boot (boot uses CWD)
+        yazi_boot::init_default(); // Initialize ARGS and BOOT (uses CWD)
+        yazi_watcher::init(); // Initialize WATCHED and WATCHER
+        
+        // Initialize yazi config (initializes YAZI, KEYMAP, THEME, LAYOUT)
+        let _ = yazi_config::init();
+        let _ = yazi_config::init_flavor(false); // Dark theme
+        
+        // Try to initialize plugin system for Lua-based rendering
+        let lua_initialized = yazi_plugin::init().is_ok();
+        
+        if !lua_initialized {
+            eprintln!("Warning: Lua plugin system failed to initialize");
+            eprintln!("Yazi will show error message in UI");
+        }
+
+        // Create yazi core
+        let yazi_core = yazi_core::Core::make();
 
         Self {
             theme: theme.clone(),
@@ -220,6 +247,7 @@ impl ChatApp {
             show_perf_overlay: false,
             last_keystroke_time: Duration::from_secs(0),
             last_input_render_time: Duration::from_secs(0),
+            yazi_core: Some(yazi_core),
         }
     }
 
