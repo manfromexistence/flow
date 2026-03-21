@@ -95,6 +95,7 @@ impl<'a> Executor<'a> {
 
 		// Navigation
 		on!(arrow);
+		on!(parent_arrow);
 		on!(leave);
 		on!(enter);
 		on!(back);

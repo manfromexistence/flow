@@ -43,6 +43,6 @@ function Parent:click(event, up)
 	end
 end
 
-function Parent:scroll(event, step) end
+function Parent:scroll(event, step) ya.emit("parent_arrow", { step }) end
 
 function Parent:touch(event, step) end

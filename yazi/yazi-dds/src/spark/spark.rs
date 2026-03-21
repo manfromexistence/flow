@@ -56,6 +56,7 @@ pub enum Spark<'a> {
 	Link(yazi_parser::mgr::LinkOpt),
 	Open(yazi_parser::mgr::OpenOpt),
 	OpenDo(yazi_parser::mgr::OpenDoOpt),
+	ParentArrow(yazi_parser::ArrowOpt),
 	Paste(yazi_parser::mgr::PasteOpt),
 	Peek(yazi_parser::mgr::PeekOpt),
 	Quit(yazi_parser::app::QuitOpt),
@@ -237,6 +238,7 @@ impl<'a> IntoLua for Spark<'a> {
 			Self::Link(b) => b.into_lua(lua),
 			Self::Open(b) => b.into_lua(lua),
 			Self::OpenDo(b) => b.into_lua(lua),
+			Self::ParentArrow(b) => b.into_lua(lua),
 			Self::Paste(b) => b.into_lua(lua),
 			Self::Peek(b) => b.into_lua(lua),
 			Self::Quit(b) => b.into_lua(lua),
@@ -360,7 +362,7 @@ try_from_spark!(
 );
 
 // App
-try_from_spark!(yazi_parser::ArrowOpt, mgr:arrow, mgr:tab_swap);
+try_from_spark!(yazi_parser::ArrowOpt, mgr:arrow, mgr:parent_arrow, mgr:tab_swap);
 try_from_spark!(yazi_parser::app::DeprecateOpt, app:deprecate);
 try_from_spark!(yazi_parser::app::MouseOpt, app:mouse);
 try_from_spark!(yazi_parser::app::PluginOpt, app:plugin, app:plugin_do);
