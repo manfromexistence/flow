@@ -137,7 +137,13 @@ function Entity:click(event, up)
 		return
 	end
 
-	ya.emit("reveal", { self._file.url })
+	-- If it's a directory, cd into it; otherwise reveal the file
+	if self._file.cha.is_dir then
+		ya.emit("cd", { self._file.url })
+	else
+		ya.emit("reveal", { self._file.url })
+	end
+	
 	if event.is_right then
 		ya.emit("open", {})
 	end
