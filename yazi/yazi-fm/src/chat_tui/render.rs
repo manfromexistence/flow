@@ -181,15 +181,25 @@ impl ChatState {
 
         self.input_area = chunks[1];
 
-        // Always render messages (even if empty) instead of splash screen
-        MessageList::with_effects(
-            &self.messages,
-            &self.theme,
-            self.chat_scroll_offset,
-            &self.shimmer,
-            &self.typing_indicator,
-        )
-        .render(chunks[0], buf);
+        // Show splash when no messages, otherwise show message list
+        if self.messages.is_empty() {
+            super::splash::render(
+                chunks[0],
+                buf,
+                &self.theme,
+                self.splash_font_index,
+                &self.rainbow_animation,
+            );
+        } else {
+            MessageList::with_effects(
+                &self.messages,
+                &self.theme,
+                self.chat_scroll_offset,
+                &self.shimmer,
+                &self.typing_indicator,
+            )
+            .render(chunks[0], buf);
+        }
 
         self.render_input_box(chunks[1], buf);
 

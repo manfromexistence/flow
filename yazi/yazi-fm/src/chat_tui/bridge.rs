@@ -16,7 +16,7 @@ impl YaziChatBridge {
     pub fn new() -> Self {
         Self {
             chat_state: ChatState::new(),
-            mode: AppMode::FilePicker,  // Start with file picker visible by default
+            mode: AppMode::Chat,  // Start in Chat mode to show animations/messages
         }
     }
     
