@@ -48,8 +48,17 @@ function Tab:redraw()
 end
 
 -- Mouse events
-function Tab:click(event, up) end
+function Tab:click(event, up)
+	local c = ya.child_at(ui.Rect { x = event.x, y = event.y }, self:reflow())
+	return c and c:click(event, up)
+end
 
-function Tab:scroll(event, step) end
+function Tab:scroll(event, step)
+	local c = ya.child_at(ui.Rect { x = event.x, y = event.y }, self:reflow())
+	return c and c:scroll(event, step)
+end
 
-function Tab:touch(event, step) end
+function Tab:touch(event, step)
+	local c = ya.child_at(ui.Rect { x = event.x, y = event.y }, self:reflow())
+	return c and c:touch(event, step)
+end

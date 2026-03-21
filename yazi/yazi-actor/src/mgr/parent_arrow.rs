@@ -17,14 +17,13 @@ impl Actor for ParentArrow {
 		
 		// Scroll the parent folder if it exists
 		if let Some(parent) = &mut tab.parent {
-			if !parent.arrow(opt.step) {
-				succ!();
-			}
+			// Call arrow to update offset and cursor
+			parent.arrow(opt.step);
 			
-			// Force a render to update the parent folder view
+			// Force render to update the view
 			succ!(render!());
-		} else {
-			succ!();
 		}
+		
+		succ!();
 	}
 }

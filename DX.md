@@ -9,3 +9,5 @@ Please look at the main root src folder and and its cargo.toml and commnent out 
 Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now
 
 Awesome our chat input is showing now the chat input box is way huge like 3x the size it should be so please cut its height 2x and also in that space show yazi file picker layout
+
+Now here is the main problem. Currently the ERG is using Lua and previously our SRC folder effects used a rata UI more deeply. Now when I scroll on the center of the file browser, it is updating the rainbow animation on the chat input cursor. That means the bottom animations are not being triggered on an animated time loop basis but it's showing them when we are interacting with the Lua buffer and rendering. Make sure that our chat input uses other rendering so that the Lua top rendering doesn't affect our effects and animations and they can run smoothly by their own like how they used to run.
