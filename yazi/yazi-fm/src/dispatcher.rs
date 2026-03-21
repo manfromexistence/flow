@@ -1,4 +1,5 @@
 use std::sync::atomic::Ordering;
+use std::time::{Duration, Instant};
 
 use anyhow::Result;
 use crossterm::event::{KeyEvent, MouseEvent};
@@ -67,6 +68,43 @@ impl<'a> Dispatcher<'a> {
 
 	#[inline]
 	fn dispatch_key(&mut self, key: KeyEvent) -> Result<Data> {
+		use crossterm::event::KeyCode;
+		
+		// If in animation mode, handle arrow keys for navigation
+		if self.app.bridge.chat_state.animation_mode {
+			let animations = crate::chat_tui::AnimationType::all();
+			let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
+			
+			// Handle arrow keys for animation navigation (when not on Yazi screen)
+			if current_anim != crate::chat_tui::AnimationType::Yazi {
+				match key.code {
+					KeyCode::Left | KeyCode::Backspace => {
+						// Previous animation
+						if self.app.bridge.chat_state.current_animation_index == 0 {
+							self.app.bridge.chat_state.current_animation_index = animations.len() - 1;
+						} else {
+							self.app.bridge.chat_state.current_animation_index -= 1;
+						}
+						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					KeyCode::Right | KeyCode::Enter => {
+						// Next animation
+						self.app.bridge.chat_state.current_animation_index = 
+							(self.app.bridge.chat_state.current_animation_index + 1) % animations.len();
+						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+						NEED_RENDER.store(1, Ordering::Relaxed);
+						succ!();
+					}
+					_ => {
+						// Other keys ignored in animation mode
+						succ!();
+					}
+				}
+			}
+		}
+		
 		Router::new(self.app).route(Key::from(key))?;
 		succ!();
 	}
@@ -106,6 +144,20 @@ impl<'a> Dispatcher<'a> {
 	fn dispatch_timer(&mut self) -> Result<Data> {
 		// Timer tick for animations - just trigger a render
 		// The effects are time-based and will automatically show updated colors
+		
+		// Update splash font cycling (every 3 seconds)
+		if self.app.bridge.chat_state.animation_mode 
+			&& self.app.bridge.chat_state.last_font_change.elapsed() >= Duration::from_secs(3)
+		{
+			let animations = crate::chat_tui::AnimationType::all();
+			let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
+			if current_anim == crate::chat_tui::AnimationType::Splash {
+				self.app.bridge.chat_state.splash_font_index = 
+					(self.app.bridge.chat_state.splash_font_index + 1) % 113; // 113 valid fonts
+				self.app.bridge.chat_state.last_font_change = Instant::now();
+			}
+		}
+		
 		NEED_RENDER.store(1, Ordering::Relaxed);
 		succ!();
 	}

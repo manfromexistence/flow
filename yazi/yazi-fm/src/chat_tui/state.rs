@@ -35,6 +35,7 @@ pub enum AnimationType {
     Spinners,
     Waves,
     Fireworks,
+    Yazi,
 }
 
 impl AnimationType {
@@ -55,6 +56,7 @@ impl AnimationType {
             Self::Spinners,
             Self::Waves,
             Self::Fireworks,
+            Self::Yazi, // Last screen
         ]
     }
 
@@ -75,6 +77,7 @@ impl AnimationType {
             Self::Spinners => "Spinners",
             Self::Waves => "Ocean Waves",
             Self::Fireworks => "Fireworks",
+            Self::Yazi => "Yazi File Manager",
         }
     }
 }
@@ -147,9 +150,9 @@ impl ChatState {
             cursor_visible: true,
             splash_font_index: 0,
             last_font_change: Instant::now(),
-            animation_mode: false,
-            current_animation_index: 0,
-            animation_start_time: None,
+            animation_mode: true, // Start in animation mode to show splash
+            current_animation_index: 0, // Start with splash
+            animation_start_time: Some(Instant::now()),
             llm: Arc::new(LocalLlm::new()),
             llm_tx,
             llm_rx,

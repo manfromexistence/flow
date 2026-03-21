@@ -51,6 +51,28 @@ impl ChatState {
             let animations = AnimationType::all();
             let current_anim = animations[self.current_animation_index];
 
+            // Special handling for Yazi screen - don't render here, let root handle it
+            if current_anim == AnimationType::Yazi {
+                // Just render input and controls, yazi will be rendered by root widget
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints([
+                        Constraint::Min(10),
+                        Constraint::Length(3),
+                        Constraint::Length(1),
+                    ])
+                    .split(area);
+
+                self.input_area = chunks[1];
+                self.render_input_box(chunks[1], buf);
+                let (plan_area, model_area, _token_area, local_area) =
+                    self.render_bottom_controls(chunks[2], buf);
+                self.plan_button_area = plan_area;
+                self.model_button_area = model_area;
+                self.local_button_area = local_area;
+                return;
+            }
+
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
@@ -121,6 +143,11 @@ impl ChatState {
                 }
                 AnimationType::Fireworks => {
                     self.render_fireworks_animation_in_area(chunks[0], buf);
+                }
+                AnimationType::Yazi => {
+                    // Exit animation mode and show yazi file picker
+                    // This will be handled by the root widget
+                    return;
                 }
             }
 
