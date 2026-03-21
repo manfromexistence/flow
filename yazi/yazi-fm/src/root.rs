@@ -34,12 +34,12 @@ impl Widget for Root<'_> {
 				self.bridge.chat_state.render(area, buf);
 			}
 			AppMode::FilePicker => {
-				// Split screen: 70% yazi, 30% dimmed chat
+				// Split screen: 85% yazi, 15% chat input
 				let chunks = ratatui::layout::Layout::default()
 					.direction(ratatui::layout::Direction::Vertical)
 					.constraints([
-						ratatui::layout::Constraint::Percentage(70),  // Yazi file picker
-						ratatui::layout::Constraint::Percentage(30),  // Dimmed chat
+						ratatui::layout::Constraint::Percentage(85),  // Yazi file picker (more space)
+						ratatui::layout::Constraint::Percentage(15),  // Chat input (compact)
 					])
 					.split(area);
 				

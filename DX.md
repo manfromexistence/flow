@@ -7,3 +7,5 @@ Awesome now please do it!!!
 Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now
 
 Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now
+
+Awesome our chat input is showing now the chat input box is way huge like 3x the size it should be so please cut its height 2x and also in that space show yazi file picker layout

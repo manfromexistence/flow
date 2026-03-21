@@ -184,12 +184,12 @@ impl ChatState {
     
     pub fn render_dimmed(&mut self, area: Rect, buf: &mut Buffer) {
         // Simplified render for FilePicker mode - just show input box and controls
-        // Split into input (most space) and controls (1 line)
+        // Split into input (3 lines) and controls (1 line)
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Min(3),      // Input box
-                Constraint::Length(1),   // Bottom controls
+                Constraint::Length(3),   // Input box (3 lines)
+                Constraint::Length(1),   // Bottom controls (1 line)
             ])
             .split(area);
 
