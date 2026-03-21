@@ -30,6 +30,10 @@ impl App {
 		};
 		app.bootstrap()?;
 
+		// Animation timer: 50ms = ~20 FPS for smooth animations
+		let mut animation_timer = tokio::time::interval(Duration::from_millis(50));
+		animation_timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
 		let mut events = Vec::with_capacity(50);
 		let (mut timeout, mut need_render, mut last_render) = (None, 0, Instant::now());
 		macro_rules! drain_events {
@@ -58,15 +62,28 @@ impl App {
 						app.render(need_render == 2)?;
 						last_render = Instant::now();
 					}
+					_ = animation_timer.tick() => {
+						// Timer tick for animations - emit Timer event
+						events.push(Event::Timer);
+						drain_events!();
+					}
 					n = rx.recv_many(&mut events, 50) => {
 						if n == 0 { break }
 						drain_events!();
 					}
 				}
-			} else if rx.recv_many(&mut events, 50).await != 0 {
-				drain_events!();
 			} else {
-				break;
+				select! {
+					_ = animation_timer.tick() => {
+						// Timer tick for animations - emit Timer event
+						events.push(Event::Timer);
+						drain_events!();
+					}
+					n = rx.recv_many(&mut events, 50) => {
+						if n == 0 { break }
+						drain_events!();
+					} else => break,
+				}
 			}
 		}
 		Ok(())

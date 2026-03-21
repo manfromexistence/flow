@@ -17,6 +17,7 @@ pub enum Event {
 	Resize,
 	Focus,
 	Paste(String),
+	Timer, // Animation timer tick
 }
 
 impl Event {

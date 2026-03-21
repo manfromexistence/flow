@@ -30,6 +30,7 @@ impl<'a> Dispatcher<'a> {
 			Event::Resize => self.dispatch_resize(),
 			Event::Focus => self.dispatch_focus(),
 			Event::Paste(str) => self.dispatch_paste(str),
+			Event::Timer => self.dispatch_timer(),
 		};
 
 		if let Err(err) = result {
@@ -98,6 +99,14 @@ impl<'a> Dispatcher<'a> {
 				input.replace_str(&str)?;
 			}
 		}
+		succ!();
+	}
+
+	#[inline]
+	fn dispatch_timer(&mut self) -> Result<Data> {
+		// Timer tick for animations - just trigger a render
+		// The effects are time-based and will automatically show updated colors
+		NEED_RENDER.store(1, Ordering::Relaxed);
 		succ!();
 	}
 }
