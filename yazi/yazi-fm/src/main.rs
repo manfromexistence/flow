@@ -6,6 +6,8 @@ yazi_macro::mod_pub!(app cmp confirm help input mgr notify pick spot tasks which
 
 yazi_macro::mod_flat!(dispatcher executor logs panic root router signals);
 
+mod chat_tui;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
 	Panic::install();

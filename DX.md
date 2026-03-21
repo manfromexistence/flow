@@ -1,3 +1,7 @@
 Awesome now you hardcoded a chat input in the bottom - now did you used rataui our mlua layout that to show that chatinput as our main chat tui is made of ratatui and also I know for a fact that yazi also uses rataui - so now as both yazi ui and our one hardcoded chat ui is showing so please give me best way to render our whole actual rataui tui there correctly - give me plan for now
 
 Awesome now then copy our code from the main src folder and please use our main actual code instead of creating new ai slop I created the tui with care and it will be really hard if you try to recreate it, it will be ai slop so please use our actual code as its very less amount of code anyway and integrate it correctly - now handle the yazi logic correctly and keep it mind do it performantly as yazi will be the default file picker - like there will be a screen in our chat input with the yazi tui from where users can select the path of our tui workspace as our tui is a ai tui and users can also see file content and stuffs - so please create a plan to integrate out actual ui correctly in yazi
+
+Awesome now please do it!!!
+
+Please look at the main root src folder and and its cargo.toml and commnent out all code related to yazi integrations in our main src folder crate as we holded the integration to yazi for now

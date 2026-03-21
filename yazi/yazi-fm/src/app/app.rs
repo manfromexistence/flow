@@ -8,12 +8,13 @@ use yazi_macro::act;
 use yazi_shared::{data::Data, event::{Event, NEED_RENDER}};
 use yazi_term::Term;
 
-use crate::{Dispatcher, Signals};
+use crate::{Dispatcher, Signals, chat_tui::YaziChatBridge};
 
 pub(crate) struct App {
 	pub(crate) core:    Core,
 	pub(crate) term:    Option<Term>,
 	pub(crate) signals: Signals,
+	pub(crate) bridge:  YaziChatBridge,  // NEW: Chat TUI bridge
 }
 
 impl App {
@@ -21,7 +22,12 @@ impl App {
 		let term = Term::start()?;
 		let (mut rx, signals) = (Event::take(), Signals::start()?);
 
-		let mut app = Self { core: Core::make(), term: Some(term), signals };
+		let mut app = Self { 
+			core: Core::make(), 
+			term: Some(term), 
+			signals,
+			bridge: YaziChatBridge::new(),  // NEW: Initialize bridge
+		};
 		app.bootstrap()?;
 
 		let mut events = Vec::with_capacity(50);

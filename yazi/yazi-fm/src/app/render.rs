@@ -30,7 +30,7 @@ impl App {
 		let preview_rect = LAYOUT.get().preview;
 		let frame = term.draw(|f| {
 			_ = Lives::scope(&self.core, || {
-				runtime_scope!(LUA, "root", Ok(f.render_widget(Root::new(&self.core), f.area())))
+				runtime_scope!(LUA, "root", Ok(f.render_widget(Root::new(&self.core, &mut self.bridge), f.area())))
 			});
 		})?;
 
