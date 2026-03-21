@@ -73,34 +73,36 @@ impl<'a> Dispatcher<'a> {
 		// If in animation mode, handle arrow keys for navigation
 		if self.app.bridge.chat_state.animation_mode {
 			let animations = crate::chat_tui::AnimationType::all();
-			let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
 			
-			// Handle arrow keys for animation navigation (when not on Yazi screen)
-			if current_anim != crate::chat_tui::AnimationType::Yazi {
-				match key.code {
-					KeyCode::Left | KeyCode::Backspace => {
-						// Previous animation
-						if self.app.bridge.chat_state.current_animation_index == 0 {
-							self.app.bridge.chat_state.current_animation_index = animations.len() - 1;
-						} else {
-							self.app.bridge.chat_state.current_animation_index -= 1;
-						}
-						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
-						NEED_RENDER.store(1, Ordering::Relaxed);
+			// Handle Left/Right arrow keys for screen navigation (even on Yazi screen)
+			match key.code {
+				KeyCode::Left | KeyCode::Backspace => {
+					// Previous animation
+					if self.app.bridge.chat_state.current_animation_index == 0 {
+						self.app.bridge.chat_state.current_animation_index = animations.len() - 1;
+					} else {
+						self.app.bridge.chat_state.current_animation_index -= 1;
+					}
+					self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+					NEED_RENDER.store(1, Ordering::Relaxed);
+					succ!();
+				}
+				KeyCode::Right | KeyCode::Enter => {
+					// Next animation
+					self.app.bridge.chat_state.current_animation_index = 
+						(self.app.bridge.chat_state.current_animation_index + 1) % animations.len();
+					self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
+					NEED_RENDER.store(1, Ordering::Relaxed);
+					succ!();
+				}
+				_ => {
+					// Other keys: only route to yazi if on Yazi screen
+					let current_anim = animations[self.app.bridge.chat_state.current_animation_index];
+					if current_anim != crate::chat_tui::AnimationType::Yazi {
+						// Not on Yazi screen, ignore other keys
 						succ!();
 					}
-					KeyCode::Right | KeyCode::Enter => {
-						// Next animation
-						self.app.bridge.chat_state.current_animation_index = 
-							(self.app.bridge.chat_state.current_animation_index + 1) % animations.len();
-						self.app.bridge.chat_state.animation_start_time = Some(Instant::now());
-						NEED_RENDER.store(1, Ordering::Relaxed);
-						succ!();
-					}
-					_ => {
-						// Other keys ignored in animation mode
-						succ!();
-					}
+					// On Yazi screen, fall through to route to yazi
 				}
 			}
 		}
