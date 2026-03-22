@@ -14,35 +14,22 @@ impl ChatState {
         // Update tachyon effects timing
         let _elapsed = self.last_render.elapsed();
 
-        // Both animations show in chat area only, keeping input visible
+        // Both animations show in full screen, no input or controls
         if self.show_train_animation || self.show_matrix_animation {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Min(10),
-                    Constraint::Length(3),
-                    Constraint::Length(1),
-                ])
-                .split(area);
-
-            self.input_area = chunks[1];
-
-            // Render appropriate animation in the chat area
-            if self.show_train_animation {
-                self.render_train_animation_in_area(chunks[0], buf);
-            } else if self.show_matrix_animation {
-                self.render_matrix_animation_in_area(chunks[0], buf);
+            // Clear the entire area first
+            for y in area.top()..area.bottom() {
+                for x in area.left()..area.right() {
+                    buf[(x, y)].reset();
+                    buf[(x, y)].set_bg(self.theme_bg_color());
+                }
             }
-
-            // Still render the input bar and bottom controls
-            self.render_input_box(chunks[1], buf);
-
-            let (plan_area, model_area, _token_area, local_area) =
-                self.render_bottom_controls(chunks[2], buf);
-
-            self.plan_button_area = plan_area;
-            self.model_button_area = model_area;
-            self.local_button_area = local_area;
+            
+            // Render appropriate animation in the full area
+            if self.show_train_animation {
+                self.render_train_animation_in_area(area, buf);
+            } else if self.show_matrix_animation {
+                self.render_matrix_animation_in_area(area, buf);
+            }
             return;
         }
 
@@ -73,6 +60,27 @@ impl ChatState {
                 return;
             }
 
+            // Train and Matrix animations take full screen - no input or controls
+            if current_anim == AnimationType::Train || current_anim == AnimationType::Matrix {
+                // Clear the entire area first
+                for y in area.top()..area.bottom() {
+                    for x in area.left()..area.right() {
+                        buf[(x, y)].reset();
+                        buf[(x, y)].set_bg(self.theme_bg_color());
+                    }
+                }
+                
+                // Render animation in full screen - no other UI elements
+                if current_anim == AnimationType::Train {
+                    self.render_train_animation_in_area(area, buf);
+                } else {
+                    self.render_matrix_animation_in_area(area, buf);
+                }
+                
+                // IMPORTANT: Return immediately - don't render input or controls
+                return;
+            }
+
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
@@ -96,10 +104,10 @@ impl ChatState {
                     );
                 }
                 AnimationType::Matrix => {
-                    self.render_matrix_animation_in_area(chunks[0], buf);
+                    // Already handled above
                 }
                 AnimationType::Train => {
-                    self.render_train_animation_in_area(chunks[0], buf);
+                    // Already handled above
                 }
                 AnimationType::Confetti => {
                     self.render_confetti_animation_in_area(chunks[0], buf);

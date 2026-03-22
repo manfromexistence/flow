@@ -7,25 +7,24 @@ use super::effects::RainbowEffect;
 pub fn show_train_farewell() {
     let rainbow = RainbowEffect::new();
     
+    // Clear the entire screen first
+    print!("\x1B[2J"); // Clear screen
+    print!("\x1B[H");  // Move cursor to home (top-left)
+    let _ = io::stdout().flush();
+    
     // Get terminal size
     let size = crossterm::terminal::size().unwrap_or((120, 30));
     let terminal_width = size.0 as usize;
-    
-    println!();
-    println!("🚂 Thanks for using yazi! Here's a farewell train!");
-    println!();
     
     // Calculate how many lines the train takes
     let train_lines = 3 + 10 + 1; // smoke (3) + train (10) + tracks (1)
     
     // Show train animation for 15 frames
     for frame in 0..15 {
-        render_train_frame(&rainbow, frame, terminal_width);
+        // Move cursor to top for each frame
+        print!("\x1B[H");
         
-        // Move cursor up to overwrite the previous frame
-        if frame < 14 {
-            print!("\x1B[{}A", train_lines); // Move cursor up
-        }
+        render_train_frame(&rainbow, frame, terminal_width);
         
         thread::sleep(Duration::from_millis(200));
     }

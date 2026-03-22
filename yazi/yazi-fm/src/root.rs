@@ -32,6 +32,17 @@ impl Widget for Root<'_> {
 			let animations = AnimationType::all();
 			let current_anim = animations[self.bridge.chat_state.current_animation_index];
 			
+			// For Train and Matrix animations, clear everything first before any rendering
+			if current_anim == AnimationType::Train || current_anim == AnimationType::Matrix {
+				let bg_color = self.bridge.chat_state.theme_bg_color();
+				for y in area.top()..area.bottom() {
+					for x in area.left()..area.right() {
+						buf[(x, y)].reset();
+						buf[(x, y)].set_bg(bg_color);
+					}
+				}
+			}
+			
 			// Special case: Yazi screen in animation carousel
 			if current_anim == AnimationType::Yazi {
 				// Show Yazi file picker in full screen with chat at bottom

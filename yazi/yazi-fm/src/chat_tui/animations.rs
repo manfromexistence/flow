@@ -96,6 +96,15 @@ impl ChatState {
 
     pub fn render_train_animation_in_area(&self, area: Rect, buf: &mut Buffer) {
         let bg_color = self.theme_bg_color();
+        
+        // First, clear the entire area with background color
+        for y in area.top()..area.bottom() {
+            for x in area.left()..area.right() {
+                buf[(x, y)].reset();
+                buf[(x, y)].set_bg(bg_color);
+            }
+        }
+        
         let elapsed_ms = self
             .animation_start_time
             .map(|t| t.elapsed().as_millis() as i32)
@@ -130,109 +139,120 @@ impl ChatState {
         let smoke_frame_idx = ((elapsed_ms / 200) as usize) % smoke_frames.len();
         let smoke = smoke_frames[smoke_frame_idx];
 
-        // Position at the top with minimal padding
-        let y_start = 2;
-        let mut lines = vec![];
-
-        // Add empty lines at the top
-        for _ in 0..y_start {
-            lines.push(Line::from(""));
-        }
+        // Position at the very top - no padding
+        let y_start = 0;
+        let mut current_y = area.top() + y_start;
 
         // Render smoke above the train
         let smoke_x_offset = x_pos + 6; // position smoke above the smokestack
         for smoke_line in smoke {
+            if current_y >= area.bottom() {
+                break;
+            }
+            
             if smoke_x_offset >= -train_width && smoke_x_offset < area.width as i32 {
-                let mut spans = Vec::new();
+                let mut current_x = area.left();
+                
                 if smoke_x_offset >= 0 {
-                    let padding = " ".repeat(smoke_x_offset as usize);
-                    spans.push(Span::raw(padding));
+                    current_x += smoke_x_offset as u16;
                     for (ci, ch) in smoke_line.chars().enumerate() {
+                        if current_x >= area.right() {
+                            break;
+                        }
                         let color_idx = (ci + (elapsed_ms / 150) as usize) % 50;
                         let color = self.rainbow_color(color_idx);
-                        spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+                        let cell = &mut buf[(current_x, current_y)];
+                        cell.set_char(ch);
+                        cell.set_fg(color);
+                        cell.set_bg(bg_color);
+                        current_x += 1;
                     }
                 } else {
                     let visible_start = (-smoke_x_offset) as usize;
                     if visible_start < smoke_line.len() {
                         for (ci, ch) in smoke_line[visible_start..].chars().enumerate() {
+                            if current_x >= area.right() {
+                                break;
+                            }
                             let color_idx = (ci + visible_start + (elapsed_ms / 150) as usize) % 50;
                             let color = self.rainbow_color(color_idx);
-                            spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+                            let cell = &mut buf[(current_x, current_y)];
+                            cell.set_char(ch);
+                            cell.set_fg(color);
+                            cell.set_bg(bg_color);
+                            current_x += 1;
                         }
                     }
                 }
-                lines.push(Line::from(spans));
-            } else {
-                lines.push(Line::from(""));
             }
+            current_y += 1;
         }
 
+        // Render train
         for (line_idx, line) in train.iter().enumerate() {
+            if current_y >= area.bottom() {
+                break;
+            }
+            
             if x_pos >= -train_width && x_pos < area.width as i32 {
+                let mut current_x = area.left();
+                
                 if x_pos >= 0 {
-                    let padding = " ".repeat(x_pos as usize);
-                    let mut spans = vec![Span::raw(padding)];
-
+                    current_x += x_pos as u16;
                     for (char_idx, ch) in line.chars().enumerate() {
-                        let color_idx =
-                            (char_idx + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
+                        if current_x >= area.right() {
+                            break;
+                        }
+                        let color_idx = (char_idx + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
                         let ratatui_color = self.rainbow_color(color_idx);
-                        spans.push(Span::styled(
-                            ch.to_string(),
-                            Style::default().fg(ratatui_color),
-                        ));
+                        let cell = &mut buf[(current_x, current_y)];
+                        cell.set_char(ch);
+                        cell.set_fg(ratatui_color);
+                        cell.set_bg(bg_color);
+                        current_x += 1;
                     }
-                    lines.push(Line::from(spans));
                 } else {
                     let visible_start = (-x_pos) as usize;
                     if visible_start < line.len() {
-                        let mut spans = Vec::new();
                         for (char_idx, ch) in line[visible_start..].chars().enumerate() {
-                            let color_idx = (char_idx
-                                + visible_start
-                                + line_idx * 3
-                                + (elapsed_ms / 100) as usize)
-                                % 50;
+                            if current_x >= area.right() {
+                                break;
+                            }
+                            let color_idx = (char_idx + visible_start + line_idx * 3 + (elapsed_ms / 100) as usize) % 50;
                             let ratatui_color = self.rainbow_color(color_idx);
-                            spans.push(Span::styled(
-                                ch.to_string(),
-                                Style::default().fg(ratatui_color),
-                            ));
+                            let cell = &mut buf[(current_x, current_y)];
+                            cell.set_char(ch);
+                            cell.set_fg(ratatui_color);
+                            cell.set_bg(bg_color);
+                            current_x += 1;
                         }
-                        lines.push(Line::from(spans));
-                    } else {
-                        lines.push(Line::from(""));
                     }
                 }
-            } else {
-                lines.push(Line::from(""));
             }
+            current_y += 1;
         }
 
         // Render tracks under the train
-        let track_offset = (elapsed_ms / 50) as usize;
-        let mut track_spans = Vec::new();
-        for x in 0..area.width as usize {
-            let ch = if (x + track_offset).is_multiple_of(4) {
-                '╫'
-            } else {
-                '═'
-            };
-            let color_idx = (x + (elapsed_ms / 200) as usize) % 50;
-            let color = self.rainbow_color(color_idx);
-            track_spans.push(Span::styled(ch.to_string(), Style::default().fg(color)));
+        if current_y < area.bottom() {
+            let track_offset = (elapsed_ms / 50) as usize;
+            for x in 0..area.width as usize {
+                let current_x = area.left() + x as u16;
+                if current_x >= area.right() {
+                    break;
+                }
+                let ch = if (x + track_offset).is_multiple_of(4) {
+                    '╫'
+                } else {
+                    '═'
+                };
+                let color_idx = (x + (elapsed_ms / 200) as usize) % 50;
+                let color = self.rainbow_color(color_idx);
+                let cell = &mut buf[(current_x, current_y)];
+                cell.set_char(ch);
+                cell.set_fg(color);
+                cell.set_bg(bg_color);
+            }
         }
-        lines.push(Line::from(track_spans));
-
-        // Fill the rest of the screen with empty lines to clear everything
-        while lines.len() < area.height as usize {
-            lines.push(Line::from(""));
-        }
-
-        Paragraph::new(lines)
-            .style(Style::default().bg(bg_color))
-            .render(area, buf);
     }
 }
 
