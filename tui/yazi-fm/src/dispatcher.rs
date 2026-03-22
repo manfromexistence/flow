@@ -99,7 +99,7 @@ impl<'a> Dispatcher<'a> {
 			}
 			// Handle navigation keys for animation carousel
 			match key.code {
-				KeyCode::Left | KeyCode::Backspace => {
+				KeyCode::Left => {
 					// Previous animation
 					if self.app.bridge.chat_state.current_animation_index == 0 {
 						self.app.bridge.chat_state.current_animation_index = animations.len() - 1;
