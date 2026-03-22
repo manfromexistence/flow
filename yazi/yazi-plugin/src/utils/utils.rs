@@ -70,6 +70,9 @@ pub fn compose(
 			b"time" => Utils::time(lua)?,
 			b"sleep" => Utils::sleep(lua)?,
 
+			// Token
+			b"count_tokens" => Utils::count_tokens(lua)?,
+
 			// User
 			#[cfg(unix)]
 			b"uid" => Utils::uid(lua)?,

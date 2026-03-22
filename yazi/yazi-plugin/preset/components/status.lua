@@ -6,6 +6,7 @@ Status = {
 	_id = "status",
 	_inc = 1000,
 	_left = {
+		{ "folder_info", id = 8, order = 500 },
 		{ "mode", id = 1, order = 1000 },
 		{ "size", id = 2, order = 2000 },
 		{ "name", id = 3, order = 3000 },
@@ -13,6 +14,7 @@ Status = {
 	_right = {
 		{ "perm", id = 4, order = 1000 },
 		{ "percent", id = 5, order = 2000 },
+		{ "tokens", id = 9, order = 2500 },
 		{ "position", id = 6, order = 3000 },
 	},
 }
@@ -34,6 +36,43 @@ function Status:style()
 	else
 		return { main = m.normal_main, alt = m.normal_alt }
 	end
+end
+
+function Status:folder_info()
+	local folder = self._current
+	local total_items = #folder.files
+	
+	-- Count files and folders separately
+	local file_count = 0
+	local folder_count = 0
+	local total_size = 0
+	
+	for _, file in ipairs(folder.files) do
+		if file.cha.is_dir then
+			folder_count = folder_count + 1
+		else
+			file_count = file_count + 1
+			local size = file:size()
+			if size then
+				total_size = total_size + size
+			elseif file.cha.len then
+				total_size = total_size + file.cha.len
+			end
+		end
+	end
+	
+	local info_text = string.format(" %d items (%d files, %d dirs) • %s ", 
+		total_items, 
+		file_count, 
+		folder_count,
+		ya.readable_size(total_size)
+	)
+	
+	local style = self:style()
+	return ui.Line {
+		ui.Span(info_text):style(style.alt),
+		ui.Span(th.status.sep_left.close):fg(style.alt:bg()),
+	}
 end
 
 function Status:mode()
@@ -128,6 +167,49 @@ function Status:position()
 		ui.Span(th.status.sep_right.open):fg(style.main:bg()):bg(style.alt:bg()),
 		ui.Span(string.format(" %2d/%-2d ", math.min(cursor + 1, length), length)):style(style.main),
 		ui.Span(th.status.sep_right.close):fg(style.main:bg()):bg("reset"),
+	}
+end
+
+function Status:tokens()
+	local h = self._current.hovered
+	if not h or h.cha.is_dir then
+		return ui.Line {}
+	end
+
+	-- Check if count_tokens function exists
+	if not ya.count_tokens then
+		return ui.Line {}
+	end
+
+	-- Read file content and count tokens
+	local ok, file = pcall(io.open, tostring(h.url), "r")
+	if not ok or not file then
+		return ui.Line {}
+	end
+
+	local ok2, content = pcall(file.read, file, "*all")
+	pcall(file.close, file)
+	
+	if not ok2 or not content or content == "" then
+		return ui.Line {}
+	end
+
+	-- Limit to first 100KB for performance
+	if #content > 102400 then
+		content = content:sub(1, 102400)
+	end
+
+	local ok3, token_count = pcall(ya.count_tokens, content)
+	if not ok3 or not token_count or token_count == 0 then
+		return ui.Line {}
+	end
+	
+	local token_str = token_count >= 1000 and string.format("%.1fk", token_count / 1000) or tostring(token_count)
+
+	local style = self:style()
+	return ui.Line {
+		ui.Span(" "):fg(style.alt:bg()),
+		ui.Span(string.format(" %s tok ", token_str)):style(style.alt),
 	}
 end
 

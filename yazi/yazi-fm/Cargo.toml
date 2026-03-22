@@ -14,8 +14,9 @@ rust-version.workspace = true
 workspace = true
 
 [features]
-default      = [ "vendored-lua" ]
+default      = [ "vendored-lua", "llm" ]
 vendored-lua = [ "mlua/vendored" ]
+llm          = [ "llama-cpp-2", "tiktoken-rs", "sysinfo", "yazi-plugin/llm" ]
 
 [dependencies]
 yazi-actor    = { path = "../yazi-actor", version = "26.2.2" }
@@ -38,9 +39,10 @@ yazi-vfs      = { path = "../yazi-vfs", version = "26.2.2" }
 yazi-watcher  = { path = "../yazi-watcher", version = "26.2.2" }
 yazi-widgets  = { path = "../yazi-widgets", version = "26.2.2" }
 
-# LLM
-llama-cpp-2 = "0.1"
-sysinfo = "0.32"
+# LLM (enabled by default via llm feature)
+llama-cpp-2 = { version = "0.1", optional = true }
+sysinfo = { version = "0.32", optional = true }
+tiktoken-rs = { version = "0.9", optional = true }
 
 # Font compression
 zstd = "0.13"
@@ -58,9 +60,6 @@ cli-clipboard = "0.4"
 
 # FIGlet rendering
 figlet-rs = "0.1"
-
-# Token counting
-tiktoken-rs = "0.9"
 
 # Time
 chrono = "0.4"
