@@ -1,17 +1,1 @@
-# Project TODO
-
-> Auto-managed by AI. Updated after every completed or failed task.
-
-## In Progress
-
-- [ ] Create yazi file browser screen module
-
-## Pending
-
-- [ ] Add YaziScreen to AnimationType enum
-- [ ] Integrate yazi screen into main app rendering
-- [ ] Test yazi screen navigation and rendering
-
-## Completed
-
-## Blocked / Failed
+Now please look at the root tui folder and there currently the backspace key is changing the screens but please make the backspace key to delete the chat input instead of changing the screens
