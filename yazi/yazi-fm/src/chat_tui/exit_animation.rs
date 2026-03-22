@@ -16,9 +16,6 @@ pub fn show_train_farewell() {
     let size = crossterm::terminal::size().unwrap_or((120, 30));
     let terminal_width = size.0 as usize;
     
-    // Calculate how many lines the train takes
-    let train_lines = 3 + 10 + 1; // smoke (3) + train (10) + tracks (1)
-    
     // Show train animation for 15 frames
     for frame in 0..15 {
         // Move cursor to top for each frame
