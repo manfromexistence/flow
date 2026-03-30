@@ -1,9 +1,9 @@
-name: yazi
+name: dx
 base: core24
-adopt-info: yazi
+adopt-info: dx
 summary: Blazing fast terminal file manager written in Rust, based on async I/O.
 description: |
-  Yazi is a terminal file manager written in Rust, based on non-blocking async I/O.
+  dx is a terminal file manager written in Rust, based on non-blocking async I/O.
   It aims to provide an efficient, user-friendly, and customizable file management experience.
 license: MIT
 grade: stable
@@ -14,8 +14,8 @@ platforms:
   arm64:
 
 apps:
-  yazi:
-    command: yazi
+  dx:
+    command: dx
     environment:
       PATH: $SNAP/bin:$SNAP/usr/bin:$PATH
   ya:
@@ -24,9 +24,9 @@ apps:
       PATH: $SNAP/bin:$SNAP/usr/bin:$PATH
 
 parts:
-  yazi:
+  dx:
     plugin: rust
-    source: https://github.com/sxyazi/yazi.git
+    source: https://github.com/sxdx/dx.git
     stage-snaps:
       - jq
     stage-packages:
@@ -119,7 +119,7 @@ parts:
       - -usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/libzvbi-chains.so.0.0.0
 
   # The Ubuntu `imagemagick` package does not ship a `magick` binary,
-  # which `yazi` looks for. Building the package oursleves yields the
+  # which `dx` looks for. Building the package oursleves yields the
   # expected binary without much overhead, and works across platforms.
   magick:
     plugin: autotools
@@ -140,7 +140,7 @@ parts:
       - usr/lib/libMagickWand-7.Q16HDRI.so*
 
   cleanup:
-    after: [yazi, magick]
+    after: [dx, magick]
     plugin: nil
     build-packages:
       - patchelf

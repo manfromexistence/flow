@@ -1,0 +1,44 @@
+[package]
+name = "fb-parser"
+description            = "Yazi command parser"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+homepage.workspace     = true
+repository.workspace   = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default      = [ "vendored-lua" ]
+vendored-lua = [ "mlua/vendored" ]
+
+[dependencies]
+fb-binding = { path = "../binding", version = "26.2.2" }
+fb-boot = { path = "../boot", version = "26.2.2" }
+fb-config = { path = "../config", version = "26.2.2" }
+fb-fs = { path = "../fs", version = "26.2.2" }
+fb-macro = { path = "../macro", version = "26.2.2" }
+fb-shared = { path = "../shared", version = "26.2.2" }
+fb-vfs = { path = "../vfs", version = "26.2.2" }
+fb-widgets = { path = "../widgets", version = "26.2.2" }
+
+# External dependencies
+anyhow        = { workspace = true }
+bitflags      = { workspace = true }
+crossterm     = { workspace = true }
+dyn-clone     = { workspace = true }
+hashbrown     = { workspace = true }
+mlua          = { workspace = true }
+ordered-float = { workspace = true }
+ratatui       = { workspace = true }
+serde         = { workspace = true }
+serde_with    = { workspace = true }
+tokio         = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+crossterm = { workspace = true, features = [ "use-dev-tty", "libc" ] }
+

@@ -1,14 +1,31 @@
-target/
-yazi-*/completions
-node_modules/
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
 
+# Build artifacts
+/dist/
+/build/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Nix
 result
 result-*
-.direnv
 
-.idea/
-.vscode/
-
-*.snap
+# Cache
+.cache/

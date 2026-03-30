@@ -6,8 +6,8 @@ body:
   - type: textarea
     id: debug
     attributes:
-      label: "`yazi --debug` output"
-      description: Please run `yazi --debug` and paste the debug information here.
+      label: "`dx --debug` output"
+      description: Please run `dx --debug` and paste the debug information here.
       render: Shell
     validations:
       required: true
@@ -45,5 +45,5 @@ body:
       options:
         - label: I have searched the existing issues/discussions
           required: true
-        - label: The [latest nightly build](https://yazi-rs.github.io/docs/installation/#binaries) doesn't already have this feature
+        - label: The [latest nightly build](https://dx-rs.github.io/docs/installation/#binaries) doesn't already have this feature
           required: true

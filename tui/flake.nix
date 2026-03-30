@@ -37,7 +37,7 @@
       in
       {
         packages = {
-          yazi-unwrapped = pkgs.callPackage ./nix/yazi-unwrapped.nix {
+          dx-unwrapped = pkgs.callPackage ./nix/dx-unwrapped.nix {
             inherit
               version
               rev
@@ -45,16 +45,16 @@
               rustPlatform
               ;
           };
-          yazi = pkgs.callPackage ./nix/yazi.nix {
-            inherit (self.packages.${system}) yazi-unwrapped;
+          dx = pkgs.callPackage ./nix/dx.nix {
+            inherit (self.packages.${system}) dx-unwrapped;
           };
-          default = self.packages.${system}.yazi;
+          default = self.packages.${system}.dx;
         };
 
         devShells = {
           default = pkgs.callPackage ./nix/shell.nix {
             inherit toolchain;
-            inherit (self.packages.${system}) yazi yazi-unwrapped;
+            inherit (self.packages.${system}) dx dx-unwrapped;
           };
         };
 
@@ -63,9 +63,9 @@
     )
     // {
       overlays = {
-        default = self.overlays.yazi;
-        yazi = _: prev: {
-          inherit (self.packages.${prev.stdenv.system}) yazi yazi-unwrapped;
+        default = self.overlays.dx;
+        dx = _: prev: {
+          inherit (self.packages.${prev.stdenv.system}) dx dx-unwrapped;
         };
       };
     };

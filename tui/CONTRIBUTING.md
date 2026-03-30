@@ -1,166 +1,168 @@
-# Contributing to Yazi
+# Contributing to dx-tui
 
-Thank you for your interest in contributing to Yazi! We welcome contributions in the form of bug reports, feature requests, documentation improvements, and code changes.
+Thank you for your interest in contributing to dx-tui! This document provides guidelines for contributing to this production-ready codebase.
 
-This guide will help you understand how to contribute to the project.
+## Code of Conduct
 
-## Table of Contents
-
-1. [Getting Started](#getting-started)
-2. [Project Structure](#project-structure)
-3. [Development Setup](#development-setup)
-4. [How to Contribute](#how-to-contribute)
-5. [Pull Requests](#pull-requests)
+Be respectful, professional, and constructive in all interactions.
 
 ## Getting Started
 
 ### Prerequisites
 
-Before you begin, ensure you have met the following requirements:
+- Rust 1.85+ (Edition 2024)
+- Node.js 18+ (for Codex CLI)
+- Git
 
-- Rust installed on your machine. You can download it from [rustup.rs](https://rustup.rs).
-- Familiarity with Git and GitHub.
+### Setup
 
-### Fork the Repository
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/dx-tui
+cd dx-tui
 
-1. Fork the [Yazi repository](https://github.com/sxyazi/yazi) to your GitHub account.
-2. Clone your fork to your local machine:
+# Build the project
+cargo build --release
 
-   ```sh
-   git clone https://github.com/<your-username>/yazi.git
-   ```
+# Run tests
+cargo test --workspace
 
-3. Set up the upstream remote:
-   ```sh
-   git remote add upstream https://github.com/sxyazi/yazi.git
-   ```
+# Verify code quality
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --all-features
+```
+
+## Development Workflow
+
+### 1. Create a Branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+### 2. Make Changes
+
+- Follow Rust 2024 idioms
+- Use async/await for I/O operations
+- Add tests for new functionality
+- Update documentation as needed
+
+### 3. Format and Lint
+
+```bash
+# Format code
+cargo fmt --all
+
+# Check for issues
+cargo clippy --workspace --all-targets --all-features
+
+# Verify build
+cargo check --workspace
+```
+
+### 4. Commit Changes
+
+```bash
+git add .
+git commit -m "feat: add your feature description"
+```
+
+Use conventional commit messages:
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `refactor:` - Code refactoring
+- `test:` - Test additions/changes
+- `chore:` - Maintenance tasks
+
+### 5. Push and Create PR
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Then create a Pull Request on GitHub.
+
+## Code Standards
+
+### Rust Code
+
+- **Edition**: Rust 2024
+- **Async**: Use Tokio for all I/O operations
+- **Error Handling**: Use `anyhow::Result` for applications, `thiserror` for libraries
+- **Naming**:
+  - Types: `PascalCase`
+  - Functions: `snake_case`
+  - Constants: `SCREAMING_SNAKE_CASE`
+
+### Documentation
+
+- Add doc comments for public APIs
+- Include examples in doc comments
+- Update relevant markdown files
+
+### Testing
+
+- Write unit tests for new functionality
+- Ensure all tests pass: `cargo test --workspace`
+- Add integration tests when appropriate
+
+## Using Codex CLI
+
+This project is optimized for Codex CLI. See [.github/CODEX_SETUP.md](.github/CODEX_SETUP.md) for details.
+
+```bash
+# Install Codex CLI
+npm install -g @openai/codex
+
+# Use Codex for development
+codex "help me implement feature X"
+```
 
 ## Project Structure
 
-A brief overview of the project's structure:
+See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for detailed codebase organization.
 
-```sh
-.
-├── assets/             # Assets like images and fonts
-├── nix/                # Nix-related configurations
-├── scripts/            # Helper scripts used by CI/CD
-├── snap/               # Snapcraft configuration
-├── yazi-adapter/       # Yazi image adapter
-├── yazi-binding/       # Yazi Lua bindings
-├── yazi-boot/          # Yazi bootstrapper
-├── yazi-cli/           # Yazi command-line interface
-├── yazi-codegen/       # Yazi code generator
-├── yazi-config/        # Yazi configuration file parser
-├── yazi-core/          # Yazi core logic
-├── yazi-dds/           # Yazi data distribution service
-├── yazi-ffi/           # Yazi foreign function interface
-├── yazi-fm/            # Yazi file manager
-├── yazi-fs/            # Yazi file system
-├── yazi-macro/         # Yazi macros
-├── yazi-plugin/        # Yazi plugin system
-├── yazi-proxy/         # Yazi event proxy
-├── yazi-scheduler/     # Yazi task scheduler
-├── yazi-shared/        # Yazi shared library
-├── yazi-term/          # Yazi terminal extensions
-├── yazi-widgets/       # Yazi user interface widgets
-├── .github/            # GitHub-specific files and workflows
-├── Cargo.toml          # Rust workflow configuration
-└── README.md           # Project overview
-```
+## What to Contribute
 
-## Development Setup
+### Good First Issues
 
-1. Ensure the latest stable Rust is installed:
+- Documentation improvements
+- Bug fixes
+- Test coverage improvements
+- Performance optimizations
 
-   ```sh
-   rustc --version
-   cargo --version
-   ```
+### Feature Requests
 
-2. Build the project:
+- Open an issue first to discuss
+- Ensure it aligns with project goals
+- Consider backward compatibility
 
-   ```sh
-   cargo build
-   ```
+### Bug Reports
 
-3. Run the tests:
+Include:
+- Steps to reproduce
+- Expected behavior
+- Actual behavior
+- Environment details (OS, Rust version, terminal)
 
-   ```sh
-   cargo test --workspace --verbose
-   ```
+## Code Review Process
 
-4. Format the code (requires `rustfmt` nightly):
+1. All PRs require review
+2. CI must pass (format, lint, build, tests)
+3. Maintain zero warnings policy
+4. Keep commits clean and focused
 
-   ```sh
-   rustup component add rustfmt --toolchain nightly
-   rustfmt +nightly **/*.rs
-   ```
+## Questions?
 
-## How to Contribute
+- Open an issue for questions
+- Check existing documentation first
+- Be specific and provide context
 
-### Reporting Bugs
+## License
 
-If you encounter a bug and have found a way to reliably reproduce it on the latest `main` branch, please file a [bug report](https://github.com/sxyazi/yazi/issues/new?template=bug.yml) with a [minimal reproducer](https://stackoverflow.com/help/minimal-reproducible-example).
+By contributing, you agree that your contributions will be licensed under the MIT License.
 
-### Suggesting Features
+---
 
-If you want to request a feature, please file a [feature request](https://github.com/sxyazi/yazi/issues/new?template=feature.yml). Please make sure to search for existing issues and discussions before submitting.
-
-### Improving Documentation
-
-Yazi's documentation placed at [yazi-rs/yazi-rs.github.io](https://github.com/yazi-rs/yazi-rs.github.io), contributions related to documentation need to be made there.
-
-### Improving Icons
-
-Yazi's icon originates from [`nvim-web-devicons`](https://github.com/nvim-tree/nvim-web-devicons), and it is periodically grabbed and updated with the latest changes from upstream via [`generate.lua`](https://github.com/sxyazi/yazi/blob/main/scripts/icons/generate.lua).
-
-Contributions related to the icon should be made upstream to facilitate easier automation of this process.
-
-### Submitting Code Changes
-
-1. Create a new branch for your changes:
-
-   ```sh
-   git checkout -b your-branch-name
-   ```
-
-2. Make your changes. Ensure that your code follows the project's [coding style](https://github.com/sxyazi/yazi/blob/main/rustfmt.toml) and passes all tests.
-3. Commit your changes with a descriptive commit message:
-
-   ```sh
-   git commit -m "feat: an awesome feature"
-   ```
-
-4. Push your changes to your fork:
-
-   ```sh
-   git push origin your-branch-name
-   ```
-
-## Pull Requests
-
-If you have an idea, before raising a pull request, we encourage you to file an issue to propose it, ensuring that we are aligned and reducing the risk of re-work.
-
-We want you to succeed, and it can be discouraging to find that a lot of re-work is needed.
-
-### Process
-
-1. Ensure your fork is up-to-date with the upstream repository:
-
-   ```sh
-   git fetch upstream
-   git checkout main
-   git merge upstream/main
-   ```
-
-2. Rebase your feature branch onto the `main` branch:
-
-   ```sh
-   git checkout your-branch-name
-   git rebase main
-   ```
-
-3. Create a pull request to the `main` branch of the upstream repository. Follow the pull request template and ensure that:
-   - Your code passes all tests and lints.
-   - Your pull request description clearly explains the changes and why they are needed.
-4. Address any review comments. Make sure to push updates to the same branch on your fork.
+Thank you for contributing to dx-tui! 🚀

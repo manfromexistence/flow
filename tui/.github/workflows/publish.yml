@@ -18,8 +18,8 @@ jobs:
       - name: Publish to Winget
         uses: vedantmgoyal9/winget-releaser@main
         with:
-          identifier: sxyazi.yazi
-          installers-regex: 'yazi-(x86_64|aarch64)-pc-windows-msvc\.zip$'
+          identifier: sxdx.dx
+          installers-regex: 'dx-(x86_64|aarch64)-pc-windows-msvc\.zip$'
           token: ${{ secrets.WINGET_TOKEN }}
 
   snapcraft:
@@ -34,4 +34,4 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
           sudo snap install --classic snapcraft
-          snapcraft promote yazi --from-channel latest/candidate --to-channel latest/stable --yes
+          snapcraft promote dx --from-channel latest/candidate --to-channel latest/stable --yes

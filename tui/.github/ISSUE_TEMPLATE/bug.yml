@@ -6,7 +6,7 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: What system are you running Yazi on?
+      label: What system are you running dx on?
       options:
         - Linux X11
         - Linux Wayland
@@ -21,15 +21,15 @@ body:
   - type: input
     id: terminal
     attributes:
-      label: What terminal are you running Yazi in?
+      label: What terminal are you running dx in?
       placeholder: "ex: kitty v0.32.2"
     validations:
       required: true
   - type: textarea
     id: debug
     attributes:
-      label: "`yazi --debug` output"
-      description: Please run `yazi --debug` and paste the debug information here.
+      label: "`dx --debug` output"
+      description: Please run `dx --debug` and paste the debug information here.
       render: Shell
     validations:
       required: true
@@ -63,8 +63,8 @@ body:
       label: Checklist
       description: Before submitting the issue, please make sure you have completed the following
       options:
-        - label: I tried the [latest nightly build](https://yazi-rs.github.io/docs/installation#binaries), and the issue is still reproducible
+        - label: I tried the [latest nightly build](https://dx-rs.github.io/docs/installation#binaries), and the issue is still reproducible
           required: true
-        - label: I updated the debug information (`yazi --debug`) input box to the nightly that I tried
+        - label: I updated the debug information (`dx --debug`) input box to the nightly that I tried
           required: true
-        - label: I can reproduce it after disabling all custom configs/plugins (`mv ~/.config/yazi ~/.config/yazi-backup`)
+        - label: I can reproduce it after disabling all custom configs/plugins (`mv ~/.config/dx ~/.config/dx-backup`)

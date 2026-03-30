@@ -1,0 +1,66 @@
+[package]
+name = "fb-plugin"
+description            = "Yazi plugin system"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+homepage.workspace     = true
+repository.workspace   = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[features]
+default      = [ "vendored-lua" ]
+vendored-lua = [ "mlua/vendored" ]
+llm          = [ "tiktoken-rs" ]
+
+[dependencies]
+fb-adapter = { path = "../adapter", version = "26.2.2" }
+fb-binding = { path = "../binding", version = "26.2.2" }
+fb-boot = { path = "../boot", version = "26.2.2" }
+fb-config = { path = "../config", version = "26.2.2" }
+fb-dds = { path = "../dds", version = "26.2.2" }
+fb-emulator = { path = "../emulator", version = "26.2.2" }
+fb-fs = { path = "../fs", version = "26.2.2" }
+fb-macro = { path = "../macro", version = "26.2.2" }
+fb-parser = { path = "../parser", version = "26.2.2" }
+fb-proxy = { path = "../proxy", version = "26.2.2" }
+fb-shared = { path = "../shared", version = "26.2.2" }
+fb-shim = { path = "../shim", version = "26.2.2" }
+fb-term = { path = "../term", version = "26.2.2" }
+fb-vfs = { path = "../vfs", version = "26.2.2" }
+fb-widgets = { path = "../widgets", version = "26.2.2" }
+
+# External dependencies
+ansi-to-tui   = { workspace = true }
+anyhow        = { workspace = true }
+futures       = { workspace = true }
+hashbrown     = { workspace = true }
+mlua          = { workspace = true }
+parking_lot   = { workspace = true }
+paste         = { workspace = true }
+ratatui       = { workspace = true }
+serde_json    = { workspace = true }
+syntect       = { workspace = true }
+tiktoken-rs   = { version = "0.9", optional = true }
+tokio         = { workspace = true }
+tokio-stream  = { workspace = true }
+tokio-util    = { workspace = true }
+tracing       = { workspace = true }
+twox-hash     = { workspace = true }
+unicode-width = { workspace = true }
+yazi-prebuilt = "0.1.0"
+
+[target."cfg(unix)".dependencies]
+libc  = { workspace = true }
+uzers = { workspace = true }
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61.2", features = [ "Win32_System_JobObjects" ] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+crossterm = { workspace = true, features = [ "use-dev-tty", "libc" ] }
+

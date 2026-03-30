@@ -1,13 +1,13 @@
 {
   mkShell,
-  yazi,
+  dx,
   toolchain,
   nodePackages,
-  yazi-unwrapped,
+  dx-unwrapped,
 }:
 
 mkShell {
-  packages = yazi.passthru.runtimePaths ++ [
+  packages = dx.passthru.runtimePaths ++ [
     (toolchain.override {
       extensions = [
         "rust-src"
@@ -19,7 +19,7 @@ mkShell {
     nodePackages.cspell
   ];
 
-  inputsFrom = [ yazi-unwrapped ];
+  inputsFrom = [ dx-unwrapped ];
 
   env.RUST_BACKTRACE = "1";
 }

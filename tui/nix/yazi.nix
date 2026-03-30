@@ -8,7 +8,7 @@
 
   # deps
   file,
-  yazi-unwrapped,
+  dx-unwrapped,
 
   # default optional deps
   jq,
@@ -55,7 +55,7 @@ let
   settingsFormat = formats.toml { };
 
   files = [
-    "yazi"
+    "dx"
     "theme"
     "keymap"
   ];
@@ -64,7 +64,7 @@ let
     if (settings == { } && initLua == null && plugins == { } && flavors == { }) then
       null
     else
-      runCommand "YAZI_CONFIG_HOME" { } ''
+      runCommand "dx_CONFIG_HOME" { } ''
         mkdir -p $out
         ${concatMapStringsSep "\n" (
           name:
@@ -91,9 +91,9 @@ let
         ${optionalString (initLua != null) "ln -s ${initLua} $out/init.lua"}
       '';
 in
-runCommand yazi-unwrapped.name
+runCommand dx-unwrapped.name
   {
-    inherit (yazi-unwrapped) pname version meta;
+    inherit (dx-unwrapped) pname version meta;
 
     nativeBuildInputs = [ makeWrapper ];
 
@@ -101,9 +101,9 @@ runCommand yazi-unwrapped.name
   }
   ''
     mkdir -p $out/bin
-    ln -s ${yazi-unwrapped}/share $out/share
-    ln -s ${yazi-unwrapped}/bin/ya $out/bin/ya
-    makeWrapper ${yazi-unwrapped}/bin/yazi $out/bin/yazi \
+    ln -s ${dx-unwrapped}/share $out/share
+    ln -s ${dx-unwrapped}/bin/ya $out/bin/ya
+    makeWrapper ${dx-unwrapped}/bin/dx $out/bin/dx \
       --prefix PATH : "${makeBinPath runtimePaths}" \
-      ${optionalString (configHome != null) "--set YAZI_CONFIG_HOME ${configHome}"}
+      ${optionalString (configHome != null) "--set dx_CONFIG_HOME ${configHome}"}
   ''

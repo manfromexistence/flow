@@ -14,3 +14,6 @@ JEMALLOC_SYS_WITH_MALLOC_CONF = "narenas:1"
 
 [target.aarch64-apple-darwin]
 rustflags = [ "-Ctarget-cpu=apple-m1" ]
+
+[target.'cfg(all())']
+rustflags = ["-A", "warnings"]

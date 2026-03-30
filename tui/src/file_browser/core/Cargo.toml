@@ -1,0 +1,47 @@
+[package]
+name = "fb-core"
+description            = "Yazi core logic"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+homepage.workspace     = true
+repository.workspace   = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+fb-adapter = { path = "../adapter", version = "26.2.2" }
+fb-binding = { path = "../binding", version = "26.2.2" }
+fb-config = { path = "../config", version = "26.2.2" }
+fb-dds = { path = "../dds", version = "26.2.2" }
+fb-emulator = { path = "../emulator", version = "26.2.2" }
+fb-fs = { path = "../fs", version = "26.2.2" }
+fb-macro = { path = "../macro", version = "26.2.2" }
+fb-parser = { path = "../parser", version = "26.2.2" }
+fb-plugin = { path = "../plugin", version = "26.2.2" }
+fb-proxy = { path = "../proxy", version = "26.2.2" }
+fb-scheduler = { path = "../scheduler", version = "26.2.2" }
+fb-shared = { path = "../shared", version = "26.2.2" }
+fb-vfs = { path = "../vfs", version = "26.2.2" }
+fb-watcher = { path = "../watcher", version = "26.2.2" }
+fb-widgets = { path = "../widgets", version = "26.2.2" }
+
+# External dependencies
+anyhow        = { workspace = true }
+crossterm     = { workspace = true }
+hashbrown     = { workspace = true }
+indexmap      = { workspace = true }
+parking_lot   = { workspace = true }
+ratatui       = { workspace = true }
+tokio         = { workspace = true }
+tokio-stream  = { workspace = true }
+tokio-util    = { workspace = true }
+tracing       = { workspace = true }
+unicode-width = { workspace = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+crossterm = { workspace = true, features = [ "use-dev-tty", "libc" ] }
+

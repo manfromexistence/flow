@@ -63,8 +63,8 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: |
-            yazi-${{ matrix.target }}.zip
-            yazi-${{ matrix.target }}.deb
+            dx-${{ matrix.target }}.zip
+            dx-${{ matrix.target }}.deb
 
   build-windows:
     strategy:
@@ -77,7 +77,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       RUSTC_WRAPPER: sccache
-      YAZI_GEN_COMPLETIONS: true
+      dx_GEN_COMPLETIONS: true
       CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: lld-link.exe
       CARGO_TARGET_AARCH64_PC_WINDOWS_MSVC_LINKER: lld-link.exe
     steps:
@@ -95,12 +95,12 @@ jobs:
 
       - name: Pack artifact
         env:
-          TARGET_NAME: yazi-${{ matrix.target }}
+          TARGET_NAME: dx-${{ matrix.target }}
         run: |
           New-Item -ItemType Directory -Path ${env:TARGET_NAME}
           Copy-Item -Path "target\${{ matrix.target }}\release-windows\ya.exe" -Destination ${env:TARGET_NAME}
-          Copy-Item -Path "target\${{ matrix.target }}\release-windows\yazi.exe" -Destination ${env:TARGET_NAME}
-          Copy-Item -Path "yazi-boot\completions" -Destination ${env:TARGET_NAME} -Recurse
+          Copy-Item -Path "target\${{ matrix.target }}\release-windows\dx.exe" -Destination ${env:TARGET_NAME}
+          Copy-Item -Path "dx-boot\completions" -Destination ${env:TARGET_NAME} -Recurse
           Copy-Item -Path "README.md", "LICENSE" -Destination ${env:TARGET_NAME}
           Compress-Archive -Path ${env:TARGET_NAME} -DestinationPath "${env:TARGET_NAME}.zip"
 
@@ -108,7 +108,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.target }}
-          path: yazi-${{ matrix.target }}.zip
+          path: dx-${{ matrix.target }}.zip
 
   build-musl:
     runs-on: ubuntu-latest
@@ -137,8 +137,8 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: |
-            yazi-${{ matrix.target }}.zip
-            yazi-${{ matrix.target }}.deb
+            dx-${{ matrix.target }}.zip
+            dx-${{ matrix.target }}.deb
 
   build-snap:
     strategy:
@@ -164,13 +164,13 @@ jobs:
         run: snapcraft --verbose
 
       - name: Rename snap
-        run: mv yazi_*.snap yazi-${{ matrix.arch }}.snap
+        run: mv dx_*.snap dx-${{ matrix.arch }}.snap
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: snap-${{ matrix.arch }}
-          path: yazi-${{ matrix.arch }}.snap
+          path: dx-${{ matrix.arch }}.snap
 
   snap:
     runs-on: ubuntu-latest
@@ -189,14 +189,14 @@ jobs:
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
-          parallel 'snapcraft upload -v --release latest/candidate {}' ::: yazi-*.snap || true
+          parallel 'snapcraft upload -v --release latest/candidate {}' ::: dx-*.snap || true
 
       - name: Push snap to edge channel
         if: ${{ !startsWith(github.ref, 'refs/tags/') }}
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
-          parallel 'snapcraft upload -v --release latest/edge {}' ::: yazi-*.snap || true
+          parallel 'snapcraft upload -v --release latest/edge {}' ::: dx-*.snap || true
 
   draft:
     if: startsWith(github.ref, 'refs/tags/')
@@ -214,9 +214,9 @@ jobs:
         with:
           draft: true
           files: |
-            yazi-*.zip
-            yazi-*.deb
-            yazi-*.snap
+            dx-*.zip
+            dx-*.deb
+            dx-*.snap
           generate_release_notes: true
 
   nightly:
@@ -230,7 +230,7 @@ jobs:
           echo 'NIGHTLY_BODY<<EOF' >> $GITHUB_ENV
           echo "From commit: ${GITHUB_SHA:0:8}" >> $GITHUB_ENV
           echo "Generated on: $(date -u +"%Y-%m-%d %H:%M") UTC" >> $GITHUB_ENV
-          echo "Nightly changelog: https://github.com/sxyazi/yazi/blob/main/CHANGELOG.md#unreleased" >> $GITHUB_ENV
+          echo "Nightly changelog: https://github.com/sxdx/dx/blob/main/CHANGELOG.md#unreleased" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - uses: actions/checkout@v6
@@ -251,9 +251,9 @@ jobs:
           tag_name: nightly
           prerelease: true
           files: |
-            yazi-*.zip
-            yazi-*.deb
-            yazi-*.snap
+            dx-*.zip
+            dx-*.deb
+            dx-*.snap
           name: Nightly Build
           body: ${{ env.NIGHTLY_BODY }}
           target_commitish: ${{ github.sha }}

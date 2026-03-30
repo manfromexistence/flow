@@ -2,7 +2,7 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: What system are you running Yazi on?
+      label: What system are you running dx on?
       options:
         - Linux X11
         - Linux Wayland
@@ -17,15 +17,15 @@ body:
   - type: input
     id: terminal
     attributes:
-      label: What terminal are you running Yazi in?
+      label: What terminal are you running dx in?
       placeholder: "ex: kitty v0.32.2"
     validations:
       required: true
   - type: textarea
     id: debug
     attributes:
-      label: "`yazi --debug` output"
-      description: Please run `yazi --debug` and paste the debug information here.
+      label: "`dx --debug` output"
+      description: Please run `dx --debug` and paste the debug information here.
       render: Shell
     validations:
       required: true

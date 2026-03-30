@@ -1,5 +1,5 @@
 const LABEL_NAME = "needs info"
-const RE_VERSION = /Yazi\s+Version\s*:\s\d+\.\d+\.\d+\s\(/gm
+const RE_VERSION = /dx\s+Version\s*:\s\d+\.\d+\.\d+\s\(/gm
 const RE_DEPENDENCIES = /Dependencies\s+[/a-z]+\s*:\s/gm
 const RE_CHECKLIST = /#{3}\s+Checklist\s+(?:^-\s+\[x]\s+.+?(?:\n|\r\n|$)){2}/gm
 
@@ -8,17 +8,17 @@ function bugReportBody(creator, content, hash) {
 		return null
 	}
 
-	return `Hey @${creator}, thank you for opening the issue to help improve Yazi, appreciate it!
+	return `Hey @${creator}, thank you for opening the issue to help improve dx, appreciate it!
 
 I noticed that you did not correctly follow the issue template. Please ensure that:
 
-- The bug can still be reproduced on the [newest nightly build](https://yazi-rs.github.io/docs/installation/#binaries).
-- The debug information (\`yazi --debug\`) is updated for the newest nightly.
+- The bug can still be reproduced on the [newest nightly build](https://dx-rs.github.io/docs/installation/#binaries).
+- The debug information (\`dx --debug\`) is updated for the newest nightly.
 - The non-optional items in the checklist are checked.
 
 Issues with \`${LABEL_NAME}\` will be marked ready once edited with the proper content, or closed after 2 days of inactivity.
 
-Our maintainers work on Yazi in their free time, this helps them work efficiently, understand your setup quickly, and find a more appropriate solution. Thanks for your understanding! 🙏
+Our maintainers work on dx in their free time, this helps them work efficiently, understand your setup quickly, and find a more appropriate solution. Thanks for your understanding! 🙏
 `
 }
 
@@ -27,24 +27,24 @@ function featureRequestBody(creator, content) {
 		return null
 	}
 
-	return `Hey @${creator}, thank you for opening the issue to help improve Yazi, appreciate it!
+	return `Hey @${creator}, thank you for opening the issue to help improve dx, appreciate it!
 
 I noticed that you did not correctly follow the issue template. Please ensure that:
 
-- The requested feature does not exist in the [newest nightly build](https://yazi-rs.github.io/docs/installation/#binaries).
-- The debug information (\`yazi --debug\`) is updated for the newest nightly.
+- The requested feature does not exist in the [newest nightly build](https://dx-rs.github.io/docs/installation/#binaries).
+- The debug information (\`dx --debug\`) is updated for the newest nightly.
 - The non-optional items in the checklist are checked.
 
 Issues with \`${LABEL_NAME}\` will be marked ready once edited with the proper content, or closed after 2 days of inactivity.
 
-Our maintainers work on Yazi in their free time, this helps them work efficiently, understand your setup quickly, and find a more appropriate solution. Thanks for your understanding! 🙏
+Our maintainers work on dx in their free time, this helps them work efficiently, understand your setup quickly, and find a more appropriate solution. Thanks for your understanding! 🙏
 `
 }
 
 module.exports = async ({ github, context, core }) => {
 	async function nightlyHash() {
 		try {
-			const { data: tagRef } = await github.rest.git.getRef({ owner: "sxyazi", repo: "yazi", ref: "tags/nightly" })
+			const { data: tagRef } = await github.rest.git.getRef({ owner: "sxdx", repo: "dx", ref: "tags/nightly" })
 			return tagRef.object.sha.slice(0, 7)
 		} catch (e) {
 			if (e.status === 404) {
@@ -206,7 +206,7 @@ If the problem persists, please file a new issue and complete the issue template
 				...context.repo,
 				issue_number: id,
 				body: `Unsupported issue template.
-Either the [Bug Report](https://github.com/sxyazi/yazi/issues/new?template=bug.yml) or [Feature Request](https://github.com/sxyazi/yazi/issues/new?template=feature.yml) template should be used.`,
+Either the [Bug Report](https://github.com/sxdx/dx/issues/new?template=bug.yml) or [Feature Request](https://github.com/sxdx/dx/issues/new?template=feature.yml) template should be used.`,
 			})
 		} catch (e) {
 			core.error(`Error closing unsupported issue: ${e.message}`)

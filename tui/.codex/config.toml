@@ -1,0 +1,50 @@
+# Codex CLI Configuration for dx-tui Project
+# This file configures Codex CLI behavior when working on dx-tui
+
+# Model Configuration
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+
+# Approval and Sandbox Settings
+approval_policy = "on-request"  # Prompt for risky operations
+sandbox_mode = "workspace-write"  # Allow writes within workspace
+
+# Web Search
+web_search = "cached"  # Use cached results when available
+
+# Project Documentation
+project_doc_fallback_filenames = ["AGENTS.md", "README.md"]
+project_doc_max_bytes = 65536  # 64 KiB (increased for comprehensive AGENTS.md)
+
+# Feature Flags
+[features]
+multi_agent = true
+shell_tool = true
+apply_patch_freeform = true
+
+# Named Profiles for Different Workflows
+[profiles.review]
+approval_policy = "never"
+sandbox_mode = "read-only"
+model_reasoning_effort = "medium"
+
+[profiles.refactor]
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+
+[profiles.quick-fix]
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+model = "gpt-5.3-codex-spark"
+
+[profiles.ci]
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+web_search = "disabled"
+
+# Project Trust Level
+# This tells Codex that dx-tui is a trusted project
+# Adjust the path to match your actual project location
+# [projects."/path/to/dx-tui"]
+# trust_level = "trusted"

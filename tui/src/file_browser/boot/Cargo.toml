@@ -1,0 +1,39 @@
+[package]
+name = "fb-boot"
+description            = "Yazi bootstrapper"
+version.workspace      = true
+edition.workspace      = true
+license.workspace      = true
+authors.workspace      = true
+homepage.workspace     = true
+repository.workspace   = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+fb-adapter = { path = "../adapter", version = "26.2.2" }
+fb-config = { path = "../config", version = "26.2.2" }
+fb-emulator = { path = "../emulator", version = "26.2.2" }
+fb-fs = { path = "../fs", version = "26.2.2" }
+fb-macro = { path = "../macro", version = "26.2.2" }
+fb-shared = { path = "../shared", version = "26.2.2" }
+fb-vfs = { path = "../vfs", version = "26.2.2" }
+
+# External dependencies
+clap      = { workspace = true }
+futures   = { workspace = true }
+hashbrown = { workspace = true }
+regex     = { workspace = true }
+
+[build-dependencies]
+fb-shared = { path = "../shared", version = "26.2.2" }
+
+# External dependencies
+clap                  = { workspace = true }
+clap_complete         = "4.6.0"
+clap_complete_fig     = "4.5.2"
+clap_complete_nushell = "4.6.0"
+vergen-gitcl          = { version = "9.1.0", features = [ "build", "rustc" ] }
+
