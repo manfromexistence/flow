@@ -1,3 +1,133 @@
+Here's a professional prompt you can paste directly to Codex GPT-5.4:
+
+---
+
+**PROJECT: Flow - Open-Source Voice Assistant Implementation**
+
+**CONTEXT:**
+You are working on Flow v0.1.0, a production-ready open-source voice assistant built in Rust (edition 2024). The project aims to be a Wispr Flow alternative using state-of-the-art March 2026 models: Moonshine v2 for STT, Qwen 3.5 for LLM, and Kokoro v1.0 for TTS.
+
+**CURRENT STATE:**
+- Professional modular architecture is complete (src/audio/, src/cli/, src/models/, src/pipeline/, src/utils/)
+- Dependencies configured: Tokio 1.50, ort 2.0.0-rc.12, ndarray 0.17, rustfft 6.2, hound 3.5, rodio 0.22
+- LLM integration working (Qwen 3.5 0.8B via llama-cpp-2)
+- Moonshine ONNX models downloaded: encoder.onnx (~13MB), decoder.onnx (~14MB), tokenizer.json, config.json
+- Test audio available at tests/fixtures/audio.mp3 (3.14s, "hello mike testing one two three hello")
+
+**PRIMARY OBJECTIVE:**
+Implement real Moonshine ONNX inference in `src/models/stt.rs` to enable speech-to-text transcription with <10% WER.
+
+**IMPLEMENTATION REQUIREMENTS:**
+
+1. **Audio Feature Extraction (src/audio/features.rs):**
+   - Implement mel spectrogram computation using rustfft
+   - Configuration: 80 mel bins, 16kHz sample rate, Hann window
+   - Output shape: [n_mels, time_steps] as ndarray::Array2<f32>
+   - Handle audio normalization to [-1, 1] range
+
+2. **ONNX Inference (src/models/stt.rs):**
+   - Create MoonshineSTT struct with encoder/decoder Session fields
+   - Load models with `.with_intra_threads(1)?` to avoid Send trait issues
+   - Implement encoder inference: audio features → hidden states
+   - Implement autoregressive decoder: hidden states → token IDs (max 448 tokens)
+   - Handle BOS token (1), EOS token (2), and special tokens (0)
+
+3. **Tokenizer Implementation (src/models/stt.rs):**
+   - Parse tokenizer.json (BPE tokenizer format)
+   - Extract vocab mapping: token_id → string
+   - Implement decode() method with special token filtering
+   - Handle token concatenation for final text output
+
+4. **Audio Loading (src/audio/loader.rs):**
+   - Support MP3, WAV formats using hound/rodio
+   - Resample to 16kHz mono if needed
+   - Return Vec<f32> normalized audio samples
+
+5. **CLI Integration (src/cli/commands.rs):**
+   - Implement --transcribe command: audio file → text output
+   - Implement --wispr command: STT → LLM enhancement → formatted output
+   - Handle error cases gracefully with anyhow::Result
+
+**TECHNICAL CONSTRAINTS:**
+- Use ort crate version 2.0.0-rc.12 with "download-binaries" feature
+- Single-threaded ONNX execution to avoid threading issues
+- Model paths: models/stt/moonshine-tiny-{encoder,decoder}.onnx
+- Follow Rust 2024 edition idioms and best practices
+- Maintain modular architecture (no monolithic files)
+
+**SUCCESS CRITERIA:**
+- `cargo run -- --transcribe tests/fixtures/audio.mp3` outputs accurate transcription
+- Word Error Rate (WER) < 10% on test audio
+- Inference time < 1 second for 3-second audio clip
+- No panics, proper error handling throughout
+- Code passes `cargo test` and `cargo clippy`
+
+**REFERENCE ARCHITECTURE:**
+```
+MoonshineSTT::transcribe(path) flow:
+1. AudioLoader::load(path) → Vec<f32> audio samples
+2. compute_mel_spectrogram(audio) → Array2<f32> features
+3. encoder.run(features) → hidden_states tensor
+4. decoder.run(hidden_states) → token_ids (autoregressive loop)
+5. tokenizer.decode(token_ids) → String transcription
+```
+
+**AVOID:**
+- Manual tensor shape manipulation without checking config.json
+- Blocking operations in async contexts
+- Hardcoded paths (use relative paths from project root)
+- Unwrap() calls in production code (use proper error handling)
+- Modifying README.md or user-facing documentation
+
+**DELIVERABLES:**
+Provide complete, production-ready implementations for:
+1. src/audio/features.rs (mel spectrogram computation)
+2. src/models/stt.rs (ONNX inference + tokenizer)
+3. src/audio/loader.rs (audio file loading)
+4. Any necessary updates to src/cli/commands.rs
+
+Include inline comments explaining complex logic, proper error types using thiserror, and unit tests where applicable. Code should be immediately runnable with `cargo run -- --transcribe tests/fixtures/audio.mp3`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Now please implment this providers features in our zed code editor and implmement in the real zed code editor in the setting - ai rigth plan model chnage  and implement it correctly:Role and Architecture Context:
 Act as an Expert Principal Software Engineer specializing in Rust and the gpui UI framework. We are building Zed Coder 4, a high-performance code editor forked from the Zed code editor. The existing codebase already supports approximately 10 AI providers via Zed's LanguageModelProvider trait. Your task is to implement the most comprehensive AI provider system ever built inside a native code editor, beating every competitor on the market as of March 31, 2026 in raw provider count, model count, auth flow variety, and subscription integration depth. The target is 140 or more providers, 2600 or more models, and every authentication flow that exists.
 
