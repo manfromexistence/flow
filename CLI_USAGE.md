@@ -1,6 +1,6 @@
 # CLI Mode for AI Agents
 
-This project is designed for AI agents to test local GGUF models. CLI mode is the default.
+This project is designed for AI agents to test local GGUF models with detailed performance metrics.
 
 ## Quick Start for AI Agents
 
@@ -8,44 +8,90 @@ This project is designed for AI agents to test local GGUF models. CLI mode is th
 # Build the project
 cargo build
 
-# Single query (recommended for testing)
+# Single query with full metrics
 cargo run "What is Rust?"
 
 # Interactive mode
 cargo run
 
-# Pipe input
-echo "Explain async programming" | cargo run
-
 # Show help
 cargo run -- --help
 ```
 
-## Usage Modes
+## Output Format
 
-### 1. Single Query Mode (Default for AI Agents)
-```bash
-cargo run "Your question here"
-```
-The model initializes, processes your query, outputs clean response, and exits.
+Each query displays:
 
-### 2. Interactive Mode
-```bash
-cargo run
-```
-Starts an interactive session. Type `exit` or `quit` to end.
+1. **System Information** (on startup)
+   - CPU model and core count
+   - Total/Used/Available RAM
+   
+2. **Model Initialization**
+   - Load time in seconds
 
-### 3. Piped Input Mode
-```bash
-echo "Your question" | cargo run
-```
-Reads from stdin and processes the input.
+3. **Response** (cleaned, no `<think>` tags)
 
-### 4. TUI Mode (Human Use Only)
-```bash
-cargo run -- --tui
+4. **Performance Metrics**
+   - Prompt tokens
+   - Generated tokens
+   - Total tokens
+   - Prompt evaluation time
+   - Generation time
+   - Total time
+   - Generation speed (tokens/sec)
+   - Estimated RAM usage
+
+## Example Output
+
 ```
-Launches the full terminal UI interface.
+═══════════════════════════════════════════════════════════
+  SYSTEM INFORMATION
+═══════════════════════════════════════════════════════════
+CPU: AMD Ryzen 5 5600G with Radeon Graphics
+Physical Cores: 6
+Logical Cores: 12
+Total RAM: 7.30 GB
+Used RAM: 5.94 GB (81.4%)
+Available RAM: 1.36 GB
+═══════════════════════════════════════════════════════════
+
+Initializing GGUF model... ✓ (4.69s)
+
+> Hi
+
+What?
+
+───────────────────────────────────────────────────────────
+  PERFORMANCE METRICS
+───────────────────────────────────────────────────────────
+Prompt Tokens: 207
+Generated Tokens: 6
+Total Tokens: 213
+
+Prompt Eval Time: 2.17s
+Generation Time: 0.71s
+Total Time: 4.33s
+
+Generation Speed: 8.44 tokens/sec
+Estimated RAM Usage: 3.40 GB
+───────────────────────────────────────────────────────────
+```
+
+## AI Agent Testing Examples
+
+```bash
+# Test basic functionality
+cargo run "Hello"
+
+# Test code generation
+cargo run "Write a Rust function to calculate fibonacci"
+
+# Test reasoning
+cargo run "Explain async in one sentence"
+
+# Benchmark performance
+cargo run "Count to 10"
+```
 
 ## Model Configuration
 
@@ -53,38 +99,18 @@ Launches the full terminal UI interface.
 - Location: `models/llm/`
 - Context: 32K tokens
 - Temperature: 0.7
-- RAM Required: ~3.4GB
+- Base RAM: ~3.4GB
 
-## AI Agent Testing Examples
+## Metrics Explained
 
-```bash
-# Test basic functionality
-cargo run "Hello, respond in one sentence"
-
-# Test code generation
-cargo run "Write a Rust function to calculate fibonacci"
-
-# Test reasoning
-cargo run "Explain the difference between async and sync"
-
-# Test with timeout (for CI/CD)
-timeout 30 cargo run "Quick test response"
-```
-
-## Output Format
-
-Responses are cleaned automatically:
-- `<think>` tags removed
-- Extra whitespace trimmed
-- Clean, parseable output
+- **Prompt Tokens**: Input size (includes system prompt)
+- **Generated Tokens**: Output size
+- **Prompt Eval Time**: Time to process input
+- **Generation Time**: Time to generate output
+- **Tokens/sec**: Generation speed (higher is better)
+- **Estimated RAM**: Model + context memory usage
 
 ## Exit Codes
 
 - `0`: Success
 - `1`: Initialization failure or error
-
-## Performance
-
-- Model load: ~3-5 seconds
-- Inference: ~20-40 tokens/second (CPU)
-- Memory: ~3.4GB RAM usage

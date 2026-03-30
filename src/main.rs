@@ -71,19 +71,25 @@ fn print_help() {
 async fn run_cli_mode(args: &[String]) -> Result<()> {
     let llm = LocalLlm::new();
     
-    print!("Initializing GGUF model...");
+    // Show system info
+    print_system_info();
+    
+    print!("\nInitializing GGUF model...");
     io::stdout().flush()?;
+    let init_start = std::time::Instant::now();
     llm.initialize().await?;
-    println!(" ✓");
+    let init_time = init_start.elapsed();
+    println!(" ✓ ({:.2}s)", init_time.as_secs_f64());
 
     // If prompt provided as argument, use it
     if !args.is_empty() {
         let prompt = args.join(" ");
         println!("\n> {}\n", prompt);
         
-        let response = llm.generate(&prompt).await?;
+        let (response, metrics) = llm.generate_with_metrics(&prompt).await?;
         let cleaned = clean_response(&response);
         println!("{}\n", cleaned);
+        print_metrics(&metrics);
         return Ok(());
     }
 
@@ -95,9 +101,10 @@ async fn run_cli_mode(args: &[String]) -> Result<()> {
         
         if !prompt.is_empty() {
             println!("\n> {}\n", prompt);
-            let response = llm.generate(prompt).await?;
+            let (response, metrics) = llm.generate_with_metrics(prompt).await?;
             let cleaned = clean_response(&response);
             println!("{}\n", cleaned);
+            print_metrics(&metrics);
         }
         return Ok(());
     }
@@ -123,12 +130,65 @@ async fn run_cli_mode(args: &[String]) -> Result<()> {
         }
 
         println!();
-        let response = llm.generate(prompt).await?;
+        let (response, metrics) = llm.generate_with_metrics(prompt).await?;
         let cleaned = clean_response(&response);
         println!("{}\n", cleaned);
+        print_metrics(&metrics);
     }
 
     Ok(())
+}
+
+fn print_system_info() {
+    use sysinfo::System;
+    
+    let mut sys = System::new_all();
+    sys.refresh_all();
+    
+    println!("═══════════════════════════════════════════════════════════");
+    println!("  SYSTEM INFORMATION");
+    println!("═══════════════════════════════════════════════════════════");
+    
+    // CPU info
+    if let Some(cpu) = sys.cpus().first() {
+        println!("CPU: {}", cpu.brand());
+    }
+    println!("Physical Cores: {}", sys.physical_core_count().unwrap_or(0));
+    println!("Logical Cores: {}", sys.cpus().len());
+    
+    // Memory info
+    let total_mem = sys.total_memory() as f64 / 1024.0 / 1024.0 / 1024.0;
+    let used_mem = sys.used_memory() as f64 / 1024.0 / 1024.0 / 1024.0;
+    let available_mem = sys.available_memory() as f64 / 1024.0 / 1024.0 / 1024.0;
+    
+    println!("Total RAM: {:.2} GB", total_mem);
+    println!("Used RAM: {:.2} GB ({:.1}%)", used_mem, (used_mem / total_mem) * 100.0);
+    println!("Available RAM: {:.2} GB", available_mem);
+    
+    println!("═══════════════════════════════════════════════════════════");
+}
+
+fn print_metrics(metrics: &llm::GenerationMetrics) {
+    println!("───────────────────────────────────────────────────────────");
+    println!("  PERFORMANCE METRICS");
+    println!("───────────────────────────────────────────────────────────");
+    println!("Prompt Tokens: {}", metrics.prompt_tokens);
+    println!("Generated Tokens: {}", metrics.generated_tokens);
+    println!("Total Tokens: {}", metrics.prompt_tokens + metrics.generated_tokens);
+    println!();
+    println!("Prompt Eval Time: {:.2}s", metrics.prompt_eval_time_ms as f64 / 1000.0);
+    println!("Generation Time: {:.2}s", metrics.generation_time_ms as f64 / 1000.0);
+    println!("Total Time: {:.2}s", metrics.total_time_ms as f64 / 1000.0);
+    println!();
+    println!("Generation Speed: {:.2} tokens/sec", metrics.tokens_per_second);
+    
+    // Calculate RAM usage estimate
+    let base_model_ram = 3.4; // GB for 0.8B Q4_K_M
+    let context_ram = (metrics.prompt_tokens + metrics.generated_tokens) as f64 * 0.000002; // Rough estimate
+    let estimated_ram = base_model_ram + context_ram;
+    
+    println!("Estimated RAM Usage: {:.2} GB", estimated_ram);
+    println!("───────────────────────────────────────────────────────────");
 }
 
 fn clean_response(response: &str) -> String {

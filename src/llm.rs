@@ -9,12 +9,12 @@ use llama_cpp_2::model::{AddBos, LlamaModel};
 use llama_cpp_2::sampling::LlamaSampler;
 use std::num::NonZeroU32;
 use std::sync::{Arc, Mutex};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH, Instant};
 use sysinfo::System;
 
-const MODEL_PATH: &str = r"F:\cli-depricated\models\llm\Qwen3.5-0.8B-Q4_K_M.gguf";
+const MODEL_PATH: &str = r"F:\cli-depricated\models\llm\Qwen3-0.6B-Q4_K_M.gguf";
 #[allow(dead_code)]
-const MODEL_NAME: &str = "Qwen-3.5-0.8B-Q4_K_M";
+const MODEL_NAME: &str = "Qwen-3-0.6B-Q4_K_M";
 
 const SYSTEM_PROMPT: &str = "\
 # IDENTITY
@@ -39,6 +39,16 @@ const SAMPLER_TOP_K: i32 = 40;
 const SAMPLER_MIN_P: f32 = 0.05;
 const SAMPLER_REPEAT_LAST_N: i32 = 256;
 const SAMPLER_REPEAT_PENALTY: f32 = 1.10;
+
+#[derive(Clone, Debug)]
+pub struct GenerationMetrics {
+    pub prompt_tokens: usize,
+    pub generated_tokens: usize,
+    pub total_time_ms: u128,
+    pub tokens_per_second: f64,
+    pub prompt_eval_time_ms: u128,
+    pub generation_time_ms: u128,
+}
 
 #[derive(Clone)]
 struct Message {
@@ -90,8 +100,9 @@ impl LocalLlm {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub async fn generate(&self, prompt: &str) -> Result<String> {
+    pub async fn generate_with_metrics(&self, prompt: &str) -> Result<(String, GenerationMetrics)> {
+        let start_time = Instant::now();
+        
         let mut inner_guard = self
             .inner
             .lock()
@@ -134,10 +145,12 @@ impl LocalLlm {
             .str_to_token(&full_prompt, AddBos::Always)
             .context("Tokenization failed")?;
 
+        let prompt_tokens = tokens.len();
         let available = (INFERENCE_CONTEXT_TOKENS as usize).saturating_sub(tokens.len());
         let max_tokens = available.min(4096);
 
         // Batched prompt evaluation
+        let prompt_eval_start = Instant::now();
         let mut pos: i32 = 0;
         let total = tokens.len();
         let mut offset = 0;
@@ -156,6 +169,7 @@ impl LocalLlm {
             ctx.decode(&mut batch)?;
             offset = end;
         }
+        let prompt_eval_time_ms = prompt_eval_start.elapsed().as_millis();
 
         // Sampler chain
         let mut sampler = LlamaSampler::chain_simple([
@@ -169,9 +183,11 @@ impl LocalLlm {
         sampler.accept_many(tokens.iter().copied());
 
         // Generation loop
+        let generation_start = Instant::now();
         let mut n_cur = tokens.len() as i32;
         let mut generated_text = String::with_capacity(max_tokens * 4);
         let mut gen_batch = LlamaBatch::new(1, 1);
+        let mut generated_tokens = 0;
 
         let mut hit_limit = false;
         let mut extra_tokens = 0;
@@ -197,6 +213,7 @@ impl LocalLlm {
                 .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)?;
             let piece = String::from_utf8_lossy(&piece_bytes);
             generated_text.push_str(&piece);
+            generated_tokens += 1;
 
             gen_batch.clear();
             gen_batch.add(token, n_cur, &[0], true)?;
@@ -217,6 +234,15 @@ impl LocalLlm {
                 }
             }
         }
+
+        let generation_time_ms = generation_start.elapsed().as_millis();
+        let total_time_ms = start_time.elapsed().as_millis();
+        
+        let tokens_per_second = if generation_time_ms > 0 {
+            (generated_tokens as f64 / generation_time_ms as f64) * 1000.0
+        } else {
+            0.0
+        };
 
         let answer = generated_text.trim().to_string();
         if !answer.is_empty() {
@@ -226,151 +252,30 @@ impl LocalLlm {
             });
         }
 
-        Ok(answer)
+        let metrics = GenerationMetrics {
+            prompt_tokens,
+            generated_tokens,
+            total_time_ms,
+            tokens_per_second,
+            prompt_eval_time_ms,
+            generation_time_ms,
+        };
+
+        Ok((answer, metrics))
+    }
+
+    #[allow(dead_code)]
+    pub async fn generate(&self, prompt: &str) -> Result<String> {
+        let (response, _) = self.generate_with_metrics(prompt).await?;
+        Ok(response)
     }
 
     pub async fn generate_stream<F>(&self, prompt: &str, callback: F) -> Result<()>
     where
         F: Fn(String) + Send + 'static,
     {
-        let mut inner_guard = self
-            .inner
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
-        let inner = inner_guard
-            .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("LLM not initialized"))?;
-
-        inner.history.push(Message {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        });
-
-        let full_prompt = Self::build_prompt(&inner.history);
-
-        let n_threads = Self::optimal_thread_count();
-        let ctx_params = LlamaContextParams::default()
-            .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
-            .with_n_batch(PROMPT_BATCH_SIZE as u32)
-            .with_n_threads(n_threads)
-            .with_n_threads_batch(n_threads)
-            .with_flash_attention_policy(1);
-
-        let mut ctx = inner.model.new_context(&inner.backend, ctx_params.clone()).or_else(|e| {
-            #[cfg(debug_assertions)]
-            eprintln!("Warning: Flash attention context creation failed, falling back to standard attention ({})", e);
-            let fallback_params = LlamaContextParams::default()
-                .with_n_ctx(NonZeroU32::new(INFERENCE_CONTEXT_TOKENS))
-                .with_n_batch(PROMPT_BATCH_SIZE as u32)
-                .with_n_threads(n_threads)
-                .with_n_threads_batch(n_threads)
-                .with_flash_attention_policy(0);
-            inner.model.new_context(&inner.backend, fallback_params)
-        }).context("Failed to create inference context")?;
-
-        ctx.clear_kv_cache();
-
-        let tokens = inner
-            .model
-            .str_to_token(&full_prompt, AddBos::Always)
-            .context("Tokenization failed")?;
-
-        let available = (INFERENCE_CONTEXT_TOKENS as usize).saturating_sub(tokens.len());
-        let max_tokens = available.min(4096);
-
-        // Batched prompt evaluation
-        let mut pos: i32 = 0;
-        let total = tokens.len();
-        let mut offset = 0;
-
-        while offset < total {
-            let end = (offset + PROMPT_BATCH_SIZE).min(total);
-            let chunk = &tokens[offset..end];
-            let is_last_chunk = end == total;
-
-            let mut batch = LlamaBatch::new(chunk.len(), 1);
-            for (i, &token) in chunk.iter().enumerate() {
-                let logits = is_last_chunk && i == chunk.len() - 1;
-                batch.add(token, pos, &[0], logits)?;
-                pos += 1;
-            }
-            ctx.decode(&mut batch)?;
-            offset = end;
-        }
-
-        // Sampler chain
-        let mut sampler = LlamaSampler::chain_simple([
-            LlamaSampler::penalties(SAMPLER_REPEAT_LAST_N, SAMPLER_REPEAT_PENALTY, 0.0, 0.0),
-            LlamaSampler::top_k(SAMPLER_TOP_K),
-            LlamaSampler::top_p(SAMPLER_TOP_P, 1),
-            LlamaSampler::min_p(SAMPLER_MIN_P, 1),
-            LlamaSampler::temp(SAMPLER_TEMPERATURE),
-            LlamaSampler::dist(Self::sampler_seed()),
-        ]);
-        sampler.accept_many(tokens.iter().copied());
-
-        // Generation loop with streaming
-        let mut n_cur = tokens.len() as i32;
-        let mut generated_text = String::with_capacity(max_tokens * 4);
-        let mut gen_batch = LlamaBatch::new(1, 1);
-
-        let mut hit_limit = false;
-        let mut extra_tokens = 0;
-        let max_loop = max_tokens + 50;
-
-        for i in 0..max_loop {
-            if i >= max_tokens {
-                hit_limit = true;
-            }
-            if n_cur >= INFERENCE_CONTEXT_TOKENS as i32 {
-                break;
-            }
-
-            let token = sampler.sample(&ctx, -1);
-
-            if inner.model.is_eog_token(token) {
-                break;
-            }
-
-            #[allow(deprecated)]
-            let piece_bytes = inner
-                .model
-                .token_to_bytes(token, llama_cpp_2::model::Special::Tokenize)?;
-            let piece = String::from_utf8_lossy(&piece_bytes);
-
-            // Stream each token as it's generated
-            callback(piece.to_string());
-            generated_text.push_str(&piece);
-
-            gen_batch.clear();
-            gen_batch.add(token, n_cur, &[0], true)?;
-            n_cur += 1;
-
-            ctx.decode(&mut gen_batch)?;
-
-            if hit_limit {
-                let last_char = piece.chars().last().unwrap_or(' ');
-                if last_char == '.' || last_char == '?' || last_char == '!' || piece.contains('\n')
-                {
-                    break;
-                }
-                extra_tokens += 1;
-                if extra_tokens >= 50 {
-                    callback("...".to_string());
-                    generated_text.push_str("...");
-                    break;
-                }
-            }
-        }
-
-        let answer = generated_text.trim().to_string();
-        if !answer.is_empty() {
-            inner.history.push(Message {
-                role: "assistant".to_string(),
-                content: answer,
-            });
-        }
-
+        let (response, _) = self.generate_with_metrics(prompt).await?;
+        callback(response);
         Ok(())
     }
 
