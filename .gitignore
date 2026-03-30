@@ -1,23 +1,8 @@
 # Rust
 /target/
-**/target/
-**/build/
+Cargo.lock
 **/*.rs.bk
 *.pdb
-Cargo.lock
-
-# Models - Large files
-models/
-*.gguf
-*.onnx
-*.bin
-*.tflite
-*.mdl
-*.fst
-*.dubm
-*.ie
-*.mat
-*.stats
 
 # IDE
 .vscode/
@@ -29,13 +14,27 @@ models/
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
+
+# Models (large files)
+models/**/*.gguf
+models/**/*.onnx
+models/**/*.bin
+models/**/*.safetensors
+
+# Keep model directories but ignore contents
+!models/llm/.gitkeep
+!models/stt/.gitkeep
+!models/tts/.gitkeep
+
+# Test outputs
+tests/output/
+*.wav
+*.mp3
+!tests/fixtures/*.mp3
 
 # Logs
 *.log
 
-# Kiro
-.kiro/
-
-# Trash
-trash/
+# Temporary files
+tmp/
+temp/

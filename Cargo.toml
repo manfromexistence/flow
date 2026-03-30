@@ -45,8 +45,35 @@ tiktoken-rs = "0.9"
 # CLI Detection
 atty = "0.2"
 
+[lib]
+name = "flow"
+path = "src/lib.rs"
+
+[[bin]]
+name = "flow"
+path = "src/main.rs"
+
+[[example]]
+name = "transcribe"
+path = "examples/transcribe.rs"
+
+[[example]]
+name = "wispr_flow"
+path = "examples/wispr_flow.rs"
+
+[[bench]]
+name = "benchmark"
+path = "benches/benchmark.rs"
+harness = false
+
 [profile.release]
 opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = true
+
+[profile.bench]
+inherits = "release"
+
+[dev-dependencies]
+criterion = "0.8.2"

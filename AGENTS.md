@@ -1,9 +1,9 @@
-# Wispr Flow Clone - Complete Implementation Guide
+# Flow - Complete Implementation Guide
 
-> **Target Agent**: OpenAI Codex GPT-5.4  
-> **Project**: Rust CLI Voice Assistant (Wispr Flow Killer)  
+> **Project**: Flow - Open-Source Voice Assistant  
 > **Status**: Foundation Complete, STT/TTS Integration Needed  
-> **Date**: March 31, 2026
+> **Date**: March 31, 2026  
+> **Version**: 0.1.0
 
 ---
 
@@ -14,20 +14,21 @@ Create a production-ready Wispr Flow alternative using the latest March 2026 mod
 - **LLM**: Qwen 3.5 Small Series (beats models 3x its size)
 - **TTS**: Kokoro v1.0 (#1 on TTS Arena) + Voxtral TTS (beats ElevenLabs)
 
-**Current State**: CLI working, LLM integrated (Qwen 3.5 0.8B), audio processing complete, Moonshine ONNX models downloaded. Need: Real ONNX inference implementation.
+**Current State**: Professional structure implemented, LLM integrated (Qwen 3.5 0.8B), Moonshine ONNX models downloaded. Need: Real ONNX inference implementation.
 
 ---
 
 ## 📋 Implementation Checklist
 
 ### Phase 1: Moonshine STT Integration (PRIORITY)
-- [ ] Add `ort` crate to Cargo.toml with proper threading config
-- [ ] Implement mel spectrogram feature extraction (80 mel bins, 16kHz)
-- [ ] Load encoder/decoder ONNX models in `src/stt.rs`
+- [x] Add `ort` crate to Cargo.toml with proper threading config
+- [x] Create professional project structure
+- [ ] Implement mel spectrogram feature extraction (80 mel bins, 16kHz) in `src/audio/features.rs`
+- [ ] Load encoder/decoder ONNX models in `src/models/stt.rs`
 - [ ] Implement encoder inference (audio features → hidden states)
 - [ ] Implement decoder inference (hidden states → token IDs)
 - [ ] Parse tokenizer.json and implement token-to-text decoding
-- [ ] Test with audio.mp3: "hello mike testing one two three hello"
+- [ ] Test with `tests/fixtures/audio.mp3`: "hello mike testing one two three hello"
 - [ ] Verify WER < 10% on test audio
 
 ### Phase 2: Text Enhancement (Wispr Flow Style)
@@ -38,7 +39,7 @@ Create a production-ready Wispr Flow alternative using the latest March 2026 mod
 - [ ] Test `--wispr` command (STT + LLM enhancement pipeline)
 
 ### Phase 3: TTS Integration (Optional but Recommended)
-- [ ] Implement Kokoro v1.0 INT8 inference (already downloaded)
+- [ ] Implement Kokoro v1.0 INT8 inference in `src/models/tts.rs`
 - [ ] Add `--speak` command to read back enhanced text
 - [ ] Test voice output quality
 - [ ] Add Voxtral TTS as premium option (if 16GB+ RAM available)
@@ -53,186 +54,172 @@ Create a production-ready Wispr Flow alternative using the latest March 2026 mod
 
 ---
 
-## 🏗️ Technical Architecture
+## 🏗️ Professional Project Structure
 
-### Current Project Structure
 ```
-wispr-flow/
-├── AGENTS.md              ← This file (your guide)
-├── README.md              ← User documentation (don't modify)
-├── Cargo.toml             ← Rust dependencies
-├── audio.mp3              ← Test file (3.14s, "hello mike...")
+flow/                                    # Project root (rebranded from wispr-flow)
+├── .gitignore                          # Git ignore rules
+├── Cargo.toml                          # Rust dependencies (edition 2024)
+├── Cargo.lock                          # Dependency lock file
+├── AGENTS.md                           # This file (implementation guide)
+├── README.md                           # User documentation (DO NOT MODIFY)
 │
-├── src/
-│   ├── main.rs           ← CLI interface (working)
-│   ├── llm.rs            ← Qwen 3.5 LLM (working)
-│   ├── stt.rs            ← Moonshine STT (needs ONNX impl)
-│   └── voice.rs          ← Voice pipeline utilities
+├── src/                                # Source code (modular architecture)
+│   ├── lib.rs                         # Library entry point
+│   ├── main.rs                        # Binary entry point
+│   │
+│   ├── audio/                         # Audio processing module
+│   │   ├── mod.rs                     # Module exports
+│   │   ├── features.rs                # Mel spectrogram computation
+│   │   └── loader.rs                  # Audio file loading (WAV, MP3, etc.)
+│   │
+│   ├── cli/                           # Command-line interface
+│   │   ├── mod.rs                     # Module exports
+│   │   ├── args.rs                    # Argument parsing
+│   │   └── commands.rs                # Command execution logic
+│   │
+│   ├── models/                        # ML model inference
+│   │   ├── mod.rs                     # Module exports
+│   │   ├── llm.rs                     # Qwen 3.5 LLM (✓ Working)
+│   │   ├── stt.rs                     # Moonshine STT (needs ONNX impl)
+│   │   └── tts.rs                     # Kokoro TTS (stub)
+│   │
+│   ├── pipeline/                      # Processing pipelines
+│   │   ├── mod.rs                     # Module exports
+│   │   └── voice.rs                   # Voice processing pipeline
+│   │
+│   └── utils/                         # Utility functions
+│       ├── mod.rs                     # Module exports
+│       └── system.rs                  # System info, memory checks
 │
-├── models/
-│   ├── llm/              ← Qwen GGUF models (working)
-│   │   ├── Qwen3.5-0.8B-Q4_K_M.gguf
-│   │   ├── Qwen3.5-2B-Q4_K_M.gguf
-│   │   └── Qwen3.5-4B-Q4_K_M.gguf (not downloaded yet)
-│   ├── stt/              ← Moonshine ONNX (downloaded ✓)
-│   │   ├── moonshine-tiny-encoder.onnx
-│   │   ├── moonshine-tiny-decoder.onnx
-│   │   ├── moonshine-tiny-config.json
-│   │   └── moonshine-tiny-tokenizer.json
-│   └── tts/              ← Kokoro TTS (downloaded ✓)
-│       ├── kokoro-v1.0.int8.onnx
-│       └── voices-v1.0.bin
+├── tests/                              # Integration tests
+│   ├── integration_test.rs            # Main integration tests
+│   └── fixtures/                      # Test data
+│       ├── README.md                  # Test fixtures documentation
+│       └── audio.mp3                  # Test audio (3.14s, "hello mike...")
 │
-└── scripts/              ← Download scripts
-    ├── download_moonshine_onnx.ps1
-    └── download_whisper.ps1
+├── benches/                            # Performance benchmarks
+│   └── benchmark.rs                   # Criterion benchmarks
+│
+├── examples/                           # Usage examples
+│   ├── transcribe.rs                  # Basic STT example
+│   └── wispr_flow.rs                  # Full pipeline example
+│
+├── docs/                               # Documentation
+│   ├── ARCHITECTURE.md                # System architecture
+│   ├── DEVELOPMENT.md                 # Development guide
+│   ├── MODELS.md                      # Model documentation
+│   └── API.md                         # API documentation
+│
+├── models/                             # Model files (large, gitignored)
+│   ├── llm/                           # Qwen GGUF models
+│   │   ├── .gitkeep
+│   │   ├── Qwen3.5-0.8B-Q4_K_M.gguf  # ✓ Working (1.5GB RAM)
+│   │   ├── Qwen3.5-2B-Q4_K_M.gguf    # Available (2.5GB RAM)
+│   │   └── Qwen3.5-4B-Q4_K_M.gguf    # Recommended (4.5GB RAM)
+│   │
+│   ├── stt/                           # Moonshine ONNX models
+│   │   ├── .gitkeep
+│   │   ├── moonshine-tiny-encoder.onnx      # ✓ Downloaded (~13MB)
+│   │   ├── moonshine-tiny-decoder.onnx      # ✓ Downloaded (~14MB)
+│   │   ├── moonshine-tiny-config.json       # Model configuration
+│   │   └── moonshine-tiny-tokenizer.json    # BPE tokenizer
+│   │
+│   └── tts/                           # Kokoro TTS models
+│       ├── .gitkeep
+│       ├── kokoro-v1.0.int8.onnx     # ✓ Downloaded (~80MB)
+│       └── voices-v1.0.bin           # Voice data
+│
+├── scripts/                            # Utility scripts
+│   ├── download_moonshine_onnx.ps1   # Download Moonshine models
+│   └── download_whisper.ps1          # Legacy Whisper download
+│
+└── trash/                              # Old/experimental code (ignore)
+    └── [various old files]
 ```
 
 ---
 
-## 🔬 Latest Model Research (March 2026)
+## 🔧 Module Architecture
 
-### STT: Moonshine v2 (Released Feb 13, 2026)
-**Why Moonshine beats Whisper**:
-- Moonshine Large (245M params): 6.65% WER
-- Whisper Large v3 (1.55B params): 7.44% WER
-- **6x smaller, MORE accurate!**
+### Core Modules
 
-**Architecture advantages**:
-- Variable-length input (no 30s padding waste)
-- Streaming support with state caching
-- 5x faster than Whisper in real-time
-- C++ core library (like llama.cpp) - perfect for Rust FFI
-- MIT License ✅
+#### `src/audio/` - Audio Processing
+- **features.rs**: Mel spectrogram computation using rustfft
+- **loader.rs**: Audio file loading with hound/rodio
+- **Purpose**: Convert audio files to features for STT
 
-**Model sizes available**:
-| Model | Params | Size | WER | Use Case |
-|-------|--------|------|-----|----------|
-| Nano  | 26M    | 26MB | 8.5% | IoT/Embedded |
-| Tiny  | 35M    | 35MB | 7.2% | Mobile/Edge |
-| Base  | 100M   | 100MB| 6.9% | Laptops (4-8GB) |
-| Large | 245M   | 245MB| 6.65%| Workstations (8GB+) |
+#### `src/cli/` - Command-Line Interface
+- **args.rs**: Argument parsing (--transcribe, --wispr, --speak)
+- **commands.rs**: Command execution logic
+- **Purpose**: User-facing CLI interface
 
-**Current implementation**: Using Tiny (35M) - downloaded and ready.
+#### `src/models/` - ML Model Inference
+- **llm.rs**: Qwen 3.5 LLM inference (✓ Working)
+- **stt.rs**: Moonshine STT inference (needs implementation)
+- **tts.rs**: Kokoro TTS inference (stub)
+- **Purpose**: Core ML inference engines
 
-### LLM: Qwen 3.5 Small Series (Released March 2, 2026)
-**Why Qwen 3.5 is perfect**:
-- Hybrid architecture: Gated Delta Networks + sparse MoE
-- 201 languages supported
-- Apache 2.0 license ✅
-- **Ollama can't run Qwen 3.5 GGUF** (vision file issues) - YOUR ADVANTAGE!
+#### `src/pipeline/` - Processing Pipelines
+- **voice.rs**: Multi-stage voice processing
+- **Purpose**: Coordinate STT → LLM → TTS flow
 
-**Model comparison**:
-| Model | Params | RAM | Performance | Use Case |
-|-------|--------|-----|-------------|----------|
-| 0.8B  | 0.8B   | ~1.5GB | Basic | Current (working) |
-| 2B    | 2B     | ~2.5GB | Good | Phones/Budget |
-| 4B    | 4B     | ~4.5GB | **Coding sweet spot** | Recommended |
-| 9B    | 9B     | ~12GB | Beats Qwen3-30B | High-end |
-
-**Current implementation**: Using 0.8B - works perfectly. Upgrade to 4B recommended.
-
-### TTS: Kokoro v1.0 + Voxtral TTS
-**Kokoro v1.0** (Current choice):
-- 82M params, ~80MB INT8
-- #1 on TTS Arena (44% win rate)
-- Apache 2.0 license ✅
-- Runs on Raspberry Pi
-- Already downloaded ✓
-
-**Voxtral TTS** (Released March 26, 2026 - 5 days ago!):
-- 4B params, ~3GB quantized
-- **Beats ElevenLabs in blind tests** (68.4% win rate)
-- 70ms time-to-first-audio
-- 9.7x real-time factor
-- CC BY-NC 4.0 (non-commercial) - OK for free CLI
-- Requires 16GB+ RAM
+#### `src/utils/` - Utilities
+- **system.rs**: System info, memory checks
+- **Purpose**: Helper functions
 
 ---
 
 ## 🛠️ Implementation Details
 
-### Step 1: Add Dependencies to Cargo.toml
-
-```toml
-[dependencies]
-# Existing (keep these)
-tokio = { version = "1.42", features = ["rt-multi-thread", "macros", "sync"] }
-llama-cpp-2 = "0.1"
-anyhow = "1.0"
-sysinfo = "0.32"
-hound = "3.5.1"
-rodio = "0.22.2"
-cpal = "0.17.3"
-tiktoken-rs = "0.9"
-atty = "0.2.14"
-
-# NEW: Add these for ONNX + audio processing
-ort = { version = "2.0.0-rc.12", features = ["download-binaries"] }
-ndarray = "0.17"  # For tensor operations
-rustfft = "6.2"   # For FFT (mel spectrogram)
-```
-
-### Step 2: Implement Mel Spectrogram Feature Extraction
-
-Create `src/audio_features.rs`:
+### Step 1: Implement Mel Spectrogram in `src/audio/features.rs`
 
 ```rust
 use rustfft::{FftPlanner, num_complex::Complex};
-use ndarray::{Array1, Array2};
-
-pub struct MelSpectrogramConfig {
-    pub sample_rate: usize,
-    pub n_fft: usize,
-    pub hop_length: usize,
-    pub n_mels: usize,
-}
-
-impl Default for MelSpectrogramConfig {
-    fn default() -> Self {
-        Self {
-            sample_rate: 16000,
-            n_fft: 400,      // 25ms window at 16kHz
-            hop_length: 160, // 10ms hop
-            n_mels: 80,      // Standard for speech
-        }
-    }
-}
+use ndarray::Array2;
 
 pub fn compute_mel_spectrogram(
     audio: &[f32],
     config: &MelSpectrogramConfig,
 ) -> Array2<f32> {
     // 1. Apply Hann window
+    let window = hann_window(config.n_fft);
+    
     // 2. Compute STFT using rustfft
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(config.n_fft);
+    
     // 3. Convert to mel scale
+    let mel_filters = create_mel_filterbank(
+        config.n_fft,
+        config.n_mels,
+        config.sample_rate
+    );
+    
     // 4. Apply log scaling
     // 5. Normalize to [-1, 1] range
     
-    // TODO: Implement this
     // Return shape: [n_mels, time_steps]
 }
 ```
 
-### Step 3: Implement ONNX Inference in src/stt.rs
-
-Replace the mock `MoonshineSTT` implementation:
+### Step 2: Implement ONNX Inference in `src/models/stt.rs`
 
 ```rust
-use ort::{Session, Value, inputs};
+use ort::{Session, inputs};
 use ndarray::{Array2, Array3};
+use crate::audio::{AudioLoader, compute_mel_spectrogram, MelSpectrogramConfig};
 
 pub struct MoonshineSTT {
     encoder: Session,
     decoder: Session,
-    tokenizer: Tokenizer, // Parse from moonshine-tiny-tokenizer.json
+    tokenizer: Tokenizer,
 }
 
 impl MoonshineSTT {
     pub fn new() -> Result<Self> {
-        // Load models
         let encoder = Session::builder()?
-            .with_intra_threads(1)? // Single-threaded to avoid issues
+            .with_intra_threads(1)?
             .commit_from_file("models/stt/moonshine-tiny-encoder.onnx")?;
         
         let decoder = Session::builder()?
@@ -246,11 +233,11 @@ impl MoonshineSTT {
         Ok(Self { encoder, decoder, tokenizer })
     }
     
-    pub fn transcribe(&self, audio_path: &str) -> Result<String> {
-        // 1. Load audio (already implemented in AudioAnalyzer)
-        let audio = AudioAnalyzer::load_audio(audio_path)?;
+    pub fn transcribe(audio_path: &str) -> Result<String> {
+        // 1. Load audio
+        let audio = AudioLoader::load(audio_path)?;
         
-        // 2. Compute mel spectrogram features
+        // 2. Compute features
         let features = compute_mel_spectrogram(&audio, &Default::default());
         
         // 3. Run encoder
@@ -264,7 +251,7 @@ impl MoonshineSTT {
         
         // 4. Run decoder (autoregressive)
         let mut tokens = vec![1]; // BOS token
-        let max_length = 448; // From config
+        let max_length = 448;
         
         for _ in 0..max_length {
             let decoder_input = Array2::from_shape_vec(
@@ -284,57 +271,32 @@ impl MoonshineSTT {
             tokens.push(next_token);
         }
         
-        // 5. Decode tokens to text
+        // 5. Decode tokens
         let text = self.tokenizer.decode(&tokens[1..], true)?;
         
-        // 6. Apply Wispr Flow enhancements
-        Ok(Self::enhance_transcript(&text))
-    }
-    
-    fn enhance_transcript(text: &str) -> String {
-        // Remove filler words
-        let fillers = ["um", "uh", "like", "you know", "sort of", "kind of"];
-        let mut enhanced = text.to_lowercase();
-        
-        for filler in &fillers {
-            enhanced = enhanced.replace(filler, "");
-        }
-        
-        // Clean up spacing
-        enhanced = enhanced.split_whitespace().collect::<Vec<_>>().join(" ");
-        
-        // Add punctuation (basic rules)
-        if !enhanced.is_empty() && !enhanced.ends_with('.') {
-            enhanced.push('.');
-        }
-        
-        // Capitalize first letter
-        if let Some(first) = enhanced.chars().next() {
-            enhanced = first.to_uppercase().collect::<String>() + &enhanced[1..];
-        }
-        
-        enhanced
+        Ok(text)
     }
 }
 ```
 
-### Step 4: Parse Tokenizer JSON
+### Step 3: Create Tokenizer Parser
 
-Create `src/tokenizer.rs`:
+Add to `src/models/stt.rs`:
 
 ```rust
 use serde_json::Value;
 use std::collections::HashMap;
 
-pub struct Tokenizer {
+struct Tokenizer {
     vocab: HashMap<u32, String>,
 }
 
 impl Tokenizer {
-    pub fn from_file(path: &str) -> Result<Self> {
-        let json: Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    fn from_file(path: &str) -> Result<Self> {
+        let json: Value = serde_json::from_str(
+            &std::fs::read_to_string(path)?
+        )?;
         
-        // Parse vocab from tokenizer.json
         let vocab = json["model"]["vocab"]
             .as_object()
             .unwrap()
@@ -345,7 +307,7 @@ impl Tokenizer {
         Ok(Self { vocab })
     }
     
-    pub fn decode(&self, tokens: &[u32], skip_special: bool) -> Result<String> {
+    fn decode(&self, tokens: &[u32], skip_special: bool) -> Result<String> {
         let text = tokens
             .iter()
             .filter_map(|&t| {
@@ -363,21 +325,101 @@ impl Tokenizer {
 }
 ```
 
-### Step 5: Test Commands
+---
 
+## 🧪 Testing
+
+### Unit Tests
 ```bash
-# Test STT only
-cargo run -- --transcribe audio.mp3
+cargo test
+```
 
-# Expected output:
-# "Hello mike testing one two three hello."
+### Integration Tests
+```bash
+cargo test --test integration_test
+```
 
-# Test full Wispr Flow pipeline (STT + LLM)
-cargo run -- --wispr audio.mp3
+### Benchmarks
+```bash
+cargo bench
+```
 
-# Expected output:
-# Original: "hello mike testing one two three hello"
-# Enhanced: "Hello Mike, testing: one, two, three. Hello."
+### Examples
+```bash
+# Basic transcription
+cargo run --example transcribe
+
+# Full pipeline
+cargo run --example wispr_flow
+```
+
+### CLI Testing
+```bash
+# Transcribe audio
+cargo run -- --transcribe tests/fixtures/audio.mp3
+
+# Full Wispr Flow pipeline
+cargo run -- --wispr tests/fixtures/audio.mp3
+
+# Text-to-speech (when implemented)
+cargo run -- --speak "Hello world"
+```
+
+---
+
+## 📊 Dependencies (Cargo.toml)
+
+```toml
+[package]
+name = "flow"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[dependencies]
+# Async Runtime (Latest: 1.50.0 as of March 2026)
+tokio = { version = "1.50", features = ["rt-multi-thread", "macros", "sync", "fs", "io-util"] }
+
+# LLM Inference
+llama-cpp-2 = "0.1"
+
+# ONNX Runtime for STT/TTS (Latest: 2.0.0-rc.12)
+ort = { version = "=2.0.0-rc.12", features = ["download-binaries"] }
+
+# Tensor Operations
+ndarray = "0.17"
+
+# Audio Processing & FFT
+hound = "3.5"
+rodio = "0.22"
+cpal = "0.17"
+rustfft = "6.2"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error Handling
+anyhow = "1.0"
+thiserror = "2.0"
+
+# System Info
+sysinfo = "0.32"
+
+# Token Counting
+tiktoken-rs = "0.9"
+
+# CLI Detection
+atty = "0.2"
+
+[dev-dependencies]
+criterion = "0.8"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
 ```
 
 ---
@@ -385,26 +427,25 @@ cargo run -- --wispr audio.mp3
 ## 🎯 Success Criteria
 
 ### Must Have (Phase 1)
-- ✅ Real Moonshine ONNX transcription (not mock)
-- ✅ Accurate transcription of audio.mp3 (WER < 10%)
-- ✅ No compilation errors or warnings
-- ✅ `--transcribe` command works
-- ✅ `--wispr` command works (STT + LLM)
-- ✅ Performance metrics displayed
+- ✅ Professional project structure
+- ✅ Modular architecture (audio, cli, models, pipeline, utils)
+- ✅ Latest dependencies (Tokio 1.50, ort 2.0.0-rc.12)
+- [ ] Real Moonshine ONNX transcription
+- [ ] Accurate transcription of test audio (WER < 10%)
+- [ ] `--transcribe` command works
+- [ ] `--wispr` command works (STT + LLM)
 
 ### Should Have (Phase 2)
-- ✅ Filler word removal working
-- ✅ Proper punctuation added
-- ✅ Clean formatting
-- ✅ Fast inference (< 1s for 3s audio)
+- [ ] Filler word removal
+- [ ] Proper punctuation
+- [ ] Clean formatting
+- [ ] Fast inference (< 1s for 3s audio)
 
 ### Nice to Have (Phase 3+)
-- ⭐ Kokoro TTS integration
-- ⭐ Real-time microphone input
-- ⭐ Streaming transcription
-- ⭐ Voice activity detection
-- ⭐ Hotkey activation
-- ⭐ System-wide clipboard injection
+- [ ] Kokoro TTS integration
+- [ ] Real-time microphone input
+- [ ] Streaming transcription
+- [ ] Voice activity detection
 
 ---
 
@@ -416,19 +457,15 @@ cargo run -- --wispr audio.mp3
 
 ### Issue 2: Tensor Shape Mismatches
 **Problem**: Input shape doesn't match model expectations  
-**Solution**: Check `moonshine-tiny-config.json` for exact input shapes
+**Solution**: Check `models/stt/moonshine-tiny-config.json` for exact shapes
 
-### Issue 3: Tokenizer Decoding Issues
-**Problem**: Garbled output or missing words  
-**Solution**: Ensure proper BPE decoding, handle special tokens correctly
+### Issue 3: Audio Loading
+**Problem**: MP3 files not loading correctly  
+**Solution**: Use rodio for MP3 support, convert to 16kHz mono
 
-### Issue 4: Audio Feature Extraction
-**Problem**: Mel spectrogram doesn't match expected format  
-**Solution**: Use 80 mel bins, 16kHz sample rate, normalize to [-1, 1]
-
-### Issue 5: Memory Usage
-**Problem**: High RAM usage during inference  
-**Solution**: Process audio in chunks, clear intermediate tensors
+### Issue 4: Module Imports
+**Problem**: Can't find modules after restructure  
+**Solution**: Use `pub use` in mod.rs files, check lib.rs exports
 
 ---
 
@@ -436,121 +473,57 @@ cargo run -- --wispr audio.mp3
 
 ### Official Documentation
 - [Moonshine v2 Model Card](https://huggingface.co/UsefulSensors/moonshine-tiny)
-- [Moonshine GitHub](https://github.com/usefulsensors/moonshine)
 - [ONNX Runtime Rust](https://docs.rs/ort/latest/ort/)
 - [Qwen 3.5 Release](https://qwenlm.github.io/blog/qwen3.5/)
 - [Kokoro TTS](https://huggingface.co/hexgrad/Kokoro-82M)
-- [Voxtral TTS](https://mistral.ai/news/voxtral/)
 
-### Model Files (Already Downloaded)
-```
-models/stt/
-├── moonshine-tiny-encoder.onnx    (~13MB)
-├── moonshine-tiny-decoder.onnx    (~14MB)
-├── moonshine-tiny-config.json     (model config)
-└── moonshine-tiny-tokenizer.json  (BPE tokenizer)
-
-models/llm/
-├── Qwen3.5-0.8B-Q4_K_M.gguf      (~500MB) ✓ Working
-├── Qwen3.5-2B-Q4_K_M.gguf        (~1.2GB) ✓ Available
-└── Qwen3.5-4B-Q4_K_M.gguf        (~2.5GB) - Recommended upgrade
-
-models/tts/
-├── kokoro-v1.0.int8.onnx         (~80MB) ✓ Ready
-└── voices-v1.0.bin               (voice data)
-```
-
-### Test Audio
-- **File**: `audio.mp3`
-- **Duration**: 3.14 seconds
-- **Format**: 48kHz mono MP3
-- **Content**: "hello mike testing one two three hello"
-- **Expected WER**: < 10% (should get most words correct)
+### Project Documentation
+- `docs/ARCHITECTURE.md` - System architecture
+- `docs/DEVELOPMENT.md` - Development guide
+- `docs/MODELS.md` - Model documentation
+- `docs/API.md` - API documentation
 
 ---
 
-## 🎓 Implementation Strategy
-
-### Recommended Order
-1. **Start simple**: Get basic ONNX inference working (even if output is wrong)
-2. **Fix audio features**: Implement proper mel spectrogram extraction
-3. **Debug tokenizer**: Ensure token-to-text decoding works
-4. **Optimize**: Add batching, caching, streaming
-5. **Polish**: Add TTS, real-time input, hotkeys
-
-### Testing Approach
-1. Test encoder output shape matches decoder input
-2. Test decoder with dummy inputs first
-3. Test tokenizer decoding with known token sequences
-4. Test full pipeline with audio.mp3
-5. Test with various audio files (different lengths, quality)
-
-### Performance Targets
-- **Latency**: < 1 second for 3-second audio
-- **Memory**: < 500MB RAM for Tiny model
-- **Accuracy**: WER < 10% on clean speech
-- **Real-time factor**: > 3x (process 3s audio in < 1s)
-
----
-
-## 🔥 Competitive Advantages
-
-### vs Wispr Flow (Commercial)
-- ✅ **Free & unlimited** (no 2000 word/week limit)
-- ✅ **Fully offline** (no internet required)
-- ✅ **Open source** (Apache 2.0 / MIT)
-- ✅ **Better models** (Moonshine v2 > Whisper, Qwen 3.5 > GPT-3.5)
-- ✅ **Lower latency** (no API calls)
-- ✅ **Privacy** (data never leaves device)
-
-### vs Other Open-Source Solutions
-- ✅ **Latest models** (March 2026 SOTA)
-- ✅ **Rust performance** (faster than Python)
-- ✅ **Minimal dependencies** (no PyTorch, TensorFlow)
-- ✅ **Cross-platform** (Windows, Mac, Linux)
-- ✅ **Low resource** (runs on 2GB RAM)
-
----
-
-## 🚀 Quick Start for Codex
+## 🚀 Quick Start for Implementation
 
 ```bash
-# 1. Verify models are downloaded
-ls models/stt/moonshine-tiny-*.onnx
+# 1. Verify structure
+tree src/
 
-# 2. Add dependencies to Cargo.toml
-# (ort, ndarray, rustfft, serde_json)
+# 2. Check dependencies
+cargo check
 
 # 3. Implement in this order:
-# - src/audio_features.rs (mel spectrogram)
-# - src/tokenizer.rs (BPE decoder)
-# - src/stt.rs (ONNX inference)
+# - src/audio/features.rs (mel spectrogram)
+# - src/models/stt.rs (ONNX inference + tokenizer)
+# - Test with: cargo run -- --transcribe tests/fixtures/audio.mp3
 
-# 4. Test
-cargo run -- --transcribe audio.mp3
+# 4. Run tests
+cargo test
 
-# 5. Verify output
-# Should see: "Hello mike testing one two three hello."
-# (or similar with < 10% WER)
+# 5. Run examples
+cargo run --example transcribe
 ```
 
 ---
 
-## 📝 Notes for GPT-5.4 Codex
+## 📝 Implementation Notes
 
-- **Rust Edition 2024** (latest, use modern syntax)
-- **No TUI code** (all in trash/, ignore it)
-- **Don't modify README.md** (user request)
-- **Focus on src/stt.rs** (main implementation file)
-- **Use existing AudioAnalyzer** (audio loading already works)
-- **Test incrementally** (don't implement everything at once)
-- **Ask for help if stuck** (better to ask than guess wrong)
+- **Rust Edition 2024** (latest stable)
+- **Professional structure** (modular, testable, documented)
+- **Test fixtures** in `tests/fixtures/` (not root)
+- **Don't modify README.md** (user documentation)
+- **Focus on `src/models/stt.rs`** (main implementation)
+- **Use existing modules** (audio, cli, utils)
+- **Test incrementally** (unit → integration → examples)
 
-**Priority**: Get Moonshine ONNX working. Everything else is secondary.
+**Priority**: Implement Moonshine ONNX inference in `src/models/stt.rs`
 
 ---
 
 **End of Agent Instructions**
 
-*Last updated: March 31, 2026*
-*Models: Moonshine v2, Qwen 3.5, Kokoro v1.0, Voxtral TTS*
+*Last updated: March 31, 2026*  
+*Project: Flow v0.1.0*  
+*Models: Moonshine v2, Qwen 3.5, Kokoro v1.0*
