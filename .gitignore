@@ -38,3 +38,6 @@ tests/output/
 # Temporary files
 tmp/
 temp/
+
+# Trash folder (old/experimental code)
+trash/

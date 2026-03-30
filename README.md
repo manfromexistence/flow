@@ -1,3 +1,236 @@
+Now please implment this providers features in our zed code editor and implmement in the real zed code editor in the setting - ai rigth plan model chnage  and implement it correctly:Role and Architecture Context:
+Act as an Expert Principal Software Engineer specializing in Rust and the gpui UI framework. We are building Zed Coder 4, a high-performance code editor forked from the Zed code editor. The existing codebase already supports approximately 10 AI providers via Zed's LanguageModelProvider trait. Your task is to implement the most comprehensive AI provider system ever built inside a native code editor, beating every competitor on the market as of March 31, 2026 in raw provider count, model count, auth flow variety, and subscription integration depth. The target is 140 or more providers, 2600 or more models, and every authentication flow that exists.
+
+Competitor baseline you must beat:
+OpenCode supports 75 or more providers via models.dev and 1000 or more models. Kilo Code supports 500 or more models across 30 or more providers. Cline, Roo Code, and Claude Code support dozens of providers but only via plain API key auth. No competitor supports all auth flows. No competitor is built inside a native Zed-forked GPU-accelerated editor. That is your moat. You are the only one.
+
+SECTION 1 — AUTH STRATEGY SYSTEM
+
+Design a universal AuthStrategy enum in Rust. Implement every one of the following auth flows as an async authenticate() method that resolves to an AuthCredential used in reqwest HTTP headers or request signing:
+
+1.1 Simple Auth
+ApiKey — Authorization: Bearer {key} or x-api-key: {key} header. Support both header styles configurable per provider.
+BasicAuth — Authorization: Basic base64(user:pass) for legacy providers.
+
+1.2 OAuth2 Flows using the oauth2 crate version 5.0 with strong typing, openid-connect, and pkce support
+OAuth2AuthorizationCodePKCE — Standard web flow. Spawn a local HTTP callback server on a random port, open the browser to the auth URL, receive the code, exchange for tokens. Use oauth2 crate with set_pkce_challenge. Store tokens in OS keychain via the keyring crate. Used by ChatGPT OpenAI web OAuth via the openai-auth crate and Google for personal accounts accessing Gemini.
+OAuth2DeviceFlow — Poll the device authorization endpoint. Display the user_code and verification_uri in a gpui dialog. Poll in background until approved. Used by Claude Pro and Max subscription login via Anthropic device flow and GitHub Copilot.
+OAuth2ClientCredentials — Machine to machine. No user interaction. POST grant_type=client_credentials with client ID and secret. Used by SAP AI Hub, DataRobot enterprise, Oracle OCI, enterprise B2B providers.
+OAuth2Password — Resource Owner Password Credentials. Deprecated but still used by Baidu ERNIE and Wenxin.
+GithubOAuth — GitHub OAuth app flow. Exchange GitHub account login for access token. Used by GitHub Copilot and GitHub Models free tier. This is what OpenCode already supports — you must match and exceed it.
+
+1.3 AWS Auth using aws-config and aws-sigv4 crates
+AwsSigV4NamedProfile — Load credentials from ~/.aws/credentials named profile.
+AwsSigV4EnvironmentVars — Read AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_SESSION_TOKEN from environment.
+AwsSigV4InstanceProfile — Fetch credentials from EC2 IMDS endpoint http://169.254.169.254/latest/meta-data/iam/security-credentials/{role}. Auto-refresh before expiry.
+AwsSigV4EcsTaskRole — Fetch from AWS_CONTAINER_CREDENTIALS_RELATIVE_URI.
+AwsSsoIamIdentityCenter — AWS SSO login flow. Start SSO token via aws-sdk-sso, open browser to sso_start_url, poll until approved, cache SSO token.
+
+1.4 Google Cloud Auth using gcp_auth crate version 0.12.6
+GcpServiceAccountJson — Load a service account JSON key file. Use gcp_auth ServiceAccountCredentials. Produce Bearer tokens scoped to https://www.googleapis.com/auth/cloud-platform.
+GcpApplicationDefaultCredentials — Use gcp_auth ApplicationDefaultCredentialsAuthenticator. Checks env var GOOGLE_APPLICATION_CREDENTIALS, then ~/.config/gcloud/application_default_credentials.json, then GCE metadata server.
+GcpWorkloadIdentityFederation — For running on non-GCP infrastructure like GitHub Actions or AWS. Exchange external OIDC tokens for GCP access tokens. Used by Google Vertex AI.
+GeminiAdvancedSubscription — OAuth2 PKCE flow against Google accounts for users with a Gemini Advanced subscription. No competitor supports this yet. This is a first-mover advantage.
+
+1.5 Azure Auth using azure_identity from azure-sdk-for-rust
+AzureClientSecretCredential — App registration with client ID, tenant ID, and client secret. Calls https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token.
+AzureManagedIdentity — For Azure VMs and ACI and App Service. No secret needed. Fetch token from Azure IMDS.
+AzureCliCredential — Shell out to az account get-access-token for developer machines.
+AzureAIFoundry — Distinct from Azure OpenAI. New enterprise model hosting platform. Separate endpoint and token scope. No competitor natively supports this yet.
+
+1.6 Multi-Cloud Signing using reqsign crate
+ReqsignMultiCloud — Signs requests for AWS, Azure, Google, Huawei, Aliyun, Tencent, and Oracle simultaneously. Catch-all for providers that use cloud signing not covered by the explicit categories above.
+
+1.7 Provider-Specific and Custom
+HmacSha256SignedUrl — Construct a time-limited HMAC-SHA256 signed WebSocket URL using the hmac and sha2 crates. Used by iFlytek Spark.
+VolcanoEngineToken — ByteDance Volcano Engine token auth for Doubao models. Used by ByteDance Doubao and Seed models.
+BaiduOAuth2 — POST to https://aip.baidubce.com/oauth/2.0/token with grant_type=client_credentials plus API key and secret key. Returns access_token. Used by Baidu ERNIE and Wenxin.
+GitLabDuoToken — GitLab personal access token or OAuth2 for GitLab Duo. OpenCode supports this already so you must match it.
+AmazonQToken — AWS IAM Identity Center token scoped to Amazon Q. Separate from Bedrock. Used by Amazon Q Developer.
+
+1.8 Subscription Login UI via gpui Dialogs
+Build gpui modal dialogs for every OAuth flow:
+Device Flow Dialog — Shows user_code prominently, verification_uri as a clickable link, a countdown timer, and a Copy Code button. Auto-closes on successful token receipt.
+Browser Redirect Dialog — Shows Opening browser with a cancel button. Listens on local callback server. Auto-closes on successful code receipt.
+ChatGPT Subscription Login — Use openai-auth crate OAuthClient start_flow() then launch browser then receive code on local callback server then exchange_code_for_api_key() then store resulting API key in keyring.
+Claude Subscription Login — Anthropic device flow. Display code in gpui dialog. Poll in background. On success store session_token and access_token in keyring.
+Gemini Advanced Login — Google OAuth2 PKCE. Open browser. Receive callback. Store GCP token in keyring.
+GitHub Login — GitHub OAuth app. Open browser. Receive callback. Unlocks Copilot and GitHub Models simultaneously.
+
+SECTION 2 — FULL PROVIDER REGISTRY
+
+2.1 Static Hand-Written Native Providers
+Implement full native Rust HTTP clients for these providers. Do not use OpenAI-compatible wrappers for the ones listed here that have non-OpenAI native APIs:
+
+OpenAI — https://api.openai.com/v1. Auth: ApiKey plus OAuth2AuthorizationCodePKCE for ChatGPT subscription. Models: GPT-5.4, GPT-5.4 Pro, GPT-5.1-mini, o4-mini, Codex.
+Anthropic — https://api.anthropic.com/v1/messages. Auth: ApiKey plus OAuth2DeviceFlow for Claude Pro and Max. Native Messages API. Models: Claude Opus 4.6, Sonnet 4.6, Haiku 4.x.
+Google Gemini — https://generativelanguage.googleapis.com. Auth: ApiKey plus GcpApplicationDefaultCredentials plus GeminiAdvancedSubscription. Native generateContent API. Models: Gemini 3.1 Pro, Flash, Flash Lite.
+Google Vertex AI — https://{region}-aiplatform.googleapis.com. Auth: GcpServiceAccountJson plus GcpWorkloadIdentityFederation. Access Gemini and Llama and Claude on GCP.
+AWS Bedrock — https://bedrock-runtime.{region}.amazonaws.com. Auth: All 5 AWS auth variants. Converse API plus InvokeModel. Models: Claude, Llama, Nova, Titan.
+Azure OpenAI — https://{resource}.openai.azure.com. Auth: All 3 Azure variants.
+Azure AI Foundry — https://{project}.services.ai.azure.com. Auth: AzureClientSecretCredential and AzureManagedIdentity. New enterprise platform. No competitor supports this natively yet.
+Mistral AI — https://api.mistral.ai/v1. Auth: ApiKey. Models: Mistral Large 3, Devstral, Codestral 2.
+xAI Grok — https://api.x.ai/v1. Auth: ApiKey. Models: Grok-3, Grok-3-mini. OpenAI-compatible.
+DeepSeek — https://api.deepseek.com/v1. Auth: ApiKey. Models: V3.2, R2. OpenAI-compatible.
+Cohere — https://api.cohere.ai/v2. Auth: ApiKey. Native Chat and Embed and Rerank API.
+iFlytek Spark — wss://spark-api.xf-yun.com. Auth: HmacSha256SignedUrl. WebSocket streaming.
+Baidu ERNIE — https://aip.baidubce.com. Auth: BaiduOAuth2. ERNIE 4.5.
+ByteDance Doubao — https://ark.cn-beijing.volces.com. Auth: VolcanoEngineToken. Doubao-pro, Seed.
+GitLab Duo — https://gitlab.com. Auth: GitLabDuoToken. OpenCode supports this, match and exceed it.
+Amazon Q — https://codewhisperer.us-east-1.amazonaws.com. Auth: AmazonQToken. No competitor integrates this natively in a full editor.
+GitHub Models — https://models.inference.ai.azure.com. Auth: GithubOAuth. Free tier models via GitHub account. OpenCode supports GitHub login so match this.
+GitHub Copilot — https://api.githubcopilot.com. Auth: GithubOAuth. Direct Copilot integration from within Zed.
+
+2.2 Dynamic Auto-Registered OpenAI-Compatible Providers
+For every provider that is OpenAI-compatible, auto-register via a GenericOpenAiCompatibleProvider struct:
+
+pub struct GenericOpenAiCompatibleProvider {
+    pub id: LanguageModelProviderId,
+    pub display_name: String,
+    pub api_base: String,
+    pub auth: AuthStrategy,
+    pub models: Vec<ModelManifest>,
+    pub icon_svg: Option<SharedString>,
+}
+
+Pre-configure all of these with hardcoded base URLs and auth types:
+
+Fast Inference and Aggregators:
+groq at api.groq.com/openai/v1
+together_ai at api.together.xyz/v1
+fireworks_ai at api.fireworks.ai/inference/v1
+perplexity at api.perplexity.ai
+openrouter at openrouter.ai/api/v1
+nvidia_nim at integrate.api.nvidia.com/v1
+cerebras at api.cerebras.ai/v1
+deepinfra at api.deepinfra.com/v1/openai
+lepton at api.lepton.ai/api/v1
+anyscale at api.endpoints.anyscale.com/v1
+replicate at api.replicate.com/v1
+baseten at custom endpoint
+bytez at api.bytez.com
+friendliai at inference.friendli.ai/v1
+aiml at api.aimlapi.com/v1
+cometapi via LiteLLM routing for 500 or more model access
+lemonade at localhost:11434 for AMD GPU and NPU local inference
+vllm at self-hosted configurable endpoint
+litellm_proxy at user-configured endpoint for 2600 or more model access
+302ai at api.302.ai/v1
+cortecs at API key based
+cloudflare_workers_ai at api.cloudflare.com/client/v4/accounts/{id}/ai
+cloudflare_ai_gateway at unified Cloudflare gateway endpoint
+
+Specialist:
+elevenlabs — native TTS and STT REST API
+deepgram — native STT via /listen REST API
+fal_ai at fal.run
+black_forest_labs at api.bfl.ml/v1
+stability_ai at api.stability.ai/v2
+huggingface at api-inference.huggingface.co/v1
+runway — video generation REST API
+pika — video generation REST API
+
+Enterprise:
+oci_genai — Oracle via OCI API Key
+sap_ai_hub — SAP BTP OAuth2
+scaleway at api.scaleway.ai/v1
+datarobot at custom API key endpoint
+nlp_cloud at nlpcloud.io/v1
+aleph_alpha at api.aleph-alpha.com/v1 for European sovereign AI
+ai21 at api.ai21.com/studio/v1
+clarifai at api.clarifai.com/v2
+
+Chinese and Regional:
+qwen_alibaba at dashscope.aliyuncs.com
+zhipu_chatglm at open.bigmodel.cn/api/paas/v4
+moonshot_kimi at api.moonshot.cn/v1
+minimax at api.minimax.chat/v1
+yi_01ai at api.01.ai/v1
+baichuan at api.baichuan-ai.com/v1
+stepfun at api.stepfun.com/v1
+
+Local:
+ollama — auto-discover all models from GET http://localhost:11434/api/tags
+lm_studio at localhost:1234/v1
+llamafile at localhost:8080/v1
+text_generation_webui at localhost:5000/v1
+lemonade at localhost:11434 for AMD GPU and NPU
+
+SECTION 3 — LIVE DATA SOURCES THREE-WAY MERGE
+
+On startup, spawn a background gpui Task that does all of this:
+
+Step 1 — Fetch https://models.dev/api.json and deserialize with serde_json. This gives 75 or more providers with model IDs, input and output cost per token, context window size, token limits, supported modalities, and capability flags.
+Step 2 — Fetch https://openrouter.ai/api/v1/models and deserialize. This gives 300 or more models with comprehensive metadata in standardized JSON format.
+Step 3 — If LiteLLM proxy URL is configured by the user, fetch {litellm_url}/models. This gives access to 2600 or more models across 140 or more providers.
+Step 4 — Merge all three into a HashMap keyed by canonical provider ID, deduplicating by model ID using models.dev as the canonical ID format since OpenCode also uses this format.
+Step 5 — For each provider not already in the hand-written native registry in Section 2.1, auto-register a GenericOpenAiCompatibleProvider.
+Step 6 — Call cx.notify() to trigger a reactive re-render of the model picker UI.
+Step 7 — Cache the merged result to disk as a JSON file for offline startup, refreshing in background when online.
+
+SECTION 4 — TOKEN AND CREDENTIAL LIFECYCLE MANAGEMENT
+
+All credentials stored in OS keychain via the keyring crate which Zed already uses.
+Store OAuth2 access_token and refresh_token separately in keyring.
+Background gpui Task monitors token expiry and auto-refreshes 5 minutes before expiry.
+AWS credentials auto-refreshed from the full credential chain before expiry.
+GCP ADC tokens auto-refreshed using gcp_auth built-in token cache.
+On refresh failure, show a non-blocking gpui notification banner saying Re-authentication required for {provider} with a Re-login button that re-triggers the original auth flow.
+Support per-provider token isolation so tokens for different provider accounts do not conflict.
+
+SECTION 5 — MODEL PICKER UI IN GPUI
+
+Group providers by tier in the picker: Frontier then Fast Inference then Specialist then Enterprise then Local then Regional Chinese.
+Show provider logo next to provider name loaded from the lobe-icons phf compile-time map built by build.rs, with fallback to models.dev CDN icon API, and final fallback to a deterministic color avatar generated from the provider name hash.
+Show per-model metadata inline: context window, cost per 1 million tokens for input and output, supported modalities as emoji badges for text image audio video and PDF, capability badges for tool calling, structured output, reasoning, and vision.
+Show Login with subscription button for ChatGPT and Claude and Gemini Advanced and GitHub Copilot. These trigger the OAuth2 flow dialogs from Section 1.8.
+Show Add custom provider button opening a form: name, base URL, auth type selector, API key field, optional additional fields depending on auth type selected.
+Reactive: picker re-renders as background data fetch completes via cx.notify().
+Show a live sync indicator while background provider data is being fetched.
+Show model count badge per provider.
+Support fuzzy search across all provider names and model names simultaneously.
+
+SECTION 6 — UNIQUE FEATURES NO COMPETITOR HAS
+
+These are your moat features that beat every tool on the market as of March 31, 2026:
+
+First: GitHub Copilot direct integration inside a native GPU-accelerated editor. Kilo Code reviewers explicitly said no ability to use it within Zed. You fix this.
+Second: Gemini Advanced subscription OAuth login. Zero competitors support this.
+Third: Azure AI Foundry as a distinct provider from Azure OpenAI. Zero competitors support this natively.
+Fourth: Amazon Q Developer native integration inside a full code editor. Zero competitors do this natively.
+Fifth: All 14 or more auth flows in a single tool. Every competitor supports only API key auth at most with one or two extras. You support all of them.
+Sixth: GitLab Duo inside a native editor. OpenCode supports it in terminal. You bring it into a full GPU-rendered IDE.
+Seventh: iFlytek Spark via HMAC-SHA256 WebSocket. Zero competitors support this.
+Eighth: Baidu ERNIE via custom OAuth2. Zero competitors support this.
+Ninth: ByteDance Doubao via Volcano Engine signing. Zero competitors support this.
+Tenth: 2600 or more models from 140 or more providers inside a native Rust GPU editor. No one else is even close.
+
+OUTPUT REQUIREMENTS
+
+Output 1 — auth_strategy.rs
+The full AuthStrategy enum plus impl AuthStrategy with async fn authenticate returning Result AuthCredential. Cover all flows in Section 1 including the GitHub OAuth and Amazon Q flows.
+
+Output 2 — provider_registry.rs
+The dynamic loader from Section 3 plus all pre-configured GenericOpenAiCompatibleProvider entries from Section 2.2.
+
+Output 3 — subscription_login.rs
+ChatGPT OAuth via openai-auth crate. Claude Device Flow via oauth2 crate. Gemini Advanced via gcp_auth and oauth2. GitHub OAuth for Copilot and GitHub Models.
+
+Output 4 — Native provider implementations
+Full Rust HTTP clients for Anthropic Messages API, Google Gemini native generateContent, AWS Bedrock Converse with SigV4, Azure OpenAI, iFlytek Spark HMAC-SHA256 WebSocket, Baidu ERNIE OAuth2, GitLab Duo, Amazon Q, GitHub Models.
+
+Output 5 — credential_manager.rs
+Token storage, expiry monitoring, auto-refresh background task, per-provider keychain isolation.
+
+Output 6 — model_picker_view.rs
+The reactive gpui View for the model picker with provider grouping, logo display, metadata badges, subscription login buttons, custom provider form, fuzzy search, and sync indicator.
+
+Output 7 — build.rs
+Downloads and bundles the full lobe-icons static SVG set into a phf_map compiled at build time keyed by provider slug.
+
+Output 8 — Cargo.toml dependency block
+Pinned versions for all crates: oauth2 version 5.0, openai-auth, yup-oauth2, gcp_auth version 0.12.6, azure_identity, aws-config, aws-sigv4, reqsign, hmac, sha2, keyring, reqwest, serde_json, tokio, phf, phf_codegen, and all others used.
+
 Now the web preview is one of our best features so please double down on the work on the web preview. Make it professional, use professionally grade code, and in that web preview please implement these features first:
 1. Those users with broswer extension installted can auto-detect extensions from the user's actual browsers. If it's possible then implement more open-source browsers in our zed code editor web preview and make sure that when we will detect the real extensions of the user that the user has on their actual browser and face those extensions and include them in our zed code editor web preview directly.
 2. When developing locally there is a well-known problem of auth not clearing if we do more than one local auth at the same time. Please fix this problem using clear auto auth or a dev panel system so that our code editor web preview does not have this auth headers and cookies problem.
