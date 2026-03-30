@@ -1,18 +1,6 @@
-mod app;
-mod autocomplete;
-mod components;
-mod effects;
-mod font;
-mod gruvbox;
-mod input;
 mod llm;
-mod modal;
-mod perf;
-mod render; // Now a module directory with submodules
-// mod screens; // Unused - only for standalone screen demos
-mod splash;
-mod tachyonfx;
-mod theme;
+mod stt;
+mod voice;
 
 use anyhow::Result;
 use llm::LocalLlm;
@@ -26,10 +14,85 @@ async fn main() -> Result<()> {
     // Check for arguments
     if args.len() > 1 {
         match args[1].as_str() {
-            "--tui" => {
-                // TUI mode (optional, for human use)
-                let mut app = app::ChatApp::new();
-                app.run().await?;
+            "--models" | "-m" => {
+                voice::VoicePipeline::list_available_models()?;
+                return Ok(());
+            }
+            "--transcribe" => {
+                let audio_file = if args.len() > 2 {
+                    args[2].as_str()
+                } else {
+                    "audio.mp3"
+                };
+                
+                println!("Wispr Flow - Speech-to-Text Transcription");
+                println!("Audio file: {}", audio_file);
+                println!();
+                
+                if !std::path::Path::new(audio_file).exists() {
+                    eprintln!("Error: Audio file not found: {}", audio_file);
+                    std::process::exit(1);
+                }
+                
+                let start = std::time::Instant::now();
+                let transcript = stt::AudioAnalyzer::analyze_and_transcribe(audio_file)?;
+                let elapsed = start.elapsed();
+                
+                println!("\n═══════════════════════════════════════════════════════════");
+                println!("  FINAL TRANSCRIPT");
+                println!("═══════════════════════════════════════════════════════════");
+                println!("{}", transcript);
+                println!("\nProcessing time: {:.2}s", elapsed.as_secs_f64());
+                println!("═══════════════════════════════════════════════════════════");
+                
+                return Ok(());
+            }
+            "--wispr" => {
+                let audio_file = if args.len() > 2 {
+                    args[2].as_str()
+                } else {
+                    "audio.mp3"
+                };
+                
+                println!("Wispr Flow - Full Pipeline");
+                println!("Audio file: {}", audio_file);
+                println!();
+                
+                if !std::path::Path::new(audio_file).exists() {
+                    eprintln!("Error: Audio file not found: {}", audio_file);
+                    std::process::exit(1);
+                }
+                
+                // Step 1: Transcribe
+                println!("Step 1: Speech-to-Text");
+                let transcript = stt::AudioAnalyzer::analyze_and_transcribe(audio_file)?;
+                
+                // Step 2: Enhance with LLM
+                println!("\nStep 2: LLM Enhancement");
+                let llm = LocalLlm::new();
+                llm.initialize().await?;
+                
+                let enhancement_prompt = format!(
+                    "Clean up this transcription by:\n\
+                    1. Removing filler words (um, uh, like)\n\
+                    2. Adding proper punctuation\n\
+                    3. Fixing grammar\n\
+                    4. Formatting appropriately\n\n\
+                    Transcription: {}\n\n\
+                    Output only the cleaned text, nothing else.",
+                    transcript
+                );
+                
+                let (enhanced, _) = llm.generate_with_metrics(&enhancement_prompt).await?;
+                let cleaned = clean_response(&enhanced);
+                
+                println!("\n═══════════════════════════════════════════════════════════");
+                println!("  WISPR FLOW OUTPUT");
+                println!("═══════════════════════════════════════════════════════════");
+                println!("Original: {}", transcript);
+                println!("\nEnhanced: {}", cleaned);
+                println!("═══════════════════════════════════════════════════════════");
+                
                 return Ok(());
             }
             "--help" | "-h" => {
@@ -49,23 +112,37 @@ async fn main() -> Result<()> {
 }
 
 fn print_help() {
-    println!("Local GGUF Model CLI - AI Agent Testing Interface");
+    println!("Wispr Flow Clone - AI Voice Assistant");
     println!();
     println!("USAGE:");
     println!("  cargo run                              Interactive CLI (default)");
-    println!("  cargo run \"prompt\"                     Single query");
-    println!("  cargo run -- --tui                     Launch TUI (human mode)");
+    println!("  cargo run \"prompt\"                     Single LLM query");
+    println!("  cargo run -- --transcribe [file]       Transcribe audio (STT only)");
+    println!("  cargo run -- --wispr [file]            Full Wispr Flow (STT + LLM)");
+    println!("  cargo run -- --models                  List available models");
     println!("  cargo run -- --help                    Show this help");
     println!();
-    println!("EXAMPLES:");
+    println!("WISPR FLOW EXAMPLES:");
+    println!("  cargo run -- --transcribe audio.mp3   # Basic transcription");
+    println!("  cargo run -- --wispr audio.mp3        # Full enhancement pipeline");
+    println!();
+    println!("LLM EXAMPLES:");
     println!("  cargo run \"What is Rust?\"              # Single query");
     println!("  cargo run                              # Interactive mode");
-    println!("  echo \"Explain async\" | cargo run      # Pipe input");
     println!();
     println!("MODEL INFO:");
-    println!("  Path: models/llm/Qwen3.5-0.8B-Q4_K_M.gguf");
+    println!("  LLM: Qwen 3.5 0.8B Q4_K_M (~3.4GB RAM)");
+    println!("  STT: Moonshine Tiny ONNX (~27M params)");
+    println!("  TTS: Kokoro v1.0 INT8 (planned)");
     println!("  Context: 32K tokens");
-    println!("  RAM: ~3.4GB required");
+    println!();
+    println!("WISPR FLOW FEATURES:");
+    println!("  ✓ Speech-to-text transcription");
+    println!("  ✓ Automatic filler word removal");
+    println!("  ✓ Punctuation and formatting");
+    println!("  ✓ LLM-powered text enhancement");
+    println!("  ⧗ Voice commands (coming soon)");
+    println!("  ⧗ Real-time streaming (coming soon)");
 }
 
 async fn run_cli_mode(args: &[String]) -> Result<()> {

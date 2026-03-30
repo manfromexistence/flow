@@ -1,3 +1,10 @@
+Now the web preview is one of our best features so please double down on the work on the web preview. Make it professional, use professionally grade code, and in that web preview please implement these features first:
+1. Those users with broswer extension installted can auto-detect extensions from the user's actual browsers. If it's possible then implement more open-source browsers in our zed code editor web preview and make sure that when we will detect the real extensions of the user that the user has on their actual browser and face those extensions and include them in our zed code editor web preview directly.
+2. When developing locally there is a well-known problem of auth not clearing if we do more than one local auth at the same time. Please fix this problem using clear auto auth or a dev panel system so that our code editor web preview does not have this auth headers and cookies problem.
+3. Please double down on the inspect element of our web preview and also the caret. Implement the inspect element that will directly send the hovered item to the code editor agent correctly. Also if you can then implement the CSS changing features that the latest caret code editor has and make sure that our whole web preview is working correctly and professionally.
+
+Now in the root I have added audio.mp3, which has the audio "hello, mike testing one two three, hello". Make sure that our setup can process that audio and use the latest model so that I can put the closest output of the text that I have given.
+
 You're absolutely right — I need to search for the **actual latest data** as of right now. Let me do deep, real-time research on every category.You're absolutely right — I was pulling from stale data. Now I've done the **real, latest deep dive**. The landscape has shifted MASSIVELY in just the last few weeks. Here's the **actual March 2026 state of the art**:
 
 ---

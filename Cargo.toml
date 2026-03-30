@@ -1,74 +1,31 @@
 [package]
-name = "cli"
+name = "wispr-flow"
 version = "0.1.0"
 edition = "2024"
-default-run="tui"
-
-[[bin]]
-name = "tui"
-path = "src/main.rs"
-
-[[bin]]
-name = "benchmark"
-path = "src/bin/benchmark.rs"
 
 [dependencies]
-# Terminal UI
-ratatui = "0.30"
-crossterm = "0.28"
-
-# Async Runtime (minimal features for smaller binary)
+# Async Runtime
 tokio = { version = "1.42", features = ["rt-multi-thread", "macros", "sync"] }
 
 # LLM
 llama-cpp-2 = "0.1"
-sysinfo = "0.32"
 
 # Error Handling
 anyhow = "1.0"
 
-# Time
-chrono = "0.4"
+# System Info
+sysinfo = "0.32"
 
-# Font compression
-zstd = "0.13"
-once_cell = "1.20"
-
-# Animations
-tachyonfx = { path = "./tachyonfx" }
-
-# Color/palette for effects
-palette = "0.7"
-rand = "0.8"
-
-# Clipboard (COMMENTED OUT - not essential, reduces binary size)
-# cli-clipboard = "0.4"
-
-# FIGlet rendering
-figlet-rs = "0.1"
+# Audio Processing
+hound = "3.5.1"
+rodio = "0.22.2"
+cpal = "0.17.3"
 
 # Token counting
 tiktoken-rs = "0.9"
+
+# CLI detection
 atty = "0.2.14"
-
-# Yazi file manager - all required dependencies (COMMENTED OUT - integration on hold)
-# yazi-core = { path = "./yazi/yazi-core" }
-# yazi-config = { path = "./yazi/yazi-config" }
-# yazi-shared = { path = "./yazi/yazi-shared" }
-# yazi-fs = { path = "./yazi/yazi-fs" }
-# yazi-plugin = { path = "./yazi/yazi-plugin" }
-# yazi-binding = { path = "./yazi/yazi-binding" }
-# yazi-adapter = { path = "./yazi/yazi-adapter" }
-# yazi-boot = { path = "./yazi/yazi-boot" }
-# yazi-dds = { path = "./yazi/yazi-dds" }
-# yazi-proxy = { path = "./yazi/yazi-proxy" }
-# yazi-term = { path = "./yazi/yazi-term" }
-# yazi-tty = { path = "./yazi/yazi-tty" }
-# yazi-watcher = { path = "./yazi/yazi-watcher" }
-# mlua = { version = "0.11.6", features = ["vendored"] }
-
-[build-dependencies]
-zstd = "0.13"
 
 [profile.release]
 opt-level = 3
