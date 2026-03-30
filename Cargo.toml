@@ -1,31 +1,49 @@
 [package]
-name = "wispr-flow"
+name = "flow"
 version = "0.1.0"
 edition = "2024"
+authors = ["Flow Contributors"]
+description = "Open-source voice assistant with STT, LLM, and TTS - A WisprFlow alternative"
+license = "Apache-2.0"
+repository = "https://github.com/yourusername/flow"
+keywords = ["voice", "assistant", "stt", "tts", "llm"]
+categories = ["multimedia", "command-line-utilities"]
 
 [dependencies]
-# Async Runtime
-tokio = { version = "1.42", features = ["rt-multi-thread", "macros", "sync"] }
+# Async Runtime (Latest: 1.50.0 as of March 2026)
+tokio = { version = "1.50", features = ["rt-multi-thread", "macros", "sync", "fs", "io-util"] }
 
-# LLM
+# LLM Inference
 llama-cpp-2 = "0.1"
+
+# ONNX Runtime for STT/TTS (Latest: 2.0.0-rc.12)
+ort = { version = "=2.0.0-rc.12", features = ["download-binaries"] }
+
+# Tensor Operations
+ndarray = "0.17"
+
+# Audio Processing & FFT
+hound = "3.5"
+rodio = "0.22"
+cpal = "0.17"
+rustfft = "6.2"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 
 # Error Handling
 anyhow = "1.0"
+thiserror = "2.0"
 
 # System Info
 sysinfo = "0.32"
 
-# Audio Processing
-hound = "3.5.1"
-rodio = "0.22.2"
-cpal = "0.17.3"
-
-# Token counting
+# Token Counting
 tiktoken-rs = "0.9"
 
-# CLI detection
-atty = "0.2.14"
+# CLI Detection
+atty = "0.2"
 
 [profile.release]
 opt-level = 3
