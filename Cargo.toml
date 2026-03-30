@@ -49,6 +49,7 @@ figlet-rs = "0.1"
 
 # Token counting
 tiktoken-rs = "0.9"
+atty = "0.2.14"
 
 # Yazi file manager - all required dependencies (COMMENTED OUT - integration on hold)
 # yazi-core = { path = "./yazi/yazi-core" }
