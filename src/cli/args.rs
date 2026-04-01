@@ -12,6 +12,8 @@ pub enum Command {
     Wispr { file: String },
     /// Speak text using TTS
     Speak { text: String },
+    /// Live recording mode (microphone → STT → enhance → TTS)
+    Live,
     /// Interactive mode
     Interactive,
 }
@@ -39,6 +41,9 @@ impl Args {
             "--speak" | "-s" => {
                 let text = args[2..].join(" ");
                 Command::Speak { text }
+            }
+            "--live" | "-l" => {
+                Command::Live
             }
             _ => Command::Interactive,
         };

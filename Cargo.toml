@@ -44,6 +44,8 @@ tiktoken-rs = "0.9"
 
 # CLI Detection
 atty = "0.2"
+espeak-rs = "0.1.9"
+tokenizers = "0.22.2"
 
 [lib]
 name = "flow"

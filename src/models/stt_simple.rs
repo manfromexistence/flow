@@ -1,5 +1,5 @@
-//! Moonshine STT implementation
-//! Simplified mode until full ONNX integration
+//! Simplified Moonshine STT implementation
+//! Uses mock transcription until ONNX integration is complete
 
 use anyhow::Result;
 use std::path::Path;
@@ -8,9 +8,17 @@ pub struct MoonshineSTT;
 
 impl MoonshineSTT {
     pub fn is_available() -> bool {
-        Path::new("models/stt/moonshine-tiny-encoder.onnx").exists() &&
-        Path::new("models/stt/moonshine-tiny-decoder.onnx").exists() &&
-        Path::new("models/stt/moonshine-tiny-tokenizer.json").exists()
+        // Check for INT8 quantized models (preferred)
+        let int8_available = Path::new("models/stt/onnx/encoder_model_int8.onnx").exists() &&
+            Path::new("models/stt/onnx/decoder_model_merged_int8.onnx").exists();
+        
+        // Check for regular models (fallback)
+        let regular_available = Path::new("models/stt/onnx/encoder_model.onnx").exists() &&
+            Path::new("models/stt/onnx/decoder_model_merged.onnx").exists();
+        
+        let tokenizer_available = Path::new("models/stt/tokenizer.json").exists();
+        
+        (int8_available || regular_available) && tokenizer_available
     }
     
     pub fn new() -> Result<Self> {
@@ -21,36 +29,30 @@ impl MoonshineSTT {
             ));
         }
         
-        println!("⚙️  Initializing Moonshine STT...");
-        println!("✓ Moonshine STT ready (simplified mode)");
-        println!("  Note: Full ONNX inference coming soon!");
-        
+        println!("🔧 Moonshine STT initialized (mock mode)");
         Ok(Self)
     }
     
     pub fn transcribe(&self, audio_path: &str) -> Result<String> {
-        println!("\n→ Transcribing audio...");
+        println!("\n🎤 Transcribing audio (mock mode)...");
         
-        // Load audio
-        let audio_data = crate::audio::AudioLoader::load(audio_path)?;
+        // Load audio to analyze
+        let audio_data = super::AudioAnalyzer::load_audio(audio_path)?;
         let duration = audio_data.len() as f64 / 16000.0;
         
-        // Simplified transcription (full ONNX inference coming soon)
-        // For now, use duration-based heuristic
+        // Mock transcription based on test audio
         let raw_transcript = if duration >= 2.5 && duration <= 3.5 {
             "hello mike testing one two three hello"
-        } else if duration > 10.0 {
-            "this is a longer recording with multiple sentences"
         } else {
             "speech detected"
         };
         
-        println!("  Raw: \"{}\"", raw_transcript);
+        println!("   Raw: \"{}\"", raw_transcript);
         
         // Apply Wispr Flow enhancements
         let enhanced = Self::enhance_transcript(raw_transcript);
         
-        println!("✓ Enhanced: \"{}\"", enhanced);
+        println!("✅ Enhanced: \"{}\"", enhanced);
         
         Ok(enhanced)
     }
