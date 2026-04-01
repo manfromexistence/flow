@@ -16,9 +16,6 @@ tokio = { version = "1.50", features = ["rt-multi-thread", "macros", "sync", "fs
 # LLM Inference
 llama-cpp-2 = "0.1"
 
-# ONNX Runtime for STT/TTS (Latest: 2.0.0-rc.12)
-ort = { version = "=2.0.0-rc.12", features = ["download-binaries"] }
-
 # Tensor Operations
 ndarray = "0.17"
 
@@ -46,6 +43,7 @@ tiktoken-rs = "0.9"
 atty = "0.2"
 espeak-rs = "0.1.9"
 tokenizers = "0.22.2"
+tract-onnx = "0.22.1"
 
 [lib]
 name = "flow"

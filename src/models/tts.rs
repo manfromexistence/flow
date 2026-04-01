@@ -1,9 +1,13 @@
-use anyhow::Result;
+use anyhow::{Result, Context};
 use std::path::Path;
+use std::fs::File;
+use std::io::Read;
 
-/// Text-to-Speech engine using Kokoro v1.0 (82M parameters)
-/// Currently using simplified audio generation until full ONNX implementation
-pub struct KokoroTTS;
+/// Real Kokoro TTS using ONNX Runtime
+pub struct KokoroTTS {
+    session: ort::Session,
+    voices: Vec<f32>,
+}
 
 impl KokoroTTS {
     pub fn is_available() -> bool {
@@ -21,52 +25,128 @@ impl KokoroTTS {
         }
         
         println!("⚙️  Initializing Kokoro TTS...");
-        println!("✓ Kokoro TTS ready (simplified mode)");
         
-        Ok(Self)
+        // Load ONNX model
+        let session = ort::Session::builder()?
+            .commit_from_file("models/tts/kokoro-v1.0.int8.onnx")
+            .context("Failed to load Kokoro ONNX model")?;
+        
+        // Load voice embeddings
+        let mut file = File::open("models/tts/voices-v1.0.bin")?;
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer)?;
+        
+        // Convert bytes to f32 array
+        let voices: Vec<f32> = buffer
+            .chunks_exact(4)
+            .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+            .collect();
+        
+        println!("✓ Kokoro TTS ready");
+        println!("  Loaded {} voice embeddings", voices.len() / 256);
+        
+        Ok(Self { session, voices })
+    }
+    
+    /// Convert text to phonemes using espeak-ng
+    fn text_to_phonemes(&self, text: &str) -> Result<String> {
+        use espeak_rs::{Speaker, initialize};
+        
+        // Initialize espeak
+        initialize(None).context("Failed to initialize espeak")?;
+        
+        let speaker = Speaker::new().context("Failed to create speaker")?;
+        
+        // Get IPA phonemes
+        let phonemes = speaker.text_to_phonemes(text, true)
+            .context("Failed to convert text to phonemes")?;
+        
+        Ok(phonemes)
+    }
+    
+    /// Convert phonemes to token IDs (simplified mapping)
+    fn phonemes_to_tokens(&self, phonemes: &str) -> Vec<i64> {
+        // This is a simplified tokenization
+        // Real implementation would use the proper Kokoro tokenizer
+        let mut tokens = vec![0i64]; // Start token
+        
+        for ch in phonemes.chars() {
+            // Map characters to token IDs (simplified)
+            let token = match ch {
+                'a'..='z' => (ch as i64 - 'a' as i64) + 10,
+                'A'..='Z' => (ch as i64 - 'A' as i64) + 36,
+                ' ' => 16,
+                '.' => 4,
+                ',' => 5,
+                '!' => 6,
+                '?' => 7,
+                _ => 16, // Space for unknown
+            };
+            tokens.push(token);
+        }
+        
+        tokens.push(0); // End token
+        tokens
     }
     
     /// Synthesize speech from text
     pub fn synthesize(&self, text: &str) -> Result<Vec<f32>> {
-        println!("\n→ Synthesizing speech...");
+        println!("\n→ Synthesizing speech with Kokoro...");
         println!("  Text: \"{}\"", text);
         
-        // Generate pleasant notification sound (multi-tone chime)
-        let sample_rate = 24000;
-        let duration = 0.5; // Short pleasant sound
-        let num_samples = (sample_rate as f64 * duration) as usize;
+        // Convert text to phonemes
+        let phonemes = self.text_to_phonemes(text)?;
+        println!("  Phonemes: {}", phonemes);
         
-        let mut audio = Vec::with_capacity(num_samples);
+        // Convert phonemes to tokens
+        let tokens = self.phonemes_to_tokens(&phonemes);
+        let token_count = tokens.len();
+        println!("  Tokens: {} tokens", token_count);
         
-        // Create a pleasant chime sound (C major chord: C-E-G)
-        let frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
-        
-        for i in 0..num_samples {
-            let t = i as f32 / sample_rate as f32;
-            
-            // Envelope (fade in and out)
-            let envelope = if t < 0.05 {
-                t / 0.05
-            } else if t > duration as f32 - 0.1 {
-                (duration as f32 - t) / 0.1
-            } else {
-                1.0
-            };
-            
-            // Mix three frequencies for a pleasant chord
-            let mut sample = 0.0;
-            for (idx, &freq) in frequencies.iter().enumerate() {
-                let amplitude = 0.15 / frequencies.len() as f32;
-                let phase_offset = idx as f32 * 0.1; // Slight delay for richness
-                sample += (2.0 * std::f32::consts::PI * freq * (t + phase_offset)).sin() * amplitude;
-            }
-            
-            audio.push(sample * envelope);
+        // Ensure tokens fit in context (max 512)
+        if token_count > 510 {
+            return Err(anyhow::anyhow!("Text too long: {} tokens (max 510)", token_count));
         }
+        
+        // Get voice embedding (use default voice af)
+        // Voice embeddings are stored as [num_lengths, 1, 256]
+        // We select based on token length
+        let voice_idx = token_count.min(self.voices.len() / 256 - 1);
+        let voice_start = voice_idx * 256;
+        let voice_embedding: Vec<f32> = self.voices[voice_start..voice_start + 256].to_vec();
+        
+        // Prepare inputs for ONNX
+        use ndarray::{Array2, Array3};
+        
+        let input_ids = Array2::from_shape_vec(
+            (1, token_count),
+            tokens
+        )?;
+        
+        let style = Array3::from_shape_vec(
+            (1, 1, 256),
+            voice_embedding
+        )?;
+        
+        let speed = Array2::from_shape_vec(
+            (1, 1),
+            vec![1.0f32]
+        )?;
+        
+        // Run ONNX inference
+        println!("  Running ONNX inference...");
+        let outputs = self.session.run(ort::inputs![
+            "input_ids" => input_ids.view(),
+            "style" => style.view(),
+            "speed" => speed.view(),
+        ]?)?;
+        
+        // Extract audio
+        let audio_tensor = outputs["audio"].try_extract_tensor::<f32>()?;
+        let audio: Vec<f32> = audio_tensor.view().iter().copied().collect();
         
         println!("✓ Generated {} samples ({:.2}s at 24kHz)", 
             audio.len(), audio.len() as f64 / 24000.0);
-        println!("  Note: Full Kokoro ONNX TTS coming soon!");
         
         Ok(audio)
     }

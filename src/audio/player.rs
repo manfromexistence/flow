@@ -66,8 +66,11 @@ impl AudioPlayer {
             .unwrap_or(1.0);
         
         // Get OS-Sink handle to default audio device
-        let handle = rodio::DeviceSinkBuilder::open_default_sink()
+        let mut handle = rodio::DeviceSinkBuilder::open_default_sink()
             .map_err(|e| anyhow::anyhow!("Failed to open audio device: {:?}", e))?;
+        
+        // Disable drop logging to prevent warning message
+        handle.log_on_drop(false);
         
         // Play the audio
         handle.mixer().add(source);
