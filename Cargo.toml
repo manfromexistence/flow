@@ -43,7 +43,6 @@ tiktoken-rs = "0.9"
 atty = "0.2"
 espeak-rs = "0.1.9"
 tokenizers = "0.22.2"
-tract-onnx = "0.22.1"
 
 [lib]
 name = "flow"
