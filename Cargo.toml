@@ -43,6 +43,7 @@ tiktoken-rs = "0.9"
 atty = "0.2"
 espeak-rs = "0.1.9"
 tokenizers = "0.22.2"
+ort = { version = "2.0.0-rc.12", features = ["download-binaries", "copy-dylibs"] }
 
 [lib]
 name = "flow"

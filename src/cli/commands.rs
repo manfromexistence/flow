@@ -35,7 +35,7 @@ pub async fn execute(command: Command) -> Result<()> {
         
         Command::Speak { text } => {
             println!("→ Speaking: {}", text);
-            let tts = KokoroTTS::new()?;
+            let mut tts = KokoroTTS::new()?;
             tts.speak(&text)?;
         }
         
@@ -49,7 +49,7 @@ pub async fn execute(command: Command) -> Result<()> {
             // Initialize models
             println!("⚙️  Initializing models...");
             let stt = MoonshineSTT::new()?;
-            let tts = KokoroTTS::new()?;
+            let mut tts = KokoroTTS::new()?;
             println!("✓ Models ready!");
             println!();
             
