@@ -1,7 +1,55 @@
-# Help Needed - Kokoro TTS Pure Rust Implementation
+# Help Needed - Kokoro TTS Tokenization Issue
 
 **Date:** 2026-04-02  
-**Status:** Pure Rust implementation compiles but ONNX inference hangs
+**Status:** ONNX inference works but produces SILENT audio (all zeros)
+
+---
+
+## TL;DR - THE PROBLEM
+
+**Audio output is completely silent because tokenization is wrong.**
+
+- ONNX model works ✓
+- Inference completes ✓  
+- Audio generated ✓
+- **But audio is all zeros (silent) ✗**
+
+**THE FIX:** Need proper phoneme tokenization using espeak-ng or a working Kokoro tokenizer.
+
+Current code uses arbitrary character-to-number mapping which produces invalid tokens that the model can't understand.
+
+---
+
+## CRITICAL FINDING
+
+**The audio output is completely silent (all zeros)!**
+
+```
+Sample rate: 24000
+Samples: 202800
+Duration: 8.45s
+Min: 0.000000, Max: 0.000000
+Mean: 0.000000, Std: 0.000000
+Unique values: 1
+```
+
+This means:
+- ✓ ONNX model loads correctly
+- ✓ Inference runs successfully  
+- ✓ Audio is generated (202800 samples)
+- ✗ **Audio is all zeros = TOKENIZATION IS WRONG**
+
+---
+
+## Root Cause
+
+The current tokenization is completely incorrect:
+```rust
+// WRONG - arbitrary character mapping
+'a' => 10, 'e' => 11, 'i' => 12, etc.
+```
+
+Kokoro expects **proper phoneme tokens** from a real tokenizer, not random character mappings.
 
 ---
 
@@ -11,16 +59,15 @@
 - Pure Rust implementation using `ort` crate (no Python!)
 - Code compiles successfully
 - Model loads without errors
-- Tokenization runs (basic fallback without espeak)
+- ONNX inference completes successfully
+- Audio is generated (correct length, correct sample rate)
 - Voice embeddings load correctly (27553 embeddings)
 
-### ✗ What's NOT Working
-- **ONNX inference hangs** - `session.run()` never returns
-- Likely causes:
-  1. Input names are wrong ("tokens", "style", "speed")
-  2. Input shapes are incorrect
-  3. int8 quantized model has compatibility issues with ort
-  4. Tokenization produces invalid token IDs
+### ✗ What's NOT Working  
+- **AUDIO IS ALL ZEROS (SILENT)** - tokenization produces invalid tokens
+- Model generates output but it's meaningless
+- The simple character-to-token mapping doesn't match what Kokoro expects
+- Need REAL phoneme tokenization (espeak-ng or proper IPA mapping)
 
 ---
 
@@ -83,38 +130,59 @@ let session = Session::builder()?
 
 ## Recommended Solutions
 
-### Solution 1: Use Working Rust Crate (FASTEST)
-Install one of the existing Kokoro Rust crates:
+### Solution 1: Install espeak-ng and Use Proper Tokenization (REQUIRED)
 
-**Option A: kokoroxide**
-```toml
+**The ONLY way to fix this is proper phoneme tokenization.**
+
+1. **Install espeak-ng on Windows:**
+   - Download from: https://github.com/espeak-ng/espeak-ng/releases
+   - Install to `C:\Program Files\eSpeak NG\`
+   - Add to PATH or set `ESPEAK_DATA_PATH` environment variable
+
+2. **Use espeak-rs in Rust:**
+```rust
+// In Cargo.toml
 [dependencies]
-kokoroxide = "0.1"  # Check crates.io for latest
+espeak-rs = "0.1"
+
+// In code
+use espeak_rs::Speaker;
+let speaker = Speaker::new()?;
+let phonemes = speaker.text_to_phonemes("Hello", true)?;
+// phonemes = "həloʊ" (IPA format)
 ```
 
-**Option B: Search crates.io**
+3. **Map IPA phonemes to Kokoro token IDs:**
+   - Need the actual Kokoro vocabulary/tokenizer
+   - Check HuggingFace model card for tokenizer.json
+   - Or use ttstokenizer Python package as reference
+
+### Solution 2: Use Existing Rust Kokoro Crate (FASTEST)
+
+These crates already have proper tokenization:
+
 ```bash
 cargo search kokoro
+# Look for: kokoroxide, kokoros, or similar
 ```
 
-These crates already solve tokenization and ONNX inference.
-
-### Solution 2: Fix Current Implementation
-1. Run Python debug script to get correct input/output names
-2. Update Rust code with correct names
-3. Try non-quantized model if int8 has issues
-4. Implement proper tokenization with espeak-rs
-
-### Solution 3: Use tract-onnx with FP32 Model
-```bash
-# Download non-quantized model
-# models/tts/model.onnx (fp32)
-
-cargo remove ort
-cargo add tract-onnx
+Example with kokoroxide:
+```rust
+use kokoroxide::{KokoroTTS, TTSConfig};
+let tts = KokoroTTS::new("models/tts/kokoro-v1.0.int8.onnx")?;
+let audio = tts.speak("Hello")?;
 ```
 
-tract-onnx works with standard operators, just not int8 quantization.
+### Solution 3: Copy Working Python Tokenization
+
+The Python version that works uses:
+```python
+from ttstokenizer import IPATokenizer
+tokenizer = IPATokenizer()
+tokens = tokenizer("Hello")
+```
+
+Find the equivalent in Rust or call Python tokenizer from Rust as a temporary solution.
 
 ---
 
@@ -217,3 +285,58 @@ Run: `python debug_model.py`
 3. **Try non-quantized model** if int8 has issues
 4. **Or use existing Rust crate** (kokoroxide, etc.) - fastest solution
 5. **Test**: `cargo run --release -- --speak "Hello"`
+
+
+---
+
+## UPDATE: Attempt 2 - Added voice-g2p (STILL SILENT)
+
+**Date:** 2026-04-02 (later)  
+**Status:** Phonemization works but audio STILL silent
+
+### What Changed
+- Added `voice-g2p = "0.2.2"` crate for proper G2P conversion
+- Now using `english_to_phonemes()` which generates correct IPA phonemes
+- Phonemes generated successfully: `həlˈO` for "Hello" ✓
+- Created comprehensive IPA-to-token mapping with 50+ phonemes
+- Handles multi-character phonemes (diphthongs) correctly
+
+### Test Output
+```
+→ Speaking: Hello
+⚙️  Initializing Kokoro TTS...
+✓ Kokoro TTS ready
+  Loaded 27553 voice embeddings
+→ Synthesizing speech with Kokoro ONNX...
+  Text: "Hello"
+  Converting text to phonemes...
+  Phonemes generated: həlˈO
+  Phonemes: həlˈO
+  Tokens: 7 tokens
+  Running ONNX inference...
+✓ Generated 202800 samples (8.45s at 24kHz)
+→ Saved audio to: debug_output.wav
+```
+
+### Audio Analysis
+```
+Min: 0.000000, Max: 0.000000, Mean: 0.000000, Std: 0.000000, Unique: 1
+```
+
+**STILL ALL ZEROS!**
+
+### Conclusion
+- Phonemization is CORRECT ✓
+- Token mapping is WRONG ✗
+
+The `voice-g2p` crate generates proper IPA phonemes, but the token IDs I'm assigning to each phoneme don't match what the Kokoro model expects.
+
+### The Real Problem
+I'm guessing token IDs (h→44, ə→12, l→48, etc.) but these are arbitrary. The Kokoro model was trained with specific token IDs for each phoneme, and I don't have the official vocabulary mapping.
+
+### What's Needed
+1. **Official Kokoro vocabulary file** - Find `vocab.json` or `tokenizer.json` from HuggingFace
+2. **Or ttstokenizer source code** - Extract the exact phoneme→token mapping
+3. **Or working Rust implementation** - Copy tokenization from `kokoroxide` or similar
+
+Without the correct token mapping, the model will always output silence no matter how good the phonemization is.

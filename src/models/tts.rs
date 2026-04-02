@@ -5,6 +5,7 @@ use std::io::Read;
 use ort::session::Session;
 use ort::value::Value;
 use ndarray::{Array1, Array2};
+use voice_g2p::english_to_phonemes;
 
 /// REAL Kokoro TTS using ONNX Runtime (ort crate)
 pub struct KokoroTTS {
@@ -55,66 +56,105 @@ impl KokoroTTS {
     }
     
     fn text_to_phonemes(&self, text: &str) -> Result<String> {
-        // Try to use espeak-rs for proper phonemization
-        #[cfg(feature = "espeak")]
-        {
-            use espeak_rs::Speaker;
-            let speaker = Speaker::new().map_err(|e| anyhow::anyhow!("espeak init failed: {:?}", e))?;
-            let phonemes = speaker.text_to_phonemes(text, true)
-                .map_err(|e| anyhow::anyhow!("phoneme conversion failed: {:?}", e))?;
-            return Ok(phonemes);
-        }
-        
-        // Fallback: Simple text normalization (not ideal but works for basic cases)
-        #[cfg(not(feature = "espeak"))]
-        {
-            // Basic normalization - expand common abbreviations
-            let normalized = text
-                .to_lowercase()
-                .replace("mr.", "mister")
-                .replace("mrs.", "misses")
-                .replace("dr.", "doctor")
-                .replace("'", " ");
-            Ok(normalized)
-        }
+        // Use voice-g2p for proper Kokoro-compatible phonemization
+        println!("  Converting text to phonemes...");
+        let phonemes = english_to_phonemes(text)
+            .map_err(|e| anyhow::anyhow!("G2P conversion failed: {:?}", e))?;
+        println!("  Phonemes generated: {}", &phonemes[..phonemes.len().min(100)]);
+        Ok(phonemes)
     }
     
     fn phonemes_to_tokens(&self, phonemes: &str) -> Vec<i64> {
-        // Kokoro token mapping (simplified - proper version would use full IPA mapping)
+        // Kokoro phoneme-to-token mapping (Misaki notation)
+        // Based on the Kokoro model's expected input format
         let mut tokens = vec![0i64]; // BOS token
         
-        for ch in phonemes.chars() {
-            let token = match ch {
-                // Vowels
-                'a' | 'æ' => 10,
-                'e' | 'ɛ' => 11,
-                'i' | 'ɪ' => 12,
-                'o' | 'ɔ' => 13,
-                'u' | 'ʊ' => 14,
-                
-                // Consonants
-                'b' => 20, 'p' => 21,
-                'd' => 22, 't' => 23,
-                'g' => 24, 'k' => 25,
-                'f' => 26, 'v' => 27,
-                's' => 28, 'z' => 29,
-                'ʃ' => 30, 'ʒ' => 31,
-                'h' => 32,
-                'm' => 33, 'n' => 34, 'ŋ' => 35,
-                'l' => 36, 'r' => 37,
-                'w' => 38, 'j' => 39,
-                
-                // Special
-                ' ' => 1,
-                '.' => 2,
-                ',' => 3,
-                '!' => 4,
-                '?' => 5,
-                
-                // Default: map to space
-                _ => 1,
+        let mut i = 0;
+        let chars: Vec<char> = phonemes.chars().collect();
+        
+        while i < chars.len() {
+            // Try to match multi-character phonemes first (diphthongs)
+            let remaining: String = chars[i..].iter().collect();
+            
+            let (token, advance) = if remaining.starts_with("aɪ") {
+                (21, 2) // /aɪ/ as in "my"
+            } else if remaining.starts_with("aʊ") {
+                (22, 2) // /aʊ/ as in "now"
+            } else if remaining.starts_with("eɪ") {
+                (23, 2) // /eɪ/ as in "day"
+            } else if remaining.starts_with("oʊ") {
+                (24, 2) // /oʊ/ as in "go"
+            } else if remaining.starts_with("ɔɪ") {
+                (25, 2) // /ɔɪ/ as in "boy"
+            } else {
+                // Single character phonemes
+                let ch = chars[i];
+                let token = match ch {
+                    // Vowels (IPA/Misaki notation)
+                    'a' => 7,   // /a/ as in "father"
+                    'ɑ' => 8,   // /ɑ/ as in "lot"
+                    'æ' => 9,   // /æ/ as in "cat"
+                    'e' => 10,  // /e/ as in "day"
+                    'ɛ' => 11,  // /ɛ/ as in "bed"
+                    'ə' => 12,  // /ə/ schwa as in "about"
+                    'ᵊ' => 12,  // alternate schwa
+                    'i' => 13,  // /i/ as in "see"
+                    'ɪ' => 14,  // /ɪ/ as in "sit"
+                    'I' => 14,  // alternate /ɪ/
+                    'o' => 15,  // /o/ as in "go"
+                    'ɔ' => 16,  // /ɔ/ as in "thought"
+                    'O' => 16,  // alternate /ɔ/
+                    'u' => 17,  // /u/ as in "food"
+                    'ʊ' => 18,  // /ʊ/ as in "foot"
+                    'ʌ' => 19,  // /ʌ/ as in "cup"
+                    'ɜ' => 20,  // /ɜ/ as in "bird"
+                    
+                    // Consonants
+                    'b' => 30,  // /b/ as in "bat"
+                    'p' => 31,  // /p/ as in "pat"
+                    'd' => 32,  // /d/ as in "dog"
+                    't' => 33,  // /t/ as in "top"
+                    'g' => 34,  // /g/ as in "go"
+                    'k' => 35,  // /k/ as in "cat"
+                    'f' => 36,  // /f/ as in "fat"
+                    'v' => 37,  // /v/ as in "vat"
+                    's' => 38,  // /s/ as in "sat"
+                    'z' => 39,  // /z/ as in "zoo"
+                    'ʃ' => 40,  // /ʃ/ as in "she"
+                    'ʒ' => 41,  // /ʒ/ as in "measure"
+                    'θ' => 42,  // /θ/ as in "think"
+                    'ð' => 43,  // /ð/ as in "this"
+                    'h' => 44,  // /h/ as in "hat"
+                    'm' => 45,  // /m/ as in "mat"
+                    'n' => 46,  // /n/ as in "nat"
+                    'ŋ' => 47,  // /ŋ/ as in "sing"
+                    'l' => 48,  // /l/ as in "lat"
+                    'r' => 49,  // /r/ as in "rat"
+                    'ɹ' => 49,  // alternate /r/
+                    'w' => 50,  // /w/ as in "wat"
+                    'j' => 51,  // /j/ as in "yes"
+                    'ʤ' => 52,  // /ʤ/ as in "judge"
+                    'ʧ' => 53,  // /ʧ/ as in "church"
+                    
+                    // Stress markers
+                    'ˈ' => 2,   // primary stress
+                    'ˌ' => 3,   // secondary stress
+                    
+                    // Punctuation and special
+                    ' ' => 1,   // word boundary
+                    '.' => 4,   // period
+                    ',' => 5,   // comma
+                    '!' => 6,   // exclamation
+                    '?' => 6,   // question
+                    
+                    // Default: treat as word boundary
+                    _ => 1,
+                };
+                (token, 1)
             };
+            
             tokens.push(token);
+            i += advance;
         }
         
         tokens.push(0); // EOS token
@@ -133,6 +173,7 @@ impl KokoroTTS {
         let tokens = self.phonemes_to_tokens(&phonemes);
         let token_count = tokens.len();
         println!("  Tokens: {} tokens", token_count);
+        println!("  Token IDs: {:?}", &tokens[..tokens.len().min(20)]);
         
         if token_count > 510 {
             return Err(anyhow::anyhow!("Text too long: {} tokens (max 510)", token_count));
@@ -175,6 +216,11 @@ impl KokoroTTS {
     
     pub fn speak(&mut self, text: &str) -> Result<()> {
         let audio = self.synthesize(text)?;
+        
+        // Save to file for debugging
+        self.save_wav(&audio, "debug_output.wav")?;
+        println!("  Saved to debug_output.wav for inspection");
+        
         crate::audio::AudioPlayer::play(&audio, 24000)?;
         Ok(())
     }
