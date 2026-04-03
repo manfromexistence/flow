@@ -34,9 +34,9 @@ pub async fn execute(command: Command) -> Result<()> {
         }
         
         Command::Speak { text } => {
-            println!("→ Speaking: {}", text);
             let mut tts = KokoroTTS::new_async().await?;
             tts.speak(&text)?;
+            println!("[TTS] Saved to output.wav");
         }
         
         Command::Live => {

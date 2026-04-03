@@ -1,0 +1,1 @@
+Now let's move to the next work about STT using Moonshine version 2 model. As I told you we need a professional real implementation, no placeholder or mock functionality. Now move on to this STT feature and use the actual latest Moonshine version 2 STT model and implement it in our workflow correctly.

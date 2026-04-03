@@ -8,9 +8,8 @@ pub struct AudioPlayer;
 impl AudioPlayer {
     /// Play audio samples (24kHz mono f32)
     pub fn play(samples: &[f32], sample_rate: u32) -> Result<()> {
-        println!("\n→ Playing audio...");
-        println!("  Samples: {}", samples.len());
-        println!("  Duration: {:.2}s", samples.len() as f64 / sample_rate as f64);
+        let duration = samples.len() as f64 / sample_rate as f64;
+        println!("[AUDIO] Playing {:.2}s...", duration);
         
         // Save to temporary WAV file and play
         let temp_file = "temp_tts_output.wav";
@@ -19,8 +18,6 @@ impl AudioPlayer {
         
         // Clean up
         std::fs::remove_file(temp_file).ok();
-        
-        println!("✓ Playback complete");
         
         Ok(())
     }

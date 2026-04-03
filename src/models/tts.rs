@@ -23,7 +23,7 @@ impl KokoroTTS {
     }
     
     pub async fn new_async() -> Result<Self> {
-        println!("⚙️  Initializing Kokoro TTS...");
+        println!("[TTS] Initializing Kokoro TTS engine...");
         
         // Load ONNX model
         let session = Session::builder()?
@@ -42,12 +42,8 @@ impl KokoroTTS {
             }
         }
         
-        println!("  Loaded {} vocabulary tokens", vocab.len());
-        
         // Load voice embeddings from NPZ file
         let voices = Self::load_voices("models/tts/voices-v1.0.bin")?;
-        
-        println!("  Loaded {} voices", voices.len());
         
         // Use af_sky as default voice
         let default_voice = "af_sky".to_string();
@@ -55,7 +51,7 @@ impl KokoroTTS {
             return Err(anyhow::anyhow!("Default voice 'af_sky' not found in voices file"));
         }
         
-        println!("✓ Kokoro TTS ready");
+        println!("[TTS] Ready ({} voices available)", voices.len());
         
         Ok(Self { session, vocab, voices, default_voice })
     }
@@ -95,14 +91,9 @@ impl KokoroTTS {
     }
     
     pub fn synthesize(&mut self, text: &str) -> Result<Vec<f32>> {
-        println!("\n→ Synthesizing speech with Kokoro...");
-        println!("  Text: \"{}\"", text);
-        
         // Convert text to phonemes using voice-g2p
         let phonemes = voice_g2p::english_to_phonemes(text)
             .map_err(|e| anyhow::anyhow!("Phonemization failed: {:?}", e))?;
-        
-        println!("  Phonemes: {}", phonemes);
         
         // Convert phonemes to token IDs
         let mut token_ids = vec![0i64]; // Start with pad token
@@ -111,22 +102,15 @@ impl KokoroTTS {
             let char_str = c.to_string();
             if let Some(&id) = self.vocab.get(&char_str) {
                 token_ids.push(id);
-            } else {
-                println!("  Warning: Unknown phoneme '{}' (skipping)", c);
             }
         }
         
         token_ids.push(0); // End with pad token
         
-        println!("  Token IDs: {:?}", token_ids);
-        println!("  Token count: {}", token_ids.len());
-        
         // Get the voice embedding for the default voice
         let style = self.voices.get(&self.default_voice)
             .ok_or_else(|| anyhow::anyhow!("Voice '{}' not found", self.default_voice))?
             .clone();
-        
-        println!("  Using voice: {}", self.default_voice);
         
         // Create style tensor (1, 256)
         let style_array = Array2::from_shape_vec((1, 256), style)?;
@@ -136,7 +120,7 @@ impl KokoroTTS {
         let tokens_array = Array2::from_shape_vec((1, tokens_len), token_ids)?;
         let speed_array = Array1::from_vec(vec![1.0f32]);
         
-        // Run inference (using names from the Python example)
+        // Run inference
         let outputs = self.session.run(ort::inputs![
             "tokens" => Value::from_array(tokens_array)?,
             "style" => Value::from_array(style_array)?,
@@ -148,28 +132,16 @@ impl KokoroTTS {
         let (_shape, audio_data) = audio_tensor.try_extract_tensor::<f32>()?;
         let audio: Vec<f32> = audio_data.to_vec();
         
-        println!("✓ Generated {} samples ({:.2}s at 24kHz)", 
-            audio.len(), audio.len() as f64 / 24000.0);
-        
         Ok(audio)
     }
     
     pub fn speak(&mut self, text: &str) -> Result<()> {
+        println!("[TTS] Synthesizing: \"{}\"", text);
+        
         let audio = self.synthesize(text)?;
         
-        // Check if audio is silent (all zeros or near-zero)
-        let max_amplitude = audio.iter().map(|&x| x.abs()).fold(0.0f32, f32::max);
-        let non_zero_count = audio.iter().filter(|&&x| x.abs() > 0.001).count();
-        
-        println!("  Audio stats:");
-        println!("    Max amplitude: {:.4}", max_amplitude);
-        println!("    Non-zero samples: {} / {} ({:.1}%)", 
-            non_zero_count, audio.len(), 
-            (non_zero_count as f64 / audio.len() as f64) * 100.0);
-        
-        if max_amplitude < 0.001 {
-            println!("  ⚠️  WARNING: Audio appears to be silent!");
-        }
+        let duration = audio.len() as f64 / 24000.0;
+        println!("[TTS] Generated {:.2}s of audio", duration);
         
         // Save to output.wav in root
         self.save_wav(&audio, "output.wav")?;
@@ -196,7 +168,6 @@ impl KokoroTTS {
         }
         
         writer.finalize()?;
-        println!("✓ Saved audio to: {}", path);
         
         Ok(())
     }
