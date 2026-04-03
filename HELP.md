@@ -340,3 +340,58 @@ I'm guessing token IDs (h→44, ə→12, l→48, etc.) but these are arbitrary. 
 3. **Or working Rust implementation** - Copy tokenization from `kokoroxide` or similar
 
 Without the correct token mapping, the model will always output silence no matter how good the phonemization is.
+
+
+---
+
+## UPDATE: Attempt 3 - Discovered Token Format Mismatch (STILL SILENT)
+
+**Date:** 2026-04-04  
+**Status:** Found the root cause - phoneme format mismatch
+
+### Critical Discovery
+Kokoro uses **ARPABET phonemes** (e.g., "HH EH L OW" for "hello"), NOT IPA phonemes!
+
+- `ttstokenizer` (Python) outputs ARPABET: "Hello" → [50, 83, 54, 156, 57, 135]
+- `misaki-rs` (Rust) outputs IPA/Misaki notation: "Hello" → "həlˈo‍ʊ"
+- These are INCOMPATIBLE formats!
+
+### The Official Kokoro Vocabulary
+Extracted from `ttstokenizer` Python library:
+```
+  0: '<pad>'     22: 'B'        50: 'OW0'
+  1: '<unk>'     23: 'CH'       51: 'OW1'
+  2: '<s>'       24: 'D'        54: 'OY1'  (L in ARPABET)
+  3: '</s>'      25: 'DH'       57: 'R'
+  4: 'AA0'       ...            83: (HH in ARPABET)
+  ...            46: 'L'        156: (EH in ARPABET)
+```
+
+### Why It's Still Silent
+My current implementation:
+1. Uses `misaki-rs` to generate IPA phonemes: "həlˈo‍ʊ"
+2. Maps IPA characters to guessed token IDs: [50, 27, 54, 137, 20, ...]
+3. Model expects ARPABET token IDs: [HH, EH, L, OW]
+4. Result: Garbage tokens → silent audio
+
+### Solution Options
+
+**Option 1: Use ttstokenizer directly (EASIEST)**
+- Call Python `ttstokenizer` from Rust
+- Gets correct ARPABET tokens immediately
+- Downside: Requires Python at runtime
+
+**Option 2: Port ttstokenizer to Rust (PROPER)**
+- Implement ARPABET G2P in pure Rust
+- Use CMUDict for word→phoneme lookup
+- Complex but no Python dependency
+
+**Option 3: IPA→ARPABET conversion (HACKY)**
+- Keep `misaki-rs` for IPA generation
+- Create IPA→ARPABET mapping table
+- Fragile and error-prone
+
+### Recommendation
+Use Option 1 (Python ttstokenizer) as a temporary solution, then implement Option 2 for a pure Rust solution.
+
+The phonemization works, the ONNX inference works, the audio generation works. Only the token format is wrong.

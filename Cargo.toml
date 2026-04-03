@@ -45,6 +45,9 @@ espeak-rs = "0.1.9"
 tokenizers = "0.22.2"
 voice-g2p = "0.2.2"
 kokoro-tiny = { version = "0.1.0", features = ["playback"] }
+misaki-rs = "0.3.0"
+ort = { version = "2.0.0-rc.12", features = ["download-binaries", "copy-dylibs"] }
+ndarray-npy = "0.10.0"
 
 [lib]
 name = "flow"

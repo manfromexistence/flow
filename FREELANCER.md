@@ -8,10 +8,11 @@ Dashboard - Real-time metrics showing document counts, pending approvals, recent
 Search & Filters - Find documents quickly by number, discipline, status, or revision
 Notifications - In-app notification center for all document activities (email notifications ready to configure)
 
-As I told you earlier, I can do this project in one day. I literally did this project in less than one day. There is still some work but the main MVP of the project, the code functionalities under the hood, are all working correctly. I tested all APIs. 
+As I told you earlier, I can do this project in one day. I literally did this project in less than one day(Actually in 1st day it was mostly done). The core functionalities under the hood, are all working correctly. I tested all APIs.
+now do you want to add more features? like these:
 Time Tracking - Live project time tracking with productivity insights and team collaboration
 Magic Inbox - Automatically matches incoming invoices and receipts to transactions
 Vault - Secure document storage for contracts and important files
 Financial Export - Easy CSV export of financial data for accountants
+Invoicing - Web-based invoice creation with real-time collaboration
 AI Assistant - Provides insights on spending patterns, cost optimization, and document retrieval
-Invoicing - Web-based invoice creation with real-time collaboration (upcoming)
